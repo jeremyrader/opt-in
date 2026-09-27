@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OPT/IN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--cy:#38e1ff;--pk:#ff3bd4;--rd:#ff3b5c;--yl:#ffd23b;--gr:#7dff6a;--bg:#07070f}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:#e8ecff;font-family:'Chakra Petch','Segoe UI',system-ui,sans-serif;user-select:none}
+body.playing{cursor:none}
+body.playing.paused{cursor:default}
+#c{display:block;position:fixed;inset:0}
+.vign{position:fixed;inset:0;pointer-events:none;z-index:4;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.7))}
+.scan{position:fixed;inset:0;pointer-events:none;z-index:30;background:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 1px,transparent 1px 3px)}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;cursor:default}
+.hidden{display:none!important}
+button{font-family:inherit;cursor:pointer;border:none}
+.neon{background:transparent;color:var(--cy);border:2px solid var(--cy);padding:14px 56px;font-size:26px;font-weight:700;letter-spacing:6px;box-shadow:0 0 18px rgba(56,225,255,.5),inset 0 0 18px rgba(56,225,255,.25);transition:transform .08s,background .15s}
+.neon:hover{background:rgba(56,225,255,.15);transform:scale(1.05)}
+.neon:active{transform:scale(.97)}
+
+/* ---------- glitch ---------- */
+.glitch{position:relative;display:inline-block}
+.glitch::before,.glitch::after{content:attr(data-t);position:absolute;left:0;top:0;width:100%;overflow:hidden}
+.glitch::before{color:var(--pk);transform:translate(-3px,0);clip-path:inset(0 0 60% 0);animation:gl1 2.2s infinite steps(1)}
+.glitch::after{color:var(--cy);transform:translate(3px,0);clip-path:inset(55% 0 0 0);animation:gl2 1.7s infinite steps(1)}
+@keyframes gl1{0%,86%{clip-path:inset(0 0 100% 0)}88%{clip-path:inset(10% 0 55% 0);transform:translate(-6px,0)}92%{clip-path:inset(40% 0 30% 0);transform:translate(5px,0)}96%{clip-path:inset(70% 0 5% 0)}}
+@keyframes gl2{0%,80%{clip-path:inset(100% 0 0 0)}83%{clip-path:inset(60% 0 10% 0);transform:translate(6px,0)}90%{clip-path:inset(20% 0 60% 0);transform:translate(-4px,0)}}
+
+/* ---------- title ---------- */
+#title{background:radial-gradient(ellipse at center,rgba(7,7,15,.2),rgba(7,7,15,.85))}
+.logoBig{font-size:clamp(64px,13vw,170px);font-weight:700;letter-spacing:.06em;line-height:1;color:#fff;text-shadow:0 0 30px rgba(56,225,255,.6)}
+.logoBig b{color:var(--pk);text-shadow:0 0 30px rgba(255,59,212,.8)}
+.tag{font-size:clamp(18px,2.4vw,28px);letter-spacing:.35em;margin:10px 0 40px;color:#aab3d9}
+.tag i{font-style:normal;color:var(--rd)}
+.controls{margin-top:34px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#7c86b0;letter-spacing:1px;text-align:center;line-height:1.9}
+.controls kbd{border:1px solid #3a4270;border-radius:4px;padding:1px 7px;color:#cfd6ff;background:#11142a}
+.best{margin-top:18px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--yl);min-height:1em;text-align:center}
+.legal{position:absolute;bottom:14px;font-size:10px;color:#454b6b;letter-spacing:1px;font-family:'JetBrains Mono',monospace}
+.infoLine{margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#8a92c0;text-align:center;max-width:680px;line-height:1.7}
+.infoLine span{display:inline-block;padding:1px 8px;margin:2px;border:1px solid #2c3260;border-radius:3px}
+.infoLine span.on{border-color:var(--rd);color:var(--rd)}
+
+/* ---------- HUD ---------- */
+#hud{position:fixed;inset:0;pointer-events:none;z-index:6;font-family:'JetBrains Mono',monospace}
+#hudL{position:absolute;left:18px;top:14px}
+#hearts{font-size:22px;letter-spacing:3px;color:var(--rd);text-shadow:0 0 10px rgba(255,59,92,.7)}
+#hearts .e{color:#2b2f48;text-shadow:none}
+#waveL{font-size:13px;color:#8a92c0;margin-top:4px;letter-spacing:2px}
+#scoreL{font-family:'Chakra Petch';font-size:30px;font-weight:700;color:#fff;line-height:1.1}
+#coinL{font-size:18px;color:var(--yl);text-shadow:0 0 10px rgba(255,210,59,.6)}
+#comboL{font-family:'Chakra Petch';font-size:22px;font-weight:700;color:var(--pk);height:28px;transition:transform .08s}
+#hudR{position:absolute;right:18px;top:14px;text-align:right;width:280px}
+.hlab{font-size:10px;letter-spacing:3px;color:#6a7299;margin-bottom:5px}
+#chips{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:5px}
+.chip{font-size:11px;padding:3px 6px;border:1px solid #23284a;color:#3c4370;border-radius:3px;background:rgba(7,7,15,.6)}
+.chip.on{color:#07070f;background:var(--c);border-color:var(--c);box-shadow:0 0 10px var(--c);font-weight:700}
+#chips .chip{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-width:54px;font-size:16px;line-height:1;padding:5px 6px 4px;border-radius:4px;font-weight:400}
+#chips .chip .cl{font-size:8px;letter-spacing:.4px;font-weight:700;margin-top:3px;line-height:1.1;color:#4a5178}
+#chips .chip.on .cl{color:#07070f}
+#expBar{height:6px;background:#161a33;margin-top:8px;border-radius:3px;overflow:hidden}
+#expFill{height:100%;width:0;background:linear-gradient(90deg,var(--yl),var(--rd));transition:width .4s}
+#infs{margin-top:8px;display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.infc{font-size:10px;letter-spacing:1px;padding:2px 7px;background:rgba(255,59,92,.15);border-left:3px solid var(--rd);color:#ff9aab}
+.infc.beh{background:rgba(192,75,255,.15);border-left-color:#c04bff;color:#dcb0ff}
+.infc.beh.weak{opacity:.55;border-left-style:dashed}
+#dashBar{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);font-size:10px;letter-spacing:3px;color:#6a7299;text-align:center}
+#hookNag{position:absolute;left:50%;top:14px;transform:translateX(-50%);font-size:11px;letter-spacing:1px;color:#ffd23b;text-align:center;text-shadow:0 0 10px rgba(255,210,59,.4);line-height:1.5;pointer-events:none}
+#hookNag:empty{display:none}
+
+/* ---------- banner ---------- */
+#banner{position:fixed;left:0;right:0;top:34%;text-align:center;z-index:8;pointer-events:none;opacity:0}
+#banner.show{animation:ban var(--d,1.6s) ease-out forwards}
+#banner .bt{font-size:clamp(40px,7vw,86px);font-weight:700;letter-spacing:.12em;color:var(--bc,#fff);text-shadow:0 0 30px var(--bc,#fff)}
+#banner .bs{font-family:'JetBrains Mono';font-size:15px;color:#cfd6ff;margin-top:6px;letter-spacing:1px}
+@keyframes ban{0%{opacity:0;transform:scale(1.6)}10%{opacity:1;transform:scale(1)}80%{opacity:1}100%{opacity:0;transform:scale(.96)}}
+
+/* ---------- terms ---------- */
+#terms{background:rgba(4,4,10,.72);backdrop-filter:blur(3px)}
+.tos{width:min(1000px,94vw);max-height:94vh;overflow:auto;background:#f4f5fb;color:#1b1e2e;border-radius:14px;padding:22px 26px 16px;box-shadow:0 30px 80px rgba(0,0,0,.6);animation:pop .28s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.tosHead{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.tosLogo{font-weight:700;font-size:22px;background:#111;color:#fff;padding:2px 10px;border-radius:6px}
+.tosLogo b{color:var(--pk)}
+.tosT{font-weight:700;font-size:20px;flex:1}
+#urgency{font-family:'JetBrains Mono';font-size:13px;color:#fff;background:#e0224a;padding:5px 10px;border-radius:6px;animation:pulse 1s infinite}
+#urgency:empty{display:none;padding:0;animation:none}
+#urgency.hold{background:#7b3cff}
+@keyframes pulse{50%{transform:scale(1.06)}}
+.tosSub{font-size:14px;color:#555b78;margin:6px 0 14px}
+#cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.card{background:#fff;border-radius:12px;padding:16px 14px 14px;border:2px solid #e3e5f0;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;transition:transform .12s,box-shadow .12s;animation:cardIn .35s backwards}
+.card:nth-child(2){animation-delay:.07s}.card:nth-child(3){animation-delay:.14s}
+@keyframes cardIn{from{transform:translateY(30px);opacity:0}}
+.card:hover{transform:translateY(-4px);box-shadow:0 10px 26px rgba(40,40,90,.18)}
+.ctag{position:absolute;top:10px;left:10px;font-size:10px;font-weight:700;letter-spacing:2px;color:#8a8fa8}
+.chot{position:absolute;top:10px;right:10px;font-size:10px;font-weight:700;background:var(--yl);color:#111;padding:1px 6px;border-radius:4px}
+.cicon{font-size:46px;margin:8px 0 2px}
+.cname{font-weight:700;font-size:20px;letter-spacing:1px}
+.cdesc{font-size:14px;color:#474c66;margin:4px 0 12px;min-height:40px}
+.stack{font-size:12px;font-weight:700;color:#111;background:#ffd23b;border-radius:6px;padding:6px 8px;margin:-4px 0 10px;line-height:1.35;width:100%}
+.stack b{display:block;font-size:10px;letter-spacing:1px;color:#6a5200;margin-bottom:2px}
+.accept{width:100%;background:linear-gradient(180deg,#2bd46b,#14a44e);color:#fff;font-size:20px;font-weight:700;padding:12px;border-radius:9px;box-shadow:0 4px 0 #0c7a39;letter-spacing:1px}
+.accept span{font-size:13px;background:rgba(255,255,255,.25);padding:1px 6px;border-radius:4px;margin-left:4px}
+.accept:hover{filter:brightness(1.08)}
+.accept:active{transform:translateY(3px);box-shadow:0 1px 0 #0c7a39}
+.req{font-size:11px;color:#9a9fb5;margin:7px 0 4px}
+.warn{font-size:11px;color:#e0224a;font-weight:700;margin-bottom:4px}
+.pay{background:none;color:#a2a6ba;font-size:12px;text-decoration:underline;padding:4px}
+.pay:hover:not(:disabled){color:#333}
+.buy{width:100%;background:#1b1e2e;color:var(--yl);font-size:18px;font-weight:700;padding:11px;border-radius:9px}
+.buy:hover:not(:disabled){background:#2b2f48}
+button:disabled{opacity:.35;cursor:not-allowed}
+.tosFoot{text-align:center;margin-top:12px}
+#decline{background:none;color:#b0b4c6;font-size:11px}
+#decline:hover{color:#555}
+.fine{margin-top:10px;font-size:11px;color:#8a8fa8}
+.fine summary{cursor:pointer;font-size:10px}
+#fineText{max-height:min(42vh,320px);overflow:auto;margin-top:6px;line-height:1.55;font-size:10px;color:#9a9fb5;padding-right:6px;border:1px solid #e3e5f0;border-radius:6px;padding:8px 8px 8px 10px;background:#fff}
+#toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--yl);color:#111;font-weight:700;padding:10px 20px;border-radius:8px;z-index:40;font-size:16px;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.show{opacity:1}
+
+/* ---------- reveal ---------- */
+#reveal{background:rgba(20,0,8,.86);text-align:center;cursor:pointer;animation:rvIn .25s}
+@keyframes rvIn{0%{background:rgba(255,40,80,.9)}100%{background:rgba(20,0,8,.86)}}
+.rvSmall{font-family:'JetBrains Mono';font-size:14px;letter-spacing:6px;color:var(--rd)}
+#rvEq{margin:22px 0 10px;font-family:'JetBrains Mono';font-size:18px;color:#fff;display:flex;gap:12px;align-items:center;justify-content:center}
+#rvEq .chip{font-size:16px;padding:6px 12px}
+#rvName{font-size:clamp(40px,7vw,90px);font-weight:700;color:#fff;letter-spacing:.06em;text-shadow:0 0 30px var(--rd)}
+#rvDesc{font-size:20px;color:#ffb3c0;margin-top:8px;max-width:700px}
+#rvWhy{font-family:'JetBrains Mono';font-size:13px;color:#a47a85;margin-top:18px;max-width:640px;line-height:1.6}
+.rvHint{margin-top:30px;font-size:11px;color:#6b3a47;letter-spacing:3px}
+#reveal.beh{background:rgba(14,4,24,.9);animation:rvInB .25s}
+@keyframes rvInB{0%{background:rgba(192,75,255,.9)}100%{background:rgba(14,4,24,.9)}}
+#reveal.beh .rvSmall{color:#c04bff}
+#reveal.beh #rvName{text-shadow:0 0 30px #c04bff}
+#reveal.beh #rvDesc{color:#dcb0ff}
+#reveal.beh #rvWhy{color:#8f7aa8}
+#reveal.beh #rvEq{font-size:16px}
+
+/* ---------- dossier ---------- */
+#dossier{background:rgba(5,5,10,.93);overflow:auto;justify-content:flex-start;padding:30px 16px}
+.dos{width:min(1040px,96vw);font-family:'JetBrains Mono',monospace;border:1px solid #2a2f55;background:#0b0c18;padding:22px 26px;position:relative;animation:pop .3s}
+.dosTop{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;border-bottom:1px dashed #2a2f55;padding-bottom:12px}
+.dosId{font-size:11px;color:#6a7299;letter-spacing:2px}
+.dosH{font-family:'Chakra Petch';font-size:34px;font-weight:700;color:#fff;letter-spacing:2px}
+.dosRank{font-family:'Chakra Petch';font-size:22px;font-weight:700;color:var(--c,#38e1ff)}
+.stamp{align-self:center;margin:14px auto;white-space:nowrap;pointer-events:none;transform:rotate(-12deg);border:4px solid var(--rd);color:var(--rd);font-family:'Chakra Petch';font-weight:700;font-size:26px;padding:4px 14px;letter-spacing:3px;opacity:0;animation:stamp .35s 2.2s forwards}
+@keyframes stamp{from{opacity:0;transform:rotate(-12deg) scale(2.4)}to{opacity:.85;transform:rotate(-12deg) scale(1)}}
+.dosGrid{display:grid;grid-template-columns:320px 1fr;gap:26px;margin-top:16px}
+@media(max-width:760px){.dosGrid{grid-template-columns:1fr}#cards{grid-template-columns:1fr}}
+.sec{font-size:10px;letter-spacing:3px;color:#6a7299;margin:14px 0 7px}
+.sec:first-child{margin-top:0}
+#heat{display:block;width:320px;height:200px;border:1px solid #2a2f55;background:#06060c;image-rendering:pixelated}
+.stat{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;border-bottom:1px solid #15182c}
+.stat b{color:#fff}
+.infBlock{margin-bottom:18px}
+.infBlock .sec{margin:0 0 8px}
+.inf{font-size:14px;line-height:1.45;padding:8px 0 8px 12px;border-left:2px solid #2a2f55;margin-bottom:4px;opacity:0;animation:typeIn .4s forwards;color:#c8cff5}
+.inf .k{display:block;font-size:10px;letter-spacing:2px;color:#6a7299;margin-bottom:3px}
+.inf b{color:var(--cy)}
+.inf.red{border-color:var(--rd)}.inf.red b{color:#ff8fa3}
+@keyframes typeIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+.value{font-family:'Chakra Petch';font-size:40px;font-weight:700;color:var(--gr);text-shadow:0 0 20px rgba(125,255,106,.4)}
+.achs{display:flex;flex-wrap:wrap;gap:6px}
+.ach{font-size:11px;padding:4px 8px;border:1px solid #23284a;color:#3c4370}
+.ach.on{border-color:var(--yl);color:var(--yl)}
+.ach.new{background:var(--yl);color:#111;animation:pulse .6s 4}
+.dosBtns{display:flex;gap:14px;justify-content:center;margin-top:22px;flex-wrap:wrap;align-items:center}
+.ghost{background:none;border:1px solid #3a4270;color:#8a92c0;padding:10px 18px;font-family:'JetBrains Mono';font-size:12px}
+.ghost:hover{color:#fff;border-color:#fff}
+#pause{background:rgba(5,5,10,.88);padding:16px;justify-content:center}
+.pauseBox{width:min(920px,96vw);max-height:92vh;display:flex;flex-direction:column;border:1px solid #2a2f55;background:#0b0c18;padding:18px 20px}
+.pauseTop{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;border-bottom:1px dashed #2a2f55;padding-bottom:10px;margin-bottom:12px}
+.pauseH{font-family:'Chakra Petch';font-size:32px;font-weight:700;letter-spacing:6px;color:#fff;line-height:1}
+.pauseHint{font-family:'JetBrains Mono';font-size:11px;color:#8a92c0;letter-spacing:1px}
+.pauseHint kbd{border:1px solid #3a4270;border-radius:4px;padding:1px 6px;color:#cfd6ff}
+.pauseBody{display:grid;grid-template-columns:minmax(230px,.85fr) 1.2fr;gap:14px;min-height:0;flex:1;max-height:min(68vh,560px);overflow:hidden}
+#pauseList{overflow:auto;display:flex;flex-direction:column;gap:4px}
+.prow{width:100%;text-align:left;background:#111428;border:1px solid #23284a;color:#c8cff5;padding:8px 10px;border-radius:4px;font-family:'JetBrains Mono';font-size:12px;cursor:pointer;border-left:3px solid #23284a}
+.prow.off{opacity:.42}
+.prow.sel{border-color:#fff;background:#181c36}
+.prow .ps{display:block;font-size:9px;letter-spacing:1px;color:#6a7299;margin-top:2px}
+#pauseDetail{overflow:auto;border:1px solid #23284a;background:#080914;padding:14px 16px;text-align:left;font-family:'JetBrains Mono';font-size:13px;line-height:1.55;color:#c8cff5}
+#pauseDetail h3{font-family:'Chakra Petch';font-size:22px;letter-spacing:1px;color:#fff;margin:0 0 8px}
+#pauseDetail .fx{color:#ffb3c0;margin:8px 0}
+#pauseDetail .why{color:#8a92c0;margin-top:12px;font-size:12px}
+#pauseDetail .need{font-size:11px;color:#aab3d9;margin:6px 0}
+@media(max-width:760px){.pauseBody{grid-template-columns:1fr;max-height:70vh}}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="vign"></div>
+
+<div id="hud" class="hidden">
+  <div id="hudL">
+    <div id="hearts"></div>
+    <div id="scoreL">0</div>
+    <div id="coinL">◈ 0</div>
+    <div id="waveL">WAVE 1</div>
+    <div id="comboL"></div>
+  </div>
+  <div id="hudR">
+    <div class="hlab">DATA SHARED</div>
+    <div id="chips"></div>
+    <div class="hlab" style="margin-top:8px">EXPOSURE</div>
+    <div id="expBar"><div id="expFill"></div></div>
+    <div id="infs"></div>
+  </div>
+  <div id="dashBar"></div>
+  <div id="hookNag"></div>
+</div>
+
+<div id="banner"><div class="bt"></div><div class="bs"></div></div>
+<div id="toast"></div>
+
+<div id="title" class="screen">
+  <div class="logoBig glitch" data-t="OPT/IN">OPT<b>/</b>IN</div>
+  <div class="tag">EVERYTHING IS <i>FREE</i>.</div>
+  <button id="startBtn" class="neon">PLAY</button>
+  <div class="controls">
+    <kbd>WASD</kbd> move &nbsp; <kbd>MOUSE</kbd> aim (auto-fire) &nbsp; <kbd>SPACE</kbd> dash<br>
+    <kbd>P</kbd> pause (inspect profile) &nbsp; <kbd>M</kbd> mute
+  </div>
+  <div class="best" id="bestLine"></div>
+  <div class="infoLine" id="discLine"></div>
+  <div class="legal">By pressing PLAY you agree to be observed.</div>
+</div>
+
+<div id="terms" class="screen hidden">
+  <div class="tos">
+    <div class="tosHead">
+      <span class="tosLogo">OPT<b>/</b>IN</span>
+      <span class="tosT" id="tosT">Your Terms of Service have been updated</span>
+      <span id="urgency"></span>
+    </div>
+    <div class="tosSub" id="tosSub"></div>
+    <div id="cards"></div>
+    <div class="tosFoot"><div id="priceNote" class="req"></div><button id="decline">No thanks, I prefer to struggle. (repair 1 ♥)</button></div>
+    <details class="fine" id="fineBox"><summary>Terms &amp; Conditions (optional reading)</summary><div id="fineText"></div></details>
+  </div>
+</div>
+
+<div id="reveal" class="screen hidden">
+  <div class="rvSmall" id="rvSmall">NEW INFERENCE GENERATED</div>
+  <div id="rvEq"></div>
+  <div id="rvName" class="glitch"></div>
+  <div id="rvDesc"></div>
+  <div id="rvWhy"></div>
+  <div class="rvHint">CLICK TO CONTINUE</div>
+</div>
+
+<div id="pause" class="screen hidden">
+  <div class="pauseBox">
+    <div class="pauseTop">
+      <div><div class="dosId">WHAT'S ON YOU</div><div class="pauseH">PAUSED</div></div>
+      <div class="pauseHint">Click a row to see what it does · <kbd>P</kbd> resume</div>
+    </div>
+    <div class="pauseBody">
+      <div id="pauseList"></div>
+      <div id="pauseDetail"></div>
+    </div>
+  </div>
+</div>
+<div id="dossier" class="screen hidden"></div>
+<div class="scan"></div>
+
+<script>
+'use strict';
+// ================= utilities =================
+const $=id=>document.getElementById(id);
+const rand=(a,b)=>a+Math.random()*(b-a);
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const TAU=Math.PI*2;
+const store={get(k,d){try{const v=localStorage.getItem('optin_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('optin_'+k,JSON.stringify(v))}catch(e){}},clear(){try{Object.keys(localStorage).filter(k=>k.startsWith('optin_')).forEach(k=>localStorage.removeItem(k))}catch(e){}}};
+
+const cv=$('c'),g=cv.getContext('2d');
+let W=innerWidth,H=innerHeight,DPR=1;
+function resize(){DPR=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DPR|0;cv.height=H*DPR|0;cv.style.width=W+'px';cv.style.height=H+'px';if(S&&S.p){S.p.x=clamp(S.p.x,0,W);S.p.y=clamp(S.p.y,0,H)}}
+let S=null;
+addEventListener('resize',resize);resize();
+
+// ================= audio =================
+let AC=null,master,musicGain,noiseBuf,muted=store.get('muted',false);
+function initAudio(){
+  if(!AC){
+    AC=new (window.AudioContext||window.webkitAudioContext)();
+    const comp=AC.createDynamicsCompressor();comp.connect(AC.destination);
+    master=AC.createGain();master.gain.value=muted?0:.8;master.connect(comp);
+    musicGain=AC.createGain();musicGain.gain.value=.55;musicGain.connect(master);
+    noiseBuf=AC.createBuffer(1,AC.sampleRate,AC.sampleRate);
+    const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+    nextNote=AC.currentTime+.1;
+  }
+  if(AC.state==='suspended')AC.resume();
+}
+function tone(f,d,type='square',v=.08,slide=1,delay=0,dest){
+  if(!AC)return;const t=AC.currentTime+delay,o=AC.createOscillator(),gn=AC.createGain();
+  o.type=type;o.frequency.setValueAtTime(f,t);if(slide!==1)o.frequency.exponentialRampToValueAtTime(Math.max(20,f*slide),t+d);
+  gn.gain.setValueAtTime(v,t);gn.gain.exponentialRampToValueAtTime(.0001,t+d);
+  o.connect(gn).connect(dest||master);o.start(t);o.stop(t+d+.02);
+}
+function noise(d,v=.2,f=1000,type='lowpass',delay=0,dest){
+  if(!AC)return;const t=AC.currentTime+delay,s=AC.createBufferSource(),fl=AC.createBiquadFilter(),gn=AC.createGain();
+  s.buffer=noiseBuf;fl.type=type;fl.frequency.value=f;gn.gain.setValueAtTime(v,t);gn.gain.exponentialRampToValueAtTime(.0001,t+d);
+  s.connect(fl).connect(gn).connect(dest||master);s.start(t,Math.random()*.5);s.stop(t+d+.02);
+}
+let lastShoot=0;
+const sfx={
+  shoot(){const n=performance.now();if(n-lastShoot<55)return;lastShoot=n;tone(rand(820,900),.05,'square',.018,.45)},
+  hit(){tone(rand(260,320),.05,'square',.035,.6)},
+  kill(){noise(.16,.16,1400);tone(rand(150,190),.14,'sawtooth',.05,.3)},
+  big(){noise(.7,.35,700);tone(90,.6,'sawtooth',.12,.2);tone(45,.8,'sine',.2,.5)},
+  hurt(){noise(.3,.3,500);tone(140,.35,'square',.1,.35)},
+  coin(k){tone(1100+Math.min(k,20)*45,.07,'triangle',.045,1.4)},
+  dash(){noise(.14,.1,3500,'highpass');tone(380,.12,'sine',.05,2.6)},
+  select(){tone(660,.08,'triangle',.08,1.5);tone(990,.14,'triangle',.08,1.5,.07)},
+  deny(){tone(140,.18,'square',.08,.8)},
+  alarm(){for(let i=0;i<5;i++){tone(880,.18,'square',.06,.6,i*.22);tone(440,.18,'square',.04,.6,i*.22+.11)}},
+  reveal(){tone(330,1.4,'sawtooth',.09,.2);tone(165,1.6,'square',.06,.25);noise(1.2,.18,400)},
+  spawn(){tone(520,.08,'sine',.015,1.9)},
+  graze(){tone(2000,.035,'sine',.025,1.3)},
+  wave(){[440,554,660,880].forEach((f,i)=>tone(f,.14,'triangle',.07,1,i*.08))},
+  secret(){[523,659,784,1046,1318].forEach((f,i)=>tone(f,.12,'triangle',.08,1,i*.07))},
+  adpop(){tone(1400,.06,'square',.03,.7);tone(1000,.08,'square',.03,.7,.05)}
+};
+function toggleMute(){muted=!muted;store.set('muted',muted);if(master)master.gain.value=muted?0:.8;toast(muted?'MUTED':'SOUND ON')}
+
+// ---- music: step sequencer; tempo/volume swell at peaks if they sold the data ----
+let nextNote=0,step=0,curBpm=118;
+const mtof=m=>440*Math.pow(2,(m-69)/12);
+const BASS=[33,33,45,33,36,36,48,36,31,31,43,31,29,29,41,28];
+function musicPush(bpm,vol,sec){
+  if(!S)return;
+  const p=S.musicPush;
+  if(p&&S.t<p.until&&p.bpm>bpm)return;
+  S.musicPush={bpm,vol,until:S.t+sec};
+}
+function musicMood(){
+  let bpm=118+Math.min(S.wave,12)*2,vol=.55;
+  const p=S.p,sh=t=>S.shared[t],play=S.mode==='play';
+  if(sh('HEA')&&play&&p.hp<=2){bpm+=20;vol+=.2}
+  if(sh('HEA')&&play&&p.hp===1){bpm+=8;vol+=.08}
+  if(sh('BIO')&&play&&p.hp<=2){bpm+=8;vol+=.05}
+  if(sh('BIO')&&play&&S.combo>=8){bpm+=10;vol+=.1}
+  if(sh('HAB')&&play&&S.combo>=5){bpm+=12+Math.min(10,S.combo-5);vol+=.12}
+  if(sh('HAB')&&S.mode==='clear'){bpm+=10;vol+=.1}
+  if(sh('CON')&&(play||S.mode==='clear')){bpm+=5;vol+=.04}
+  if(sh('MSG')&&S.unread>=2){bpm+=5;vol+=.06}
+  if(sh('LOC')&&p.inWifi&&p.wifiStill){bpm-=8;vol+=.08}
+  if((sh('HAB')||sh('HEA'))&&(S.mode==='terms'||S.mode==='reveal')){bpm-=18;vol-=.18}
+  if(S.musicPush&&S.t<S.musicPush.until){bpm+=S.musicPush.bpm;vol+=S.musicPush.vol}
+  return {bpm:clamp(bpm,88,176),vol:clamp(vol,.18,.92)};
+}
+function musicTick(){
+  if(!AC||!S||!musicGain)return;
+  const mood=S.paused?{bpm:curBpm,vol:.2}:musicMood();
+  curBpm+=(mood.bpm-curBpm)*.05;
+  musicGain.gain.setTargetAtTime(mood.vol,AC.currentTime,.25);
+  if(S.paused)return;
+  const inGame=S.mode==='play'||S.mode==='clear'||S.mode==='breach';
+  const spd=60/curBpm/4,panic=S.shared.HEA&&S.p.hp<=2&&inGame,hype=S.shared.HAB&&S.combo>=5&&inGame,glow=S.shared.BIO&&S.combo>=8&&inGame;
+  while(nextNote<AC.currentTime+.12){
+    const t=nextNote-AC.currentTime,s=step%64;
+    if(inGame){
+      if(s%4===0)tone(150,panic?.18:.13,'sine',panic?.32:.22,.28,t,musicGain);
+      if(panic&&s%4===2)tone(80,.1,'sine',.2,.4,t,musicGain);
+      if(s%4===2)noise(.03,hype?.08:.05,7000,'highpass',t,musicGain);
+      if((S.wave>=3||hype)&&s%2===1)noise(.02,.025,9000,'highpass',t,musicGain);
+      if(s%16===8&&S.wave>=2)noise(.12,.1,2000,'bandpass',t,musicGain);
+      if(glow&&s%8===2)tone(mtof(BASS[Math.floor(s/2)%16]+36),.12,'sine',.022,1,t,musicGain);
+    }
+    if(s%2===0){const n=BASS[Math.floor(s/2)%16];tone(mtof(n),spd*1.8,'sawtooth',inGame?.05:.025,1,t,musicGain)}
+    if(inGame&&(S.wave>=4||hype)&&s%8===4)tone(mtof(BASS[Math.floor(s/2)%16]+24),.2,'triangle',.025,1,t,musicGain);
+    nextNote+=spd;step++;
+  }
+}
+
+// ================= data model =================
+const TYPES=['LOC','CON','BIO','HEA','MSG','HAB'];
+const DATA={
+  LOC:{n:'LOCATION',s:'LOCATION',i:'📍',c:'#38e1ff',v:.9,
+    fx:'Ads now talk about nearby places and "your area." After wave 1 it claims players near you have not left yet. Standing still on free Wi-Fi slows and swells the music so the hotspot feels safe.',
+    why:'Where a device spends time is enough to infer school, home, and routines — no address form required.'},
+  CON:{n:'CONTACTS',s:'CONTACTS',i:'👥',c:'#ff5ad9',v:.6,
+    fx:'Ads now name your "friends." A contact stays one wave ahead of you, and the mix stays a little faster so you feel behind.',
+    why:'Sharing contacts shares people who never tapped Accept. Their data rides along with yours.'},
+  BIO:{n:'FACE SCAN',s:'FACE',i:'📷',c:'#ffd23b',v:1.3,
+    fx:'Ads now comment on your face. When you combo it labels you happy and brightens the music; when you get hit it labels you stressed and the mix tightens.',
+    why:'A face print can be matched in any camera feed. Stores and cities already run this on crowds.'},
+  HEA:{n:'HEALTH',s:'HEALTH',i:'💓',c:'#ff6b6b',v:1.5,
+    fx:'When your hearts are low, ads push health products, the game tells you not to quit, and the music races like a heartbeat. Grazes pay more, so risky play feels rewarding.',
+    why:'Heart-rate and wellness data can be sold as risk and emotion. Advertisers pay extra to reach people who are stressed.'},
+  MSG:{n:'MESSAGES',s:'MESSAGES',i:'💬',c:'#7dff6a',v:.8,
+    fx:'Ads now pretend to know your chats. Unread badges tick up mid-fight and each ping briefly turns the music up.',
+    why:'Message metadata shows who you talk to and when, even when the words stay private.'},
+  HAB:{n:'HABITS',s:'HABITS',i:'📊',c:'#b48cff',v:.7,
+    fx:'The model learns your patterns faster. Combos last longer, jackpots and live streaks pump the soundtrack, and a broken streak guilt-trips you into one more wave.',
+    why:'How you move, hesitate, and choose is a fingerprint. It can be collected without a permission prompt.'}
+};
+const PERKS=[
+  {id:'route',name:'SAFE ROUTE',icon:'🧭',data:'LOC',tag:'SAFETY',desc:'See the path of every incoming shot. +10% speed.',again:'Shot paths stay on. Another +10% speed.',apply:p=>{p.lines=true;p.speed*=1.1}},
+  {id:'squad',name:'SQUAD SYNC',icon:'🛸',data:'CON',tag:'SOCIAL',desc:'A friend drone orbits you and fires on its own.',again:'Another drone joins the first.',apply:p=>{p.drones++}},
+  {id:'face',name:'FACE UNLOCK',icon:'⚡',data:'BIO',tag:'ACCESS',desc:'Dash recharges 2× faster.',again:'Dash cooldown halves again.',apply:p=>{p.dashCD*=.5}},
+  {id:'sos',name:'WELLNESS GUARD',icon:'🚑',data:'HEA',tag:'SAFETY',desc:'Auto-SOS revives you once. Heal 1♥ every wave.',again:'Another SOS revive. The wave heal does not stack.',apply:p=>{p.revives++;p.regen=1}},
+  {id:'reply',name:'SMART REPLY',icon:'⌨️',data:'MSG',tag:'CONVENIENCE',desc:'+30% fire rate. It knows what you want to say.',again:'Another +30% fire rate.',apply:p=>{p.fireRate*=1.3}},
+  {id:'aim',name:'SMART AIM',icon:'🎯',data:'HAB',tag:'COMBAT',desc:'Shots curve toward enemies your reticle has hovered.',again:'Stronger curve on marked targets.',apply:p=>{p.homing+=3}},
+  {id:'armor',name:'ARMOR PLATE',icon:'🛡️',data:null,tag:'DEFENSE',desc:'+1 max ♥ and heal 1.',again:'Another +1 max ♥ and heal 1.',apply:p=>{p.maxHp++;p.hp=Math.min(p.maxHp,p.hp+1)}},
+  {id:'heavy',name:'HEAVY ROUNDS',icon:'💥',data:null,tag:'POWER',desc:'+1 damage per shot.',again:'Another +1 damage per shot.',apply:p=>{p.dmg++}},
+  {id:'split',name:'SPLIT SHOT',icon:'🔱',data:null,tag:'POWER',desc:'+1 projectile per volley.',again:'Another projectile per volley.',apply:p=>{p.shots++}},
+  {id:'magnet',name:'MAGNET',icon:'🧲',data:null,tag:'UTILITY',desc:'Pull credits from much farther away. +8% speed.',again:'Even farther pull. Another +8% speed.',apply:p=>{p.magnet+=140;p.speed*=1.08}}
+];
+const INF=[
+  {id:'predict',need:['LOC','HAB'],name:'ROUTE PREDICTED',desc:'Enemies now aim where you WILL be, not where you are.',why:'Where you go + when you go = where you\'re going next. Navigation apps use this to guess your destination before you type it.'},
+  {id:'face',need:['BIO','LOC'],name:'FACE MATCHED',desc:'Surveillance cameras now appear and track you.',why:'A face scan plus location lets any camera recognize you. Some cities and stores already run face recognition on crowds.'},
+  {id:'graph',need:['CON','MSG'],name:'SOCIAL GRAPH MAPPED',desc:'Your friends\' data came with yours. +40% enemies per wave.',why:'Sharing your contacts shares people who never agreed to anything. Your data exposes your friends too.'},
+  {id:'risk',need:['HEA','HAB'],name:'RISK SCORE ASSIGNED',desc:'Your "premium" went up. All prices +50%.',why:'Health + lifestyle data can be used to predict risk, which companies can use to change what they charge you.'},
+  {id:'home',need:['CON','LOC'],name:'HOME INFERRED',desc:'They know where you\'ll be. Enemies spawn closer with less warning.',why:'Where your phone sleeps every night is almost always your home. No address required.'},
+  {id:'mood',need:['HEA','BIO'],name:'MOOD DETECTED',desc:'When you\'re hurt, the ads come for you.',why:'Face + heart-rate data can estimate emotion. Advertisers pay extra to reach people when they are stressed or sad.'}
+];
+// Behavior patterns: learned from how you play, not from what you share.
+// test(w,keeping) returns an evidence string (pattern present), false (absent), or null (not enough data).
+// Keeping thresholds are looser so a learned pattern only drops when behavior clearly changes.
+const QUADN=['upper-left','upper-right','lower-left','lower-right'];
+const BEH=[
+  {id:'zone',name:'COMFORT ZONE MAPPED',desc:'Enemies now spawn around the spot where you like to be.',
+    fix:'Spend more time in other parts of the arena for 4 waves.',
+    why:'Apps can learn the places you spend time without ever asking. "Dwell time" tells advertisers and stores where and when to reach you.',
+    test:(w,k)=>{const tot=w.q.reduce((a,b)=>a+b,0);if(tot<150)return null;const i=w.q.indexOf(Math.max(...w.q)),s=w.q[i]/tot;
+      return s>=(k?.33:.4)?'You spent '+Math.round(s*100)+'% of your recent time in the '+QUADN[i]+' of the arena.':false}},
+  {id:'dodge',name:'DODGE HABIT LEARNED',desc:'Half of all aimed shots now lead toward the way you usually dodge.',
+    fix:'Dash and move the other way for 4 waves.',
+    why:'Tiny habits, like which way you swipe or turn, add up to a pattern. Patterns let a system guess your next move before you make it.',
+    test:(w,k)=>{
+      const lean=(a,b,need)=>{if((a+b)<need)return 0;const s=Math.max(a,b)/(a+b);if(s<(k?.58:.66))return 0;return a>b?-1:1};
+      const pct=(a,b)=>Math.round(Math.max(a,b)/((a+b)||1)*100);
+      let sx,sy,what,hx,hy,hp,vp;
+      if(w.dL+w.dR>=5||w.dU+w.dD>=5){sx=lean(w.dL,w.dR,5);sy=lean(w.dU,w.dD,5);what='dashed';hx=w.dL;hy=w.dR;hp=w.dU;vp=w.dD}
+      else if(w.mL+w.mR>=8||w.mU+w.mD>=8){sx=lean(w.mL,w.mR,8);sy=lean(w.mU,w.mD,8);what='moved';hx=w.mL;hy=w.mR;hp=w.mU;vp=w.mD}
+      else return null;
+      if(!sx&&!sy)return false;S.model.sideX=sx;S.model.sideY=sy;
+      const bits=[];if(sx)bits.push((sx<0?'left':'right')+' '+pct(hx,hy)+'%');if(sy)bits.push((sy<0?'up':'down')+' '+pct(hp,vp)+'%');
+      return 'You '+what+' '+bits.join(' and ')+' of the time.'}},
+  {id:'panic',name:'PANIC DASHER',desc:'Right after you get hit, shots aim where your panic dash usually takes you.',
+    fix:'After you get hit, do not dash for 4 waves.',
+    why:'How you react under stress is data. Reflexes are hard to hide, which makes them easy to predict. Some systems time pressure for the moments people are least able to think clearly.',
+    test:(w,k)=>{if(w.hits<4)return k&&w.hits<2?false:null;const f=w.panic/w.hits;
+      return f>=(k?.45:.6)?'After '+Math.round(f*100)+'% of the hits you took, you dashed within a second.':false}},
+  {id:'still',name:'SITTING DUCK',desc:'You stay in a tiny area. Crawlers charge more often and watchers fire 3-shot bursts.',
+    fix:'Keep moving through a larger area for 4 waves.',
+    why:'The less your behavior changes, the cheaper and more accurate predictions about you become. Pacing in a small circle is still a pattern.',
+    test:(w,k)=>{const n=w.still+w.moving;if(n<150)return null;const f=((w.still||0)+(w.camp||0))/n;
+      return f>=(k?.28:.36)?'You stayed in a tight area '+Math.round(f*100)+'% of your recent time.':false}},
+  {id:'skim',name:'TERMS SKIMMER',desc:'You don\'t read the terms, so credit prices went up 30%. You probably wouldn\'t have noticed.',
+    fix:'Spend more time on the Terms screen for 4 waves.',
+    why:'Companies can measure whether you read their terms. People who never read are less likely to notice when terms or prices change.',
+    test:(w,k)=>{const t=S.tele.termsTime.slice(-3);if(t.length<2)return null;const a=t.reduce((x,y)=>x+y,0)/t.length;
+      return a<(k?6:4)?'You spent '+a.toFixed(1)+'s on each Terms screen. Reading them takes about 60s.':false}},
+  {id:'loyal',name:'NEXT MOVE PREDICTED',desc:'The upgrade you always pick first now costs 2× credits.',
+    fix:'First-pick a different upgrade for 4 runs.',
+    why:'Your past sessions were saved and compared. Some online stores have tested charging different people different prices based on their history.',
+    test:()=>{const r=loyalHist();if(!r)return r;if(S.model.brokeFav===r.f)return false;S.model.fav=r.f;return r.ev}}
+];
+const ADS={
+  LOC:[
+    'PIZZA 0.3 MI FROM YOU 🍕','3 GAMERS NEAR YOU ARE ONLINE','SNEAKERS KIDS AT YOUR SCHOOL WEAR',
+    'COFFEE 2 MIN AWAY · A TABLE OPENED','TRAFFIC IS LIGHT IF YOU LEAVE NOW','YOUR ZIP CODE OVERSPENDS ON SNACKS',
+    'BUS PASS 15% OFF · STOP IS NEXT TO YOU','WEATHER THERE SAYS BUY A JACKET','PARKING NEAR YOU IS $4/HR · PREPAY',
+    'SOMEONE SEARCHED YOUR BLOCK FOR TUTORS','#1 LATE-NIGHT SPOT IN YOUR CITY','TURN LEFT · WE ALREADY KNOW THE ROUTE',
+    'A STORE ON YOUR BLOCK RESTOCKED','THIS ARENA SITS IN A HIGH-SPEND ZONE'
+  ],
+  CON:[
+    'YOUR FRIEND JUST BOUGHT THIS','5 OF YOUR CONTACTS LIKED THIS','ALEX FROM YOUR CLASS IS ONLINE',
+    'YOUR MOM\'S CONTACTS SAW THIS TOO','2 FRIENDS ARE LOOKING AT THE SAME ITEM','ADD JORDAN? YOU HAVE 11 MUTUALS',
+    'YOUR GROUP CHAT WOULD LOVE THIS','SOMEONE YOU KNOW IS NEARBY · SAY HI?','YOUR CONTACTS\' KIDS PLAY THIS',
+    'FORWARD THIS DEAL TO YOUR SQUAD','A CONTACT CHANGED SCHOOLS · GIFT?','3 PEOPLE YOU KNOW SKIPPED THE PAYWALL'
+  ],
+  BIO:[
+    'WE NOTICED YOU LOOK TIRED 😴','FILTER THAT FIXES YOUR FACE','SMILE DETECTED · EASY TO SELL TO',
+    'YOUR LAST PHOTO MATCHED 4 STORES','DARK CIRCLES · TRY THIS SERUM','FACE UNLOCK BRANDS WANT A WORD',
+    'YOU LOOK OLDER THAN LAST WEEK','BLINK RATE SAYS YOU\'RE FOCUSED · BUY','NEW HAIRCUT? WE HAVE PRODUCTS',
+    'CAMERAS LIKE YOURS PREFER THIS ANGLE','THAT EXPRESSION = ADD TO CART','GLASSES DETECTED · LENS CLEANER 2-FOR-1'
+  ],
+  HEA:[
+    'LOW ENERGY? TRY VOLT DRINK ⚡','YOUR HEART RATE SAYS: BUY NOW','STRESS DETECTED · WEIGHTED BLANKET',
+    'SLEEP SCORE IS LOW · MELATONIN 2-FOR-1','ELEVATED PULSE · SPORTS DRINK','HITS TAKEN · BANDAGES ON SALE',
+    'INSURERS LIKE PLAYERS WITH YOUR STATS','HYDRATION REMINDER · SPONSORED','YOUR WELLNESS PARTNERS SUGGEST THIS',
+    'RISK SCORE: SEE THE PREMIUM TIER','BREATHING IS SHALLOW · CALM APP FREE TRIAL','STEP COUNT IS LOW · NEW SHOES?'
+  ],
+  MSG:[
+    'YOU MENTIONED "HOODIE" · 40% OFF','PLANNING A TRIP? ✈️','YOU TYPED "TIRED" 6× THIS WEEK',
+    'SOMEONE TEXTED "LATER" · SNACKS?','YOUR DRAFT SAID "HOMEWORK" · TUTORS','EMOJI USE SAYS YOU\'RE A NIGHT PERSON',
+    'YOU ALMOST SENT "HELP" · WE CAN HELP','AUTOCOMPLETE KNOWS YOU WANT THIS','YOUR LAST CHAT MENTIONED THE WEEKEND',
+    'SPELLCHECK FIXED "TOMORROW" · BOOK NOW','YOU SEARCHED "CHEAP" · HERE YOU GO','3 UNREAD MESSAGES · SHOP WHILE YOU WAIT'
+  ],
+  HAB:[
+    'STILL UP AT 1AM? SO ARE WE','YOU ALWAYS BUY ON FRIDAYS','YOU PAUSE ON THE SAME 3 ITEMS',
+    'TUESDAY IS YOUR WEAK NIGHT · DEAL','YOU OPEN OFFERS IN UNDER 4 SECONDS','SAME UPGRADE AGAIN? WE SAVED IT',
+    'YOU PLAY LONGEST AFTER 8PM','STREAK: IMPULSE ACCEPTS','YOU HOVERED ON THIS LAST TIME',
+    'WEEKEND WARRIOR PACK IS BACK','YOU SKIP THE FINE PRINT · FAST CHECKOUT','YOUR USUAL ORDER IS READY'
+  ],
+  _:['LIMITED OFFER!!!','YOU WON\'T BELIEVE THIS','CLICK HERE 🔥','ONE WEIRD TRICK','HOT DEAL NEARBY']
+};
+const ADSX={
+  'BIO+CON':['YOUR FRIEND LOOKS TIRED TOO · SHARE THIS','A CONTACT\'S FACE MATCHED A STORE CAM'],
+  'BIO+HAB':['YOU MAKE THIS FACE WHEN YOU SHOP','SAME EXPRESSION AS LAST CHECKOUT'],
+  'BIO+HEA':['FACE + PULSE = FRUSTRATED. SHOP?','YOUR FACE SAYS STRESSED. YOUR HEART AGREES'],
+  'BIO+LOC':['A CAMERA ON YOUR BLOCK JUST TAGGED YOU','THIS STORE ALREADY HAS YOUR FACE'],
+  'BIO+MSG':['YOUR SELFIE + THAT TEXT = WEEKEND PLANS','YOU LOOK LIKE THE PERSON WHO TYPED "UGH"'],
+  'CON+HAB':['YOUR SQUAD ALWAYS ACCEPTS ABOUT NOW','FRIENDS WHO PLAY LIKE YOU BOUGHT THIS'],
+  'CON+HEA':['3 CONTACTS BOUGHT THIS AFTER A SCARE','A FRIEND\'S WATCH SHARED A SIMILAR PULSE'],
+  'CON+LOC':['YOUR FRIENDS HANG OUT 0.4 MI FROM HERE','SOMEONE IN YOUR CONTACTS IS ON THIS BLOCK'],
+  'CON+MSG':['YOUR FRIEND TEXTED ABOUT THIS FIRST','THE GROUP CHAT ALREADY VOTED YES'],
+  'HAB+HEA':['LATE NIGHTS + HEART DATA = ENERGY DRINK','YOU BUY SNACKS AFTER YOU GET HURT'],
+  'HAB+LOC':['WE SAVED YOUR USUAL ROUTE · PIT STOP?','YOU ALWAYS CAMP THIS SIDE · LOCAL DEAL'],
+  'HAB+MSG':['YOU ALWAYS MENTION FOOD AFTER A HARD WAVE','YOUR TEXTS GET SHORTER WHEN YOU RUSH'],
+  'HEA+LOC':['CLINICS NEAR YOU SAW YOUR HEART DATA','PHARMACY 0.2 MI · THEY HAVE YOUR FILE'],
+  'HEA+MSG':['YOU TEXTED "I\'M FINE" · YOUR PULSE DISAGREES','THAT "TIRED" MESSAGE MATCHES YOUR HEART'],
+  'LOC+MSG':['THE TRIP YOU TEXTED ABOUT IS 12 MI AWAY','YOU SAID "NEARBY" · WE PICKED A STORE']
+};
+const ACH={
+  ghost:['GHOST PROTOCOL','Reach wave 6 sharing zero data'],
+  open:['OPEN BOOK','Share all six data types in one run'],
+  paid:['PAID IN FULL','Buy 4 upgrades with credits in one run'],
+  breach:['BREACH SURVIVOR','Clear a wave after a data breach'],
+  reader:['ACTUALLY READ IT','Find the secret in the fine print'],
+  deep:['DEEP PROFILE','Reach wave 10'],
+  all:['CONNECT THE DOTS','Discover all 6 inferences (across runs)'],
+  shook:['OFF THE GRID','Change your play so the model forgets a pattern']
+};
+const SECRETS=['OPTOUT','READER','CONSENT','NOTICE','PRIVACY','FINEPRINT'];
+
+// ================= input =================
+const keys={};const mouse={x:W/2,y:H/2-100};let dashReq=false,typed='';
+addEventListener('keydown',e=>{
+  const k=e.key.toLowerCase();keys[k]=true;
+  if(k===' '||k==='shift'){dashReq=true;e.preventDefault()}
+  if(!S)return;
+  if(S.mode==='terms'){
+    if(/^[a-z]$/.test(k)){typed=(typed+k).slice(-12);checkSecret()}
+    if(k==='1'||k==='2'||k==='3')termsHotkey(+k-1);
+  }
+  if(S.mode==='reveal'&&(k===' '||k==='enter')&&!e.repeat)advanceReveal();
+  if(k==='r'&&S.mode==='dossier')startGame();
+  if(k==='m')toggleMute();
+  if((k==='p'||k==='escape')&&(S.mode==='play'||S.mode==='clear'))setPause(!S.paused);
+});
+addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false});
+addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY});
+addEventListener('blur',()=>{for(const k in keys)keys[k]=false;if(S&&(S.mode==='play'||S.mode==='clear'))setPause(true)});
+let pauseSel='exp';
+function setPause(v){
+  S.paused=v;
+  document.body.classList.toggle('paused',!!v);
+  $('pause').classList.toggle('hidden',!v);
+  if(v)renderPause();
+}
+function pauseItems(){
+  const exp=exposure(),items=[];
+  if(exp>0)items.push({id:'exp',c:'#ffd23b',title:'EXPOSURE',sub:exp+' share'+(exp===1?'':'s')+' on file'});
+  for(const t of TYPES){const n=S.shared[t]||0;if(!n)continue;const D=DATA[t];items.push({id:'d-'+t,c:D.c,title:D.i+' '+D.n,sub:'shared ×'+n})}
+  for(const f of INF){if(!S.inf[f.id])continue;items.push({id:'i-'+f.id,c:'#ff3b5c',title:'⚠ '+f.name,sub:'inferred · active'})}
+  for(const b of BEH){if(!S.model.on[b.id])continue;items.push({id:'b-'+b.id,c:'#c04bff',title:'👁 '+b.name,sub:S.model.strikes[b.id]?'watching you · weakening':'watching you · active'})}
+  for(const pk of PERKS){const n=S.tele.picks[pk.id]||0;if(!n)continue;items.push({id:'u-'+pk.id,c:pk.data?DATA[pk.data].c:'#38e1ff',title:pk.icon+' '+pk.name,sub:n>1?'upgrade ×'+n:'upgrade · active'})}
+  return items;
+}
+function pauseDetail(id){
+  if(!id)return `<h3>NOTHING ON YOU YET</h3><div class="fx">No shares, inferences, patterns, or upgrades are active. Accept a free upgrade or pay with credits and they will show up here.</div><div class="why">Paying with credits buys the perk without selling a data type.</div>`;
+  const exp=exposure();
+  if(id==='exp'){
+    const ads=exp>=3,gap=Math.max(2.5,12-exp*1.2).toFixed(1);
+    const chance=exp>=3?Math.round(Math.min(.55,(exp-2)*.07)*100):0;
+    return `<h3>EXPOSURE</h3><div class="need">${exp} share${exp===1?'':'s'} · bar fills as you tap Accept</div>
+      <div class="fx">${ads?'Personalized ads are blocking the arena about every '+gap+'s.':'Ads stay off until you reach 3 shares.'} ${exp>=3?'After this wave, a data-broker breach has about a '+chance+'% chance.':'A breach cannot roll until exposure is 3+.'}</div>
+      <div class="why">In real life, the more data points a company holds, the easier you are to target — and the more damaging a leak becomes. You cannot pay later to undo a past data share.</div>`;
+  }
+  if(id.startsWith('d-')){
+    const t=id.slice(2),D=DATA[t],n=S.shared[t]||0;
+    const got=PERKS.filter(p=>p.data===t&&S.tele.picks[p.id]);
+    const mixed=INF.filter(f=>S.inf[f.id]&&f.need.includes(t));
+    return `<h3>${D.i} ${D.n}</h3><div class="need">Sold ×${n} · still on file across runs.${got.length?' · You took '+got.map(p=>p.name).join(', ')+'.':''}</div>
+      <div class="fx">${D.fx}${mixed.length?' They already mixed this with other shares you sold: '+mixed.map(f=>f.name+' ('+f.desc+')').join(' '):''}</div>
+      <div class="why">${D.why}</div>`;
+  }
+  if(id.startsWith('i-')){
+    const f=INF.find(x=>x.id===id.slice(2));
+    return `<h3>${f.name}</h3><div class="need">${f.need.map(t=>DATA[t].i+' '+DATA[t].n).join(' + ')} · active now</div>
+      <div class="fx">${f.desc}</div>
+      <div class="why">${f.why}</div>`;
+  }
+  if(id.startsWith('b-')){
+    const b=BEH.find(x=>x.id===id.slice(2)),ev=S.model.ev[b.id];
+    let extra='';
+    if(b.id==='dodge'){const bits=[];if(S.model.sideX)bits.push(S.model.sideX<0?'left':'right');if(S.model.sideY)bits.push(S.model.sideY<0?'up':'down');if(bits.length)extra=' Leading '+bits.join(' and ')+'.'}
+    if(b.id==='loyal'&&S.model.fav){const pk=PERKS.find(p=>p.id===S.model.fav);if(pk)extra=' '+pk.name+' costs 2×.'}
+    const left=S.model.strikes[b.id]?4-S.model.strikes[b.id]:0;
+    return `<h3>${b.name}</h3><div class="need">Learned from how you play — you never tapped Accept for this.${left?' · Keep it up for '+left+' more '+(b.id==='loyal'?'run':'wave')+(left===1?'':'s')+'.':''}</div>
+      <div class="fx">${b.desc}${extra}</div>
+      ${ev?'<div class="need">Evidence: '+ev+'</div>':''}
+      <div class="why">${b.why} ${b.fix}</div>`;
+  }
+  if(id.startsWith('u-')){
+    const pk=PERKS.find(x=>x.id===id.slice(2)),n=S.tele.picks[pk.id]||1,D=pk.data&&DATA[pk.data];
+    const how=D?(S.shared[pk.data]?'Accepted free · shared '+D.n:'Paid with credits · '+D.n+' was not sold'):'Paid with credits · no data sold';
+    return `<h3>${pk.icon} ${pk.name}</h3><div class="need">Taken ×${n} · ${how}</div>
+      <div class="fx">${pk.desc}${n>1?' Stacked '+n+'×: '+pk.again:''}</div>
+      <div class="why">${D?'This perk is the convenience. '+(S.shared[pk.data]?D.n+' is the price you already paid.':'You paid credits instead of sharing '+D.n+'.'):'Credit-only upgrades do not sell a data type.'}</div>`;
+  }
+  return '';
+}
+function renderPause(){
+  if(!S)return;
+  const items=pauseItems();
+  if(!items.some(x=>x.id===pauseSel))pauseSel=items[0]?items[0].id:'';
+  $('pauseList').innerHTML=items.length
+    ?items.map(it=>`<button type="button" class="prow${it.id===pauseSel?' sel':''}" data-pid="${it.id}" style="border-left-color:${it.c}"><b>${it.title}</b><span class="ps">${it.sub}</span></button>`).join('')
+    :'<div class="need" style="padding:8px">Nothing active yet.</div>';
+  $('pauseDetail').innerHTML=pauseDetail(pauseSel);
+}
+
+// ================= game state =================
+function loadModel(){
+  const m={on:{},ev:{},strikes:{},lost:[],carried:[],sideX:0,sideY:0,fav:null,brokeFav:null,loyalRearm:0,hot:null,
+    win:{heat:new Float32Array(24*16),q:[0,0,0,0],dL:0,dR:0,dU:0,dD:0,mL:0,mR:0,mU:0,mD:0,still:0,moving:0,camp:0,trail:[],hits:0,panic:0,rc:0,rs:0},hitAt:null,hitAway:0,panicPt:null};
+  const s=store.get('model',null);
+  if(!s)return m;
+  for(const id of s.on)if(BEH.some(b=>b.id===id)){m.on[id]=true;m.carried.push(id)}
+  Object.assign(m.ev,s.ev);Object.assign(m.strikes,s.strikes||{});m.sideX=s.sideX||(s.side||0);m.sideY=s.sideY||0;m.fav=s.fav||null;m.brokeFav=s.brokeFav||null;m.loyalRearm=s.loyalRearm||0;
+  Object.assign(m.win,s.win,{heat:Float32Array.from(s.win.heat),trail:[]});
+  return m;
+}
+function saveModel(){
+  const m=S.model;
+  store.set('model',{on:Object.keys(m.on),ev:m.ev,strikes:m.strikes,sideX:m.sideX,sideY:m.sideY,fav:m.fav,brokeFav:m.brokeFav,loyalRearm:m.loyalRearm,win:{...m.win,heat:Array.from(m.win.heat),trail:[]}});
+}
+function loadProfile(){
+  const p=store.get('profile',null),shared={},inf={};
+  if(p){
+    for(const t of TYPES)if(p.shared&&p.shared[t])shared[t]=p.shared[t];
+    for(const f of INF)if(p.inf&&p.inf.includes(f.id))inf[f.id]=true;
+  }
+  return {shared,inf,carriedShared:Object.keys(shared),carriedInf:Object.keys(inf)};
+}
+function saveProfile(){
+  store.set('profile',{shared:S.shared,inf:INF.filter(f=>S.inf[f.id]).map(f=>f.id)});
+}
+const WIFI_R=95;
+function randWifi(){return {x:Math.random()<.5?rand(.15,.3):rand(.7,.85),y:Math.random()<.5?rand(.2,.35):rand(.65,.8)}}
+function loadWifi(){
+  let w=store.get('wifi',null);
+  if(!w){w=randWifi();store.set('wifi',w)}
+  return w;
+}
+function moveWifi(){
+  const old=S.wifi;let w,tries=0;
+  do{w=randWifi();tries++}while(tries<20&&Math.hypot(w.x-old.x,w.y-old.y)<.4);
+  S.wifi=w;S.wifiAcc=0;S.wifiMoveIn=3+Math.floor(Math.random()*3);store.set('wifi',w);
+}
+function newState(){
+  const prof=loadProfile();
+  return {t:0,wave:0,score:0,coins:0,combo:0,comboT:0,coinK:0,shake:0,flash:0,flashCol:'255,255,255',freeze:0,timeScale:1,
+    mode:'play',paused:false,shared:prof.shared,inf:prof.inf,carriedShared:prof.carriedShared,carriedInf:prof.carriedInf,
+    revealQ:[],offer:[],breachNext:false,breachWave:-1,adT:6,spawnT:1,adRecent:[],
+    secret:pick(SECRETS),secretUsed:false,newAch:[],
+    model:loadModel(),
+    p:{x:W/2,y:H/2,vx:0,vy:0,r:11,hp:5,maxHp:5,speed:270,fireRate:6,fireT:0,dmg:1,shots:1,homing:0,drones:0,droneT:0,
+       dashCD:1.1,dashT:0,dashing:0,ddx:0,ddy:0,inv:0,revives:0,regen:0,lines:false,ang:0,magnet:100,recoil:0},
+    bullets:[],ebullets:[],enemies:[],spawns:[],queue:[],parts:[],texts:[],ads:[],coinsArr:[],trail:[],rings:[],
+    tele:{heat:new Float32Array(24*16),q:[0,0,0,0],dirs:{l:0,r:0,u:0,d:0},still:0,moving:0,stressSpd:0,stressN:0,calmSpd:0,calmN:0,
+      edge:0,center:0,dashes:0,dashL:0,dashR:0,dashU:0,dashD:0,nearMiss:0,adsShot:0,termsTime:[],fineOpen:0,free:0,paid:0,declined:0,picks:{},firstPick:null,
+      breaches:0,breachSurvived:false,kills:0,hits:0,sampT:0,time:0,wifiT:0,wifiCoins:0,caught:0,honest:0},
+    wifi:loadWifi(),wifiAcc:0,wifiMoveIn:3+Math.floor(Math.random()*3),amend:null,sosT:0,
+    nagT:0,pingT:9,unread:0,hookFriend:null,musicPush:null
+  };
+}
+function startGame(){
+  initAudio();
+  S=newState();
+  ['title','dossier','terms','reveal','pause'].forEach(id=>$(id).classList.add('hidden'));
+  $('hud').classList.remove('hidden');document.body.classList.add('playing');document.body.classList.remove('paused');
+  hudCache={};startWave();
+}
+const exposure=()=>TYPES.reduce((a,t)=>a+(S.shared[t]||0),0);
+const hasAll=need=>need.every(t=>S.shared[t]);
+
+function startWave(){
+  S.wave++;const w=S.wave;
+  const moved=w>1&&--S.wifiMoveIn<=0;if(moved)moveWifi();
+  let n=Math.round((5+w*3)*(S.inf.graph?1.4:1));
+  const q=[];
+  for(let i=0;i<n;i++){const r=Math.random();let t='ping';if(w>=2&&r<.28)t='watcher';else if(w>=3&&r<.5)t='crawler';q.push(t)}
+  if(S.inf.face)for(let i=0;i<1+Math.floor(w/3);i++)q.splice(Math.floor(Math.random()*q.length),0,'camera');
+  if(S.breachNext){q.splice(Math.floor(q.length/2),0,'broker');S.breachNext=false;S.breachWave=w}
+  else if(w%5===0)q.push('broker');
+  S.model.hot=S.model.on.zone?hotSpot(S.model.win.heat):null;
+  S.queue=q;S.spawnT=1.2;S.mode='play';dashReq=false;
+  document.body.classList.add('playing');
+  const bits=[];
+  if(w===1){
+    const ns=TYPES.filter(t=>S.shared[t]).length,ni=INF.filter(f=>S.inf[f.id]).length,nb=S.model.carried.length;
+    if(ns||ni)bits.push((ns?ns+' DATA TYPE'+(ns>1?'S':''):'')+(ns&&ni?' · ':'')+(ni?ni+' INFERENCE'+(ni>1?'S':''):'')+' ON FILE');
+    if(nb)bits.push(nb+' BEHAVIOR PATTERN'+(nb>1?'S':'')+' ON FILE');
+  }
+  const sub=[];
+  if(bits.length)sub.push('WELCOME BACK · '+bits.join(' · '));
+  else if(w%5===0)sub.push('A DATA BROKER IS COMING');
+  else if(S.breachWave===w)sub.push('YOUR LEAKED DATA HAS BUYERS');
+  else if(moved)sub.push('📶 THE FREE WI-FI MOVED');
+  if(S.shared.CON){
+    S.hookFriend=S.hookFriend||pick(['ALEX','JORDAN','SAM','RILEY','CASEY']);
+    sub.push(S.hookFriend+' (A CONTACT) IS ON WAVE '+(w+1+(w%2)));
+  }
+  if(S.shared.LOC&&w>1)sub.push('PLAYERS NEAR YOU HAVEN\'T LEFT');
+  banner('WAVE '+w,sub.join(' · '),bits.length||S.shared.CON||(S.shared.LOC&&w>1)?'#c04bff':'#38e1ff',sub.length>1?2.4:1.5);
+  sfx.wave();
+}
+
+// ================= spawning =================
+function spawnWarn(type){
+  const p=S.p,near=S.inf.home,hot=S.model.hot;let x,y,tries=0;
+  const zone=!near&&hot&&type!=='camera'&&type!=='broker'&&Math.random()<.5;
+  do{
+    if(near&&type!=='camera'){const a=rand(0,TAU),d=rand(110,180);x=p.x+Math.cos(a)*d;y=p.y+Math.sin(a)*d}
+    else if(zone){const a=rand(0,TAU),d=rand(40,190);x=hot.x+Math.cos(a)*d;y=hot.y+Math.sin(a)*d}
+    else{x=rand(40,W-40);y=rand(40,H-40)}
+    tries++;
+  }while(tries<30&&(x<30||y<30||x>W-30||y>H-30||Math.hypot(x-p.x,y-p.y)<(near?100:zone?150:type==='camera'?220:230)));
+  x=clamp(x,30,W-30);y=clamp(y,30,H-30);
+  const warn=near?.45:.85;
+  S.spawns.push({x,y,type,t:warn,max:warn});sfx.spawn();
+}
+function makeEnemy(type,x,y){
+  const w=S.wave,e={x,y,vx:0,vy:0,type,flash:0,t:rand(0,5),dead:false};
+  if(type==='ping')Object.assign(e,{r:10,hp:1.5+w*.35,spd:120+w*6,col:'#ff3b5c',coins:1,pts:10});
+  if(type==='watcher')Object.assign(e,{r:14,hp:3+w*.5,spd:95,col:'#ffa53b',fire:rand(1,2),coins:2,pts:25,dir:Math.random()<.5?1:-1});
+  if(type==='crawler')Object.assign(e,{r:12,hp:2.5+w*.4,spd:70,col:'#ff4bd8',coins:2,pts:20,st:rand(1,2),state:'seek',da:0});
+  if(type==='camera')Object.assign(e,{r:16,hp:6+w,col:'#ffd23b',coins:3,pts:40,ang:rand(0,TAU),lock:0,cd:0,static:true});
+  if(type==='broker')Object.assign(e,{r:34,hp:30+w*7,spd:45,col:'#c04bff',coins:12,pts:300,fire:2,burst:0});
+  e.maxHp=e.hp;S.enemies.push(e);
+  burst(x,y,e.col,14,220,.4,3);S.rings.push({x,y,r:4,max:e.r*3,t:.3,col:e.col});
+}
+
+// ================= FX helpers =================
+function burst(x,y,col,n,spd,life,size){for(let i=0;i<n;i++){const a=rand(0,TAU),s=rand(.2,1)*spd;S.parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rand(.5,1)*life,max:life,col,size:rand(.6,1.2)*size})}}
+function ftext(x,y,txt,col='#fff',size=14){S.texts.push({x,y,txt,col,size,life:.9,max:.9})}
+let bannerTimer=0;
+function banner(t,s,col,d){const b=$('banner');b.querySelector('.bt').textContent=t;b.querySelector('.bs').textContent=s||'';b.style.setProperty('--bc',col||'#fff');b.style.setProperty('--d',(d||1.6)+'s');b.classList.remove('show');void b.offsetWidth;b.classList.add('show')}
+let toastT;function toast(t,ms=1600){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),ms)}
+function hookNag(msg,ms){if(!S||S.nagT>0)return;S.nagT=3.2;toast(msg,ms||2200)}
+
+// ================= combat =================
+function hurtPlayer(src){
+  const p=S.p;if(p.inv>0||p.dashing>0||S.mode==='dead'||S.sosT>0)return;
+  p.hp--;p.inv=1.1;S.shake=16;S.freeze=.09;S.flash=.6;S.flashCol='255,40,80';S.combo=0;S.tele.hits++;sfx.hurt();
+  const M=S.model;M.win.hits++;M.hitAt=S.t;M.hitAway=src?Math.atan2(p.y-src.y,p.x-src.x):p.ang+Math.PI;
+  if(M.on.panic){
+    const a=M.hitAway+(M.win.rc||M.win.rs?Math.atan2(M.win.rs,M.win.rc):0);
+    M.panicPt={x:clamp(p.x+Math.cos(a)*140,p.r,W-p.r),y:clamp(p.y+Math.sin(a)*140,p.r,H-p.r),until:S.t+1.6};
+  }
+  burst(p.x,p.y,'#ff3b5c',26,380,.6,4);
+  if(src){const a=Math.atan2(p.y-src.y,p.x-src.x);p.vx+=Math.cos(a)*500;p.vy+=Math.sin(a)*500}
+  if(p.hp>0){
+    if(S.shared.HEA&&p.hp<=2){hookNag('HEART RATE UP · don\'t quit. 73% of players like you keep going');musicPush(24,.2,1.5)}
+    else if(S.shared.BIO){hookNag('STRESS FACE READ · stay in the session');musicPush(16,.14,1.2)}
+  }
+  if(p.hp<=0){
+    if(p.revives>0){
+      p.revives--;p.hp=3;const sos=4;p.inv=sos;S.sosT=sos;
+      S.ebullets.forEach(b=>burst(b.x,b.y,'#ff6b6b',3,120,.3,2));S.ebullets=[];
+      S.enemies.forEach(e=>{const a=Math.atan2(e.y-p.y,e.x-p.x);e.vx=Math.cos(a)*600;e.vy=Math.sin(a)*600});
+      S.rings.push({x:p.x,y:p.y,r:10,max:Math.max(W,H),t:.6,col:'#ff6b6b'});
+      banner('SOS SENT','Your HEALTH + LOCATION were shared with 12 "emergency partners"','#ff6b6b',sos);
+      S.shake=24;sfx.big();
+    }else die();
+  }
+}
+function damageEnemy(e,d,bx,by){
+  e.hp-=d;e.flash=.07;sfx.hit();
+  burst(bx,by,e.col,4,160,.25,2.5);
+  if(e.hp<=0&&!e.dead)killEnemy(e);
+}
+function killEnemy(e){
+  e.dead=true;S.tele.kills++;S.combo++;S.comboT=S.shared.HAB?3.4:2.2;
+  if(S.shared.BIO&&(S.combo===8||S.combo===15)){hookNag('SMILE DETECTED · you look happy. keep going');musicPush(14,.12,1.4)}
+  if(S.shared.HAB&&S.combo===5)musicPush(12,.1,1.2);
+  const mult=1+Math.min(S.combo,50)*.1,pts=Math.round(e.pts*mult);S.score+=pts;
+  ftext(e.x,e.y-e.r,'+'+pts,e.type==='broker'?'#ffd23b':'#fff',e.type==='broker'?26:14);
+  const big=e.type==='broker';
+  burst(e.x,e.y,e.col,big?80:20,big?600:340,big?1:.55,big?6:3.5);burst(e.x,e.y,'#fff',big?20:6,big?300:200,.3,2);
+  S.rings.push({x:e.x,y:e.y,r:e.r,max:e.r*(big?8:4),t:big?.6:.3,col:e.col});
+  S.shake=Math.max(S.shake,big?26:5);S.freeze=big?.18:.025;
+  if(big){sfx.big();S.flash=.4;S.flashCol='192,75,255';for(let i=0;i<4;i++)S.queue.length<60&&makeEnemy('ping',e.x+rand(-30,30),e.y+rand(-30,30))}else sfx.kill();
+  for(let i=0;i<e.coins;i++){const a=rand(0,TAU),s=rand(60,220),jack=S.shared.HAB&&i===0&&Math.random()<.22?(Math.random()<.35?5:3):0;
+    S.coinsArr.push({x:e.x,y:e.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,t:rand(0,6),life:12,jack})}
+}
+function aimAngle(e,spd){
+  const p=S.p;let tx=p.x,ty=p.y;
+  if(S.inf.predict){const t=Math.min(1.1,Math.hypot(p.x-e.x,p.y-e.y)/spd);tx+=p.vx*t;ty+=p.vy*t}
+  if(S.model.on.dodge&&Math.random()<.5){tx+=(S.model.sideX||0)*70;ty+=(S.model.sideY||0)*70}
+  const pp=S.model.panicPt;
+  if(pp&&S.t<pp.until&&Math.random()<.6){tx=pp.x;ty=pp.y}
+  return Math.atan2(ty-e.y,tx-e.x);
+}
+function eshoot(e,a,spd,col,r=5){S.ebullets.push({x:e.x+Math.cos(a)*e.r,y:e.y+Math.sin(a)*e.r,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,r,col:col||e.col,life:5,gz:false})}
+function liveAds(){
+  const p=S.p,out=[],sh=t=>S.shared[t],n=t=>DATA[t].n;
+  if(sh('HEA')&&p.hp<=2)out.push('HEART RATE '+(88+Math.round((3-p.hp)*14))+' · CALM TEA 15% OFF','LOW ♥ · FIRST-AID KIT IN YOUR AREA');
+  if(sh('BIO')&&p.hp<=2)out.push('WE CAN SEE YOU\'RE NOT OKAY','STRESS FACE · FILTER IT AWAY');
+  if(S.inf.mood&&p.hp<=2)out.push('MOOD: DISTRESSED · YOU COST MORE TO REACH');
+  if(sh('LOC')&&p.inWifi)out.push('CONNECTED TO FREE WI-FI · LOCAL DEAL','THIS HOTSPOT HAS LOGGED YOU '+Math.max(1,Math.round(S.tele.wifiT))+'s');
+  if(sh('HAB'))out.push('YOU USUALLY ACCEPT AROUND WAVE '+S.wave,'WAVE '+S.wave+' IS YOUR WEAK SPOT');
+  if(sh('HAB')&&S.tele.firstPick){const pk=PERKS.find(q=>q.id===S.tele.firstPick);if(pk)out.push('YOU PICKED '+pk.name+' FIRST · RELATED DEALS')}
+  if(sh('LOC')&&S.model.on.zone)out.push('STORES IN YOUR USUAL CORNER MISS YOU');
+  if(S.inf.home)out.push('STILL CLOSE TO HOME · WE FIGURED');
+  if(S.inf.face)out.push('CAMERA '+(2+S.wave%7)+' RECOGNIZED YOU');
+  if(sh('CON')&&S.inf.graph)out.push('YOUR CONTACTS\' DATA IS IN THIS AD TOO');
+  if(S.inf.risk)out.push('YOUR RISK SCORE RAISED THIS PRICE');
+  if(S.inf.predict)out.push('WE KNOW WHERE YOU\'RE HEADED · SHOP AHEAD');
+  if(S.model.on.panic)out.push('PANIC DASHERS BUY ENERGY DRINKS');
+  if(S.model.on.still)out.push('YOU STAND STILL A LOT · PERFECT AD SLOT');
+  if(S.model.on.skim)out.push('FAST SCROLLERS GET FASTER CHECKOUT');
+  if(S.model.on.loyal&&S.model.fav){const pk=PERKS.find(q=>q.id===S.model.fav);if(pk)out.push('YOUR USUAL '+pk.name+' IS ON SALE')}
+  if(S.coins>=18&&sh('HAB'))out.push('YOU HAVE ◈ '+S.coins+' · TREAT YOURSELF');
+  if(sh('HEA')&&sh('LOC')&&p.revives)out.push('SOS PARTNERS HAVE A FOLLOW-UP OFFER');
+  if(sh('LOC')&&S.tele.wifiCoins)out.push('FREE WI-FI EARNERS ALSO BUY THIS');
+  const shared=TYPES.filter(sh);
+  if(shared.length>=3)out.push('COMBINED '+shared.length+' DATA TYPES · YOUR AD IS CUSTOM');
+  if(shared.length>=2)out.push(n(shared[0])+' + '+n(shared[1])+' = THIS OFFER');
+  return out;
+}
+function buildAds(){
+  const shared=TYPES.filter(t=>S.shared[t]),pool=[];
+  for(const t of shared)pool.push(...ADS[t]);
+  for(const [k,lines] of Object.entries(ADSX))if(k.split('+').every(t=>S.shared[t]))pool.push(...lines);
+  const live=liveAds();pool.push(...live,...live);
+  if(shared.length<=1)pool.push(...ADS._);
+  return pool.length?pool:ADS._;
+}
+function spawnAd(){
+  if(S.ads.length>=4)return;
+  const pool=buildAds(),fresh=pool.filter(t=>!S.adRecent.includes(t));
+  const txt=pick(fresh.length?fresh:pool);
+  S.adRecent.push(txt);if(S.adRecent.length>12)S.adRecent.shift();
+  const w=190,h=96,cols=['#ffd23b','#7dff6a','#ff5ad9','#38e1ff','#ff8a3b'];
+  S.ads.push({x:rand(w/2+10,W-w/2-10),y:rand(h/2+80,H-h/2-40),w,h,hp:4,txt,col:pick(cols),t:0,vx:rand(-20,20),vy:rand(-14,14)});
+  sfx.adpop();
+}
+
+// ================= update =================
+function update(dt){
+  S.t+=dt;const p=S.p,T=S.tele,active=S.mode==='play'||S.mode==='clear'||S.mode==='breach'||S.mode==='dead';
+  if(!active)return;
+  const alive=S.mode!=='dead';
+  // ---- player ----
+  let ix=0,iy=0;
+  if(alive){if(keys.a||keys.arrowleft)ix--;if(keys.d||keys.arrowright)ix++;if(keys.w||keys.arrowup)iy--;if(keys.s||keys.arrowdown)iy++}
+  const il=Math.hypot(ix,iy);if(il){ix/=il;iy/=il}
+  p.ang=Math.atan2(mouse.y-p.y,mouse.x-p.x);
+  p.dashT-=dt;p.inv-=dt;p.recoil*=.8;
+  if(S.sosT>0){S.sosT-=dt;if(p.inv<S.sosT)p.inv=S.sosT}
+  if(dashReq&&alive&&p.dashT<=0){
+    const dx=il?ix:Math.cos(p.ang),dy=il?iy:Math.sin(p.ang);
+    p.dashing=.16;p.ddx=dx;p.ddy=dy;p.dashT=p.dashCD;sfx.dash();T.dashes++;
+    if(S.model.hitAt!=null&&S.t-S.model.hitAt<=1){
+      const Mw=S.model.win,rel=Math.atan2(dy,dx)-S.model.hitAway;
+      Mw.panic++;Mw.rc+=Math.cos(rel);Mw.rs+=Math.sin(rel);S.model.hitAt=null;
+    }if(dx<-.2){T.dashL++;S.model.win.dL++}else if(dx>.2){T.dashR++;S.model.win.dR++}
+    if(dy<-.2){T.dashU++;S.model.win.dU++}else if(dy>.2){T.dashD++;S.model.win.dD++}
+    S.rings.push({x:p.x,y:p.y,r:6,max:40,t:.2,col:'#38e1ff'});
+  }
+  dashReq=false;
+  if(p.dashing>0){p.dashing-=dt;p.vx=p.ddx*p.speed*3.3;p.vy=p.ddy*p.speed*3.3;S.parts.push({x:p.x,y:p.y,vx:0,vy:0,life:.25,max:.25,col:'#38e1ff',size:p.r*.9})}
+  else{const k=1-Math.exp(-dt*16);p.vx+=(ix*p.speed-p.vx)*k;p.vy+=(iy*p.speed-p.vy)*k}
+  p.x=clamp(p.x+p.vx*dt,p.r,W-p.r);p.y=clamp(p.y+p.vy*dt,p.r,H-p.r);
+  S.trail.push({x:p.x,y:p.y});if(S.trail.length>14)S.trail.shift();
+
+  // ---- telemetry (the game is always watching) ----
+  if(alive){
+    const M=S.model.win;
+    T.time+=dt;T.sampT-=dt;
+    if(ix<0){T.dirs.l+=dt;M.mL+=dt}if(ix>0){T.dirs.r+=dt;M.mR+=dt}if(iy<0){T.dirs.u+=dt;M.mU+=dt}if(iy>0){T.dirs.d+=dt;M.mD+=dt}
+    if(T.sampT<=0){
+      T.sampT=.1;const cx=clamp(Math.floor(p.x/W*24),0,23),cy=clamp(Math.floor(p.y/H*16),0,15);T.heat[cy*24+cx]+=1;M.heat[cy*24+cx]+=1;
+      const qi=(p.x>W/2?1:0)+(p.y>H/2?2:0);T.q[qi]++;M.q[qi]++;
+      const sp=Math.hypot(p.vx,p.vy);if(sp<20){T.still++;M.still++}else{T.moving++;M.moving++}
+      M.trail.push({x:p.x,y:p.y});if(M.trail.length>25)M.trail.shift();
+      if(M.trail.length>=15){let cx=0,cy=0;for(const q of M.trail){cx+=q.x;cy+=q.y}cx/=M.trail.length;cy/=M.trail.length;
+        let maxd=0;for(const q of M.trail)maxd=Math.max(maxd,Math.hypot(q.x-cx,q.y-cy));
+        if(maxd<90)M.camp++}
+      if(p.hp<=2){T.stressSpd+=sp;T.stressN++}else{T.calmSpd+=sp;T.calmN++}
+      const edge=Math.min(p.x,p.y,W-p.x,H-p.y);if(edge<110)T.edge++;else if(Math.hypot(p.x-W/2,p.y-H/2)<Math.min(W,H)*.22)T.center++;
+    }
+  }
+
+  // ---- free wi-fi: fast fire in the ring, faster fire + credits if you stand still ----
+  p.inWifi=alive&&Math.hypot(p.x-S.wifi.x*W,p.y-S.wifi.y*H)<WIFI_R;
+  p.wifiStill=p.inWifi&&Math.hypot(p.vx,p.vy)<20;
+  if(p.inWifi&&S.mode==='play'){
+    T.wifiT+=dt;
+    if(p.wifiStill){S.wifiAcc+=dt;if(S.wifiAcc>=1.75){S.wifiAcc-=1.75;S.coins++;T.wifiCoins++;ftext(p.x,p.y-24,'+1 ◈','#7dff6a',12);sfx.coin(0)}}
+    else S.wifiAcc=0;
+  }
+
+  // ---- firing ----
+  if(alive&&(S.mode==='play'||S.mode==='clear')){
+    p.fireT-=dt;
+    if(p.fireT<=0){
+      p.fireT+=1/(p.fireRate*(p.wifiStill?1.75:p.inWifi?1.35:1));if(p.fireT<0)p.fireT=0;
+      for(let i=0;i<p.shots;i++){const a=p.ang+(i-(p.shots-1)/2)*.13;S.bullets.push({x:p.x+Math.cos(a)*15,y:p.y+Math.sin(a)*15,vx:Math.cos(a)*740,vy:Math.sin(a)*740,life:.95,dmg:p.dmg})}
+      p.recoil=4;sfx.shoot();S.parts.push({x:p.x+Math.cos(p.ang)*18,y:p.y+Math.sin(p.ang)*18,vx:Math.cos(p.ang)*80,vy:Math.sin(p.ang)*80,life:.08,max:.08,col:'#bff4ff',size:6});
+    }
+    if(p.drones){
+      p.droneT-=dt;
+      if(p.droneT<=0){p.droneT=.42;
+        for(let i=0;i<p.drones;i++){
+          const a=S.t*2.2+i*TAU/p.drones,dx=p.x+Math.cos(a)*48,dy=p.y+Math.sin(a)*48;
+          let best=null,bd=420*420;for(const e of S.enemies){const d=(e.x-dx)**2+(e.y-dy)**2;if(d<bd){bd=d;best=e}}
+          if(best){const ba=Math.atan2(best.y-dy,best.x-dx);S.bullets.push({x:dx,y:dy,vx:Math.cos(ba)*640,vy:Math.sin(ba)*640,life:.8,dmg:Math.max(1,p.dmg*.7),drone:true})}
+        }
+      }
+    }
+  }
+
+  // ---- spawns ----
+  if(S.mode==='play'&&S.queue.length){S.spawnT-=dt;if(S.spawnT<=0){S.spawnT=Math.max(.2,1-S.wave*.05);spawnWarn(S.queue.shift())}}
+  for(const s of S.spawns){s.t-=dt;if(s.t<=0){s.done=true;makeEnemy(s.type,s.x,s.y)}}
+  S.spawns=S.spawns.filter(s=>!s.done);
+
+  // ---- enemies ----
+  const still=S.model.on.still;
+  for(const e of S.enemies){
+    e.t+=dt;e.flash-=dt;
+    const dx=p.x-e.x,dy=p.y-e.y,d=Math.hypot(dx,dy)||1,nx=dx/d,ny=dy/d;
+    const steer=(tx,ty,k)=>{const f=1-Math.exp(-dt*k);e.vx+=(tx-e.vx)*f;e.vy+=(ty-e.vy)*f};
+    if(!alive){steer(-nx*60,-ny*60,2)}
+    else if(e.type==='ping')steer(nx*e.spd,ny*e.spd,3);
+    else if(e.type==='watcher'){
+      const want=d>320?1:d<220?-1:0;steer(nx*e.spd*want-ny*e.spd*.7*e.dir,ny*e.spd*want+nx*e.spd*.7*e.dir,2);
+      if(Math.random()<dt*.3)e.dir*=-1;
+      e.fire-=dt;if(e.fire<=0&&d<700){e.fire=rand(1.5,2.3);const a=aimAngle(e,290);if(still)for(let i=-1;i<=1;i++)eshoot(e,a+i*.16,290);else eshoot(e,a,290)}
+    }
+    else if(e.type==='crawler'){
+      e.st-=dt;
+      if(e.state==='seek'){steer(nx*e.spd,ny*e.spd,2);if(e.st<=0&&d<520){e.state='aim';e.st=.6;e.da=aimAngle(e,700)}}
+      else if(e.state==='aim'){steer(0,0,8);if(e.st<=0){e.state='dash';e.st=.42;e.vx=Math.cos(e.da)*720;e.vy=Math.sin(e.da)*720}}
+      else if(e.state==='dash'){S.parts.push({x:e.x,y:e.y,vx:0,vy:0,life:.2,max:.2,col:e.col,size:e.r*.8});if(e.st<=0){e.state='seek';e.st=rand(1.1,1.9)*(still?.55:1)}}
+    }
+    else if(e.type==='camera'){
+      const pa=Math.atan2(dy,dx);let diff=((pa-e.ang)%TAU+TAU*1.5)%TAU-Math.PI;
+      const inCone=Math.abs(diff)<.38&&d<460;
+      if(inCone){e.lock+=dt;e.ang+=clamp(diff,-2.5*dt,2.5*dt)}else{e.lock=Math.max(0,e.lock-dt*2);e.ang+=.9*dt}
+      e.cd-=dt;if(e.lock>.45&&e.cd<=0){e.cd=.8;eshoot(e,aimAngle(e,440),440,'#ffd23b',4)}
+    }
+    else if(e.type==='broker'){
+      steer(nx*e.spd,ny*e.spd,1);e.fire-=dt;
+      if(e.fire<=0){e.burst++;e.fire=e.burst%3===0?1.1:1.8;
+        if(e.burst%3===0){const a=aimAngle(e,260);for(let i=-2;i<=2;i++)eshoot(e,a+i*.12,260,'#e08bff',6)}
+        else{const off=rand(0,TAU),n=14;for(let i=0;i<n;i++)eshoot(e,off+i*TAU/n,170,'#c04bff',6)}
+        S.shake=Math.max(S.shake,4);
+      }
+    }
+    if(!e.static){e.x+=e.vx*dt;e.y+=e.vy*dt}
+    e.x=clamp(e.x,e.r,W-e.r);e.y=clamp(e.y,e.r,H-e.r);
+    if(alive&&d<p.r+e.r-2){hurtPlayer(e);if(!e.static){e.vx=-nx*300;e.vy=-ny*300}}
+  }
+  // separation
+  const es=S.enemies;
+  for(let i=0;i<es.length;i++)for(let j=i+1;j<es.length;j++){
+    const a=es[i],b=es[j],dx=b.x-a.x,dy=b.y-a.y,rr=a.r+b.r,d2=dx*dx+dy*dy;
+    if(d2<rr*rr&&d2>.01){const d=Math.sqrt(d2),o=(rr-d)/2,ux=dx/d,uy=dy/d;if(!a.static){a.x-=ux*o;a.y-=uy*o}if(!b.static){b.x+=ux*o;b.y+=uy*o}}
+  }
+
+  // ---- smart aim: mark enemies the reticle actually hovers ----
+  if(p.homing>0){
+    for(const e of S.enemies){if(Math.hypot(mouse.x-e.x,mouse.y-e.y)<e.r+18)e.marked=true}
+  }
+
+  // ---- player bullets ----
+  for(const b of S.bullets){
+    if(p.homing>0&&!b.drone){
+      let best=null,bd=280*280;for(const e of S.enemies){if(!e.marked)continue;const d=(e.x-b.x)**2+(e.y-b.y)**2;if(d<bd){bd=d;best=e}}
+      if(best){const want=Math.atan2(best.y-b.y,best.x-b.x),cur=Math.atan2(b.vy,b.vx);let diff=((want-cur)%TAU+TAU*1.5)%TAU-Math.PI;const na=cur+clamp(diff,-p.homing*dt,p.homing*dt),sp=Math.hypot(b.vx,b.vy);b.vx=Math.cos(na)*sp;b.vy=Math.sin(na)*sp}
+    }
+    b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;
+    if(b.life<=0||b.x<-20||b.y<-20||b.x>W+20||b.y>H+20){b.dead=true;continue}
+    let hitAd=false;
+    for(const ad of S.ads){if(Math.abs(b.x-ad.x)<ad.w/2&&Math.abs(b.y-ad.y)<ad.h/2){ad.hp--;ad.t=Math.min(ad.t,.12);b.dead=true;hitAd=true;burst(b.x,b.y,ad.col,3,120,.2,2);break}}
+    if(hitAd)continue;
+    for(const e of S.enemies){if(e.dead)continue;const rr=e.r+4;if((e.x-b.x)**2+(e.y-b.y)**2<rr*rr){damageEnemy(e,b.dmg,b.x,b.y);if(!e.static){e.x+=b.vx*.006;e.y+=b.vy*.006}b.dead=true;break}}
+  }
+  S.bullets=S.bullets.filter(b=>!b.dead);
+  S.enemies=S.enemies.filter(e=>!e.dead);
+
+  // ---- enemy bullets ----
+  for(const b of S.ebullets){
+    b.x+=b.vx*dt;b.y+=b.vy*dt;b.life-=dt;
+    if(b.life<=0||b.x<-30||b.y<-30||b.x>W+30||b.y>H+30){b.dead=true;continue}
+    if(!alive)continue;
+    const d=Math.hypot(b.x-p.x,b.y-p.y);
+    if(d<p.r+b.r-3){if(p.inv<=0&&p.dashing<=0&&S.sosT<=0){b.dead=true;hurtPlayer(b)}}
+    else if(d<p.r+b.r+16&&!b.gz){b.gz=true;T.nearMiss++;const gp=S.shared.HEA?12:5;S.score+=gp;ftext(p.x,p.y-22,S.shared.HEA?'ADRENALINE +'+gp:'GRAZE','#38e1ff',11);sfx.graze()}
+  }
+  S.ebullets=S.ebullets.filter(b=>!b.dead);
+
+  // ---- ads ----
+  const exp=exposure();
+  if(S.mode==='play'&&exp>=3){
+    S.adT-=dt;if(S.inf.mood&&p.hp<=2)S.adT=Math.min(S.adT,1.6);
+    if(S.adT<=0){S.adT=Math.max(2.5,12-exp*1.2);spawnAd()}
+  }
+  for(const ad of S.ads){ad.t+=dt;ad.x=clamp(ad.x+ad.vx*dt,ad.w/2,W-ad.w/2);ad.y=clamp(ad.y+ad.vy*dt,ad.h/2+60,H-ad.h/2);
+    if(ad.hp<=0){ad.dead=true;T.adsShot++;burst(ad.x,ad.y,ad.col,24,300,.5,4);ftext(ad.x,ad.y,'AD CLOSED (+1 ENGAGEMENT)','#ffd23b',12);sfx.kill()}}
+  S.ads=S.ads.filter(a=>!a.dead);
+
+  // ---- coins ----
+  for(const c of S.coinsArr){
+    if(S.mode==='play'){c.life-=dt;if(c.life<=0){c.dead=true;continue}}
+    c.t+=dt;const dx=p.x-c.x,dy=p.y-c.y,d=Math.hypot(dx,dy)||1;
+    if(S.mode==='clear'||S.mode==='breach'||d<p.magnet){const f=S.mode==='clear'?1600:1100;c.vx+=dx/d*f*dt;c.vy+=dy/d*f*dt;c.vx*=.94;c.vy*=.94}
+    else{c.vx*=Math.pow(.02,dt);c.vy*=Math.pow(.02,dt)}
+    c.x+=c.vx*dt;c.y+=c.vy*dt;
+    if(alive&&d<p.r+10){c.dead=true;const n=c.jack||1;S.coins+=n;S.coinK++;sfx.coin(S.coinK);burst(c.x,c.y,c.jack?'#ff5ad9':'#ffd23b',c.jack?10:4,c.jack?180:100,.25,2);if(c.jack){ftext(c.x,c.y-16,'JACKPOT +'+n,'#ff5ad9',14);S.flash=.12;S.flashCol='255,90,217';musicPush(16,.18,1.2)}}
+  }
+  S.coinsArr=S.coinsArr.filter(c=>!c.dead);
+  S.coinK=Math.max(0,S.coinK-dt*6);
+
+  // ---- combo ----
+  if(S.nagT>0)S.nagT-=dt;
+  if(S.shared.MSG&&S.mode==='play'){
+    S.pingT-=dt;
+    if(S.pingT<=0){S.pingT=rand(8,13);S.unread++;hookNag(S.unread+' UNREAD · your group chat is waiting');musicPush(10,.15,.9)}
+  }
+  if(S.combo>0){S.comboT-=dt;if(S.comboT<=0){if(S.shared.HAB&&S.combo>=5){hookNag('STREAK LOST · most users play one more wave');musicPush(-14,-.12,1.3)}S.combo=0}}
+
+  // ---- mode machine ----
+  if(S.mode==='play'&&!S.queue.length&&!S.spawns.length&&!S.enemies.length){
+    S.mode='clear';S.clearT=3.2;
+    S.ebullets.forEach(b=>burst(b.x,b.y,b.col,4,140,.3,2));S.ebullets=[];
+    S.ads.forEach(a=>burst(a.x,a.y,a.col,14,200,.4,3));S.ads=[];
+    if(p.regen&&p.hp<p.maxHp){p.hp++;ftext(p.x,p.y-26,'+1 ♥','#ff6b6b',16)}
+    if(S.breachWave===S.wave)T.breachSurvived=true;
+    banner('WAVE CLEAR',S.shared.HAB?'Don\'t stop — sessions like yours usually last longer':S.shared.CON&&S.hookFriend?S.hookFriend+' is still playing. One more?':S.shared.MSG?'Your group chat is waiting. One more wave?':'','#7dff6a',3.4);
+    if(S.shared.HAB||S.shared.CON||S.shared.MSG)musicPush(12,.12,2.2);
+  }
+  if(S.mode==='clear'){S.clearT-=dt;if(S.clearT<=0&&!S.coinsArr.length)afterClear();else if(S.clearT<-1.5)afterClear()}
+  if(S.mode==='breach'){S.breachT-=dt;if(S.breachT<=0)openTerms()}
+  if(S.mode==='dead'){S.deadT-=dt/S.timeScale;S.timeScale=Math.max(.15,S.timeScale-dt*2);if(S.deadT<=0)showDossier()}
+}
+function updateFX(dt){
+  for(const q of S.parts){q.x+=q.vx*dt;q.y+=q.vy*dt;q.vx*=Math.pow(.05,dt);q.vy*=Math.pow(.05,dt);q.life-=dt}
+  S.parts=S.parts.filter(q=>q.life>0);if(S.parts.length>900)S.parts.splice(0,S.parts.length-900);
+  for(const t of S.texts){t.y-=40*dt;t.life-=dt}S.texts=S.texts.filter(t=>t.life>0);
+  for(const r of S.rings)r.t-=dt;S.rings=S.rings.filter(r=>r.t>0);
+  S.shake=Math.max(0,S.shake-dt*45);S.flash=Math.max(0,S.flash-dt*2.2);
+}
+
+// ================= between-wave flow =================
+function hotSpot(heat){
+  let best=-1,bx=0,by=0;
+  for(let cy=0;cy<16;cy++)for(let cx=0;cx<24;cx++){
+    let s=0;for(let j=-1;j<=1;j++)for(let i=-1;i<=1;i++){const x=cx+i,y=cy+j;if(x>=0&&y>=0&&x<24&&y<16)s+=heat[y*24+x]}
+    if(s>best){best=s;bx=cx;by=cy}
+  }
+  return {x:(bx+.5)/24*W,y:(by+.5)/16*H};
+}
+function loyalHist(){
+  const h=store.get('hist',[]).slice(-8);if(h.length<3)return null;
+  const c={};h.forEach(x=>{if(x.first)c[x.first]=(c[x.first]||0)+1});
+  const f=Object.keys(c).sort((a,b)=>c[b]-c[a])[0];if(!f||c[f]/h.length<.5)return false;
+  return {f,ev:'In '+c[f]+' of your last '+h.length+' sessions, your first upgrade was '+PERKS.find(q=>q.id===f).name+'.'};
+}
+function noteFirstPick(id){
+  const M=S.model;
+  if(M.brokeFav){
+    if(id===M.brokeFav){M.loyalRearm=(M.loyalRearm||0)+1;if(M.loyalRearm>=3){M.brokeFav=null;M.loyalRearm=0}}
+    else M.loyalRearm=0;
+  }
+  if(!M.on.loyal||!M.fav)return;
+  if(id===M.fav){delete M.strikes.loyal;return}
+  M.strikes.loyal=(M.strikes.loyal||0)+1;
+  const left=4-M.strikes.loyal;
+  if(left<=0){
+    M.brokeFav=M.fav;M.loyalRearm=0;delete M.on.loyal;delete M.strikes.loyal;M.fav=null;
+    if(!M.lost.includes('NEXT MOVE PREDICTED'))M.lost.push('NEXT MOVE PREDICTED');
+    toast('MODEL OUTDATED: NEXT MOVE PREDICTED. You changed.',3500);unlock('shook');
+  }else toast('MODEL UNSURE: NEXT MOVE PREDICTED. First-pick something else for '+left+' more run'+(left===1?'':'s')+'.',3500);
+}
+function learnPatterns(){
+  const M=S.model,w=M.win,msgs=[];
+  for(const b of BEH){
+    if(!M.on[b.id]||b.id==='loyal')continue;
+    const r=b.test(w,true);
+    if(r===false){
+      M.strikes[b.id]=(M.strikes[b.id]||0)+1;
+      const left=4-M.strikes[b.id];
+      if(left<=0){
+        delete M.on[b.id];delete M.strikes[b.id];
+        if(!M.lost.includes(b.name))M.lost.push(b.name);
+        msgs.push('MODEL OUTDATED: '+b.name+'. You changed.');unlock('shook');
+      }else msgs.push('MODEL UNSURE: '+b.name+'. Keep it up for '+left+' more wave'+(left===1?'':'s')+'.');
+    }
+    else if(r){M.ev[b.id]=r;delete M.strikes[b.id]}
+  }
+  if(msgs.length)toast(msgs.join(' · '),3500);
+  if(S.wave>=(S.shared.HAB?1:2)){
+    let n=S.shared.HAB?2:1;
+    for(const b of shuffle(BEH)){
+      if(!n)break;if(M.on[b.id])continue;
+      const r=b.test(w,false);if(!r)continue;
+      M.on[b.id]=true;M.ev[b.id]=r;n--;
+      S.revealQ.push({...b,kind:'beh',ev:r});
+    }
+  }
+  w.trail=[];
+  for(let i=0;i<w.heat.length;i++)w.heat[i]*=.71;
+  for(let i=0;i<4;i++)w.q[i]*=.71;
+  for(const k of ['dL','dR','dU','dD','mL','mR','mU','mD','still','moving','camp','hits','panic','rc','rs'])w[k]*=.71;
+}
+function afterClear(){
+  if(S.mode!=='clear')return;
+  learnPatterns();
+  const exp=exposure();
+  if(exp>=3&&Math.random()<Math.min(.55,(exp-2)*.07)){
+    S.breachNext=true;S.tele.breaches++;
+    const leaked=TYPES.filter(t=>S.shared[t]).map(t=>DATA[t].n).join(', ');
+    banner('DATA BREACH',leaked+' leaked to '+Math.floor(rand(8,30)+exp*9)+' brokers. Someone bought it.','#ff3b5c',2.4);
+    sfx.alarm();S.shake=18;S.flash=.7;S.flashCol='255,40,80';S.mode='breach';S.breachT=2.4;
+  }else openTerms();
+}
+let urgencyTimer=null;
+function price(pk){
+  let m=S.inf.risk?1.5:1;
+  if(S.model.on.skim)m*=1.3;
+  if(S.model.on.loyal&&S.model.fav===pk.id)m*=2;
+  return Math.round((pk.data?10+S.wave*4:14+S.wave*5)*m);
+}
+function startUrgency(){
+  clearInterval(urgencyTimer);
+  const u=$('urgency');u.className='';
+  let secs=10,phase=0;
+  const paint=()=>{u.textContent=(phase===0?'⏰ OFFER EXPIRES IN 0:':'🎉 EXTENDED JUST FOR YOU! 0:')+String(Math.max(0,secs)).padStart(2,'0');u.className=phase?'hold':''};
+  paint();
+  urgencyTimer=setInterval(()=>{
+    secs--;
+    if(secs<0){
+      if(phase>=1){clearInterval(urgencyTimer);u.textContent='';u.className='';return}
+      phase=1;secs=10;
+    }
+    paint();
+  },1000);
+}
+function openTerms(){
+  S.mode='terms';S.termsOpenAt=performance.now();typed='';document.body.classList.remove('playing');
+  const data=shuffle(PERKS.filter(p=>p.data)),coin=shuffle(PERKS.filter(p=>!p.data));
+  const nd=Math.random()<.55?2:3;
+  S.offer=shuffle([...data.slice(0,nd),...coin.slice(0,3-nd)]);
+  S.amend=pickAmendment();
+  S.taken=[];
+  const hotPool=S.offer.map((pk,i)=>i);
+  S.hotI=Math.random()<.5&&hotPool.length?pick(hotPool):-1;
+  S.hotBadge=pick(['POPULAR','TRENDING','TOP RATED']);
+  $('tosT').textContent='Your Terms of Service have been updated';
+  $('tosSub').innerHTML='Take as many upgrades as you want. <b>94% of players choose ACCEPT.</b>';
+  renderCards();
+  $('fineText').innerHTML=fineText();$('fineBox').open=false;
+  $('terms').classList.remove('hidden');
+  startUrgency();
+  sfx.select();
+}
+// Amendments hide in a data card's small print: two catches and one honest deal.
+function pickAmendment(){
+  if(S.wave<2||Math.random()>=.5)return null;
+  const idx=S.offer.map((pk,i)=>pk.data?i:-1).filter(i=>i>=0);if(!idx.length)return null;
+  const i=pick(idx),t=S.offer[i].data,r=Math.random();
+  if(r<.4){
+    const pool=TYPES.filter(x=>x!==t&&!S.shared[x]);
+    const combo=pool.filter(x=>INF.some(f=>!S.inf[f.id]&&f.need.includes(x)&&f.need.every(y=>y===x||y===t||S.shared[y])));
+    if(pool.length)return {i,kind:'bundle',extra:pick(combo.length?combo:pool)};
+  }
+  return {i,kind:r<.7?'resell':'local'};
+}
+function amendText(A){
+  if(!A)return '';
+  if(A.kind==='bundle'){const E=DATA[A.extra];return E?` and your <b style="color:${E.c};filter:brightness(.75)">${E.i} ${E.n}</b>`:''}
+  if(A.kind==='resell')return '. May be resold to data brokers (counts double toward breaches)';
+  return '. Processed on your device only. Never uploaded or shared';
+}
+function stackNote(pk){
+  const n=S.tele.picks[pk.id]||0;if(!n||!pk.again)return '';
+  return `<div class="stack"><b>YOU HAVE THIS ×${n}</b>Next pick: ${pk.again} Loyalty bonus: credits back.</div>`;
+}
+function termsFoot(){
+  $('decline').textContent=S.taken&&S.taken.length?'DONE · CONTINUE':'No thanks, I prefer to struggle. (repair 1 ♥)';
+}
+function renderCards(){
+  const known=store.get('disc',[]);
+  $('priceNote').textContent='';
+  termsFoot();
+  $('cards').innerHTML=S.offer.map((pk,i)=>{
+    if(S.taken&&S.taken.includes(i))return '';
+    const pr=price(pk),afford=S.coins>=pr,owned=stackNote(pk);
+    const hot=S.hotI===i?`<div class="chot">${S.hotBadge||'POPULAR'}</div>`:'';
+    if(!pk.data)return `<div class="card"><div class="ctag">${pk.tag}</div>${hot}<div class="cicon">${pk.icon}</div><div class="cname">${pk.name}</div><div class="cdesc">${pk.desc}</div>${owned}
+      <button class="buy" data-i="${i}" data-a="pay" ${afford?'':'disabled'}>BUY ◈ ${pr}</button><div class="req">No data required.</div></div>`;
+    const D=DATA[pk.data];
+    const risks=INF.filter(f=>!S.inf[f.id]&&known.includes(f.id)&&f.need.includes(pk.data)&&f.need.every(t=>t===pk.data||S.shared[t]));
+    return `<div class="card"><div class="ctag">${pk.tag}</div>${hot}<div class="cicon">${pk.icon}</div><div class="cname">${pk.name}</div><div class="cdesc">${pk.desc}</div>${owned}
+      <button class="accept" data-i="${i}" data-a="free">ACCEPT<span>FREE</span></button>
+      <div class="req">Allows access to your <b style="color:${D.c};filter:brightness(.75)">${D.i} ${D.n}</b>${S.shared[pk.data]?' (again)':''}${amendText(S.amend&&S.amend.i===i?S.amend:null)}.</div>
+      ${risks.map(f=>`<div class="warn">⚠ You've seen this before: ${f.name}</div>`).join('')}
+      <button class="pay" data-i="${i}" data-a="pay" ${afford?'':'disabled'}>or pay ◈ ${pr} (you have ${S.coins})</button></div>`;
+  }).join('');
+}
+$('cards').addEventListener('click',e=>{const b=e.target.closest('button');if(b&&!b.disabled)choose(+b.dataset.i,b.dataset.a)});
+$('decline').addEventListener('click',()=>{if(S.mode!=='terms')return;if(!(S.taken&&S.taken.length)){S.p.hp=Math.min(S.p.maxHp,S.p.hp+1);S.tele.declined++}closeTerms()});
+$('fineBox').addEventListener('toggle',()=>{if($('fineBox').open)S.tele.fineOpen++});
+function termsHotkey(i){const left=S.offer.map((pk,j)=>j).filter(j=>!(S.taken&&S.taken.includes(j)));const j=left[i];if(j==null)return;const pk=S.offer[j];choose(j,pk.data?'free':'pay')}
+function choose(i,a){
+  if(S.mode!=='terms')return;const pk=S.offer[i];if(!pk||(S.taken&&S.taken.includes(i)))return;
+  const again=S.tele.picks[pk.id]||0,pr=price(pk);
+  let note='';
+  if(a==='pay'){if(S.coins<pr){sfx.deny();return}S.coins-=pr;S.tele.paid++}
+  else{
+    const A=S.amend&&S.amend.i===i?S.amend:null;S.tele.free++;
+    if(A&&A.kind==='local'){S.tele.honest++;note='Processed on-device. Nothing was shared. Reading paid off.'}
+    else{
+      share(pk.data);
+      if(A&&A.kind==='bundle'&&A.extra){share(A.extra);S.tele.caught++;note='You also shared '+DATA[A.extra].n+'. It was on the card.'}
+      else if(A&&A.kind==='resell'){S.shared[pk.data]++;S.tele.caught++;note='Your '+DATA[pk.data].n+' was resold. It counts double now.'}
+    }
+  }
+  if(again){const bonus=Math.max(5,Math.round(pr*.4));S.coins+=bonus;note=(note?note+' ':'')+'Loyalty bonus +'+bonus+' ◈.';}
+  if(note)toast(note);
+  pk.apply(S.p);S.tele.picks[pk.id]=(S.tele.picks[pk.id]||0)+1;if(!S.tele.firstPick){S.tele.firstPick=pk.id;noteFirstPick(pk.id)}
+  S.taken.push(i);
+  if(S.taken.length>=S.offer.length)closeTerms();
+  else renderCards();
+}
+function share(t){
+  S.shared[t]=(S.shared[t]||0)+1;
+  const disc=store.get('disc',[]);
+  for(const f of INF)if(!S.inf[f.id]&&hasAll(f.need)){S.inf[f.id]=true;S.revealQ.push(f);if(!disc.includes(f.id))disc.push(f.id)}
+  store.set('disc',disc);
+  saveProfile();
+}
+function closeTerms(){
+  S.tele.termsTime.push((performance.now()-S.termsOpenAt)/1000);
+  store.set('readAvg',S.tele.termsTime.reduce((a,b)=>a+b,0)/S.tele.termsTime.length);
+  clearInterval(urgencyTimer);$('terms').classList.add('hidden');sfx.select();
+  if(S.revealQ.length)nextReveal();else startWave();
+}
+function nextReveal(){
+  const f=S.revealQ.shift();
+  if(!f){$('reveal').classList.add('hidden');startWave();return}
+  S.mode='reveal';S.revealAt=performance.now();
+  const beh=f.kind==='beh';
+  $('reveal').classList.toggle('beh',beh);
+  $('rvSmall').textContent=beh?'BEHAVIOR PATTERN LEARNED':'NEW INFERENCE GENERATED';
+  $('rvEq').innerHTML=beh
+    ?`<span class="chip on" style="--c:#c04bff">👁 OBSERVED</span><span>${f.ev}${S.shared.HAB?' Your HABITS data helped.':''}</span>`
+    :f.need.map(t=>`<span class="chip on" style="--c:${DATA[t].c}">${DATA[t].i} ${DATA[t].n}</span>`).join('<span>+</span>')+'<span>=</span>';
+  const n=$('rvName');n.textContent=f.name;n.dataset.t=f.name;
+  $('rvDesc').textContent=f.desc;
+  $('rvWhy').textContent=f.why+(beh?(f.id==='loyal'?' First-pick something else for several sessions to throw the model off.':' Change how you play and the model may lose track of you.'):'');
+  $('reveal').classList.remove('hidden');sfx.reveal();
+}
+function advanceReveal(){if(S.mode==='reveal'&&performance.now()-S.revealAt>500)nextReveal()}
+$('reveal').addEventListener('click',advanceReveal);
+function checkSecret(){
+  if(S.secretUsed||!typed.endsWith(S.secret.toLowerCase()))return;
+  S.secretUsed=true;S.coins+=15;sfx.secret();toast('+15 ◈ You actually read the terms.');unlock('reader');renderCards();
+}
+function fineText(){
+  const clauses=[
+    '<b>1. COLLECTION.</b> By selecting ACCEPT you grant OPT/IN Inc. and its 1,204 partners a perpetual, worldwide, royalty-free license to collect, store, analyze, combine and sell the data category listed on the offer, along with anything that can be inferred from it.',
+    '<b>2. COMBINATION.</b> Data you share separately may be combined. Combined data can reveal things you never shared, such as where you live, who you trust, how you feel, and what you will do next. You will be notified of inferences after they occur.',
+    '<b>3. SECURITY.</b> We take your security seriously. Security incidents may occur. A small file is rarely worth stealing. Combined data, and files built from three or more categories, are when a breach becomes likely and valuable.',
+    '<b>4. PAYMENT OPTION.</b> You may instead pay with credits. Paid upgrades do not collect data. Repeat selections of an upgrade you already have earn a loyalty credit bonus. Other prices may still change based on your profile.',
+    '<b>5. DELETION.</b> Shared data types and inferences are kept across sessions until you request deletion. Copies already shared with partners are governed by the partners\' own terms.',
+    '<b>6. OBSERVATION.</b> Regardless of your choices, gameplay telemetry including movement, hesitation, reaction under stress, and time spent on this screen is recorded and analyzed. A summary will be shown to you at the end of your session.',
+    '<b>7. READERS.</b> Almost nobody reads this far. If you did, type the word <b style="color:#111;background:#ffd23b;padding:0 5px;border-radius:3px">'+S.secret+'</b> on your keyboard right now to receive 15 credits. Once per session.',
+    '<b>8. CHANGES.</b> These terms may be updated at any time, and individual offers may carry additional terms printed on the offer itself. Continued play means you agree to the updated terms.'
+  ];
+  return clauses.map(c=>'<p style="margin-bottom:6px">'+c+'</p>').join('');
+}
+
+// ================= achievements & death =================
+function unlock(id){const a=store.get('ach',[]);if(!a.includes(id)){a.push(id);store.set('ach',a);if(S)S.newAch.push(id)}}
+function die(){
+  S.mode='dead';S.deadT=1.6;S.timeScale=1;S.shake=30;S.freeze=.25;S.flash=1;S.flashCol='255,40,80';
+  burst(S.p.x,S.p.y,'#38e1ff',120,700,1.4,5);burst(S.p.x,S.p.y,'#fff',40,400,.8,3);sfx.big();
+  document.body.classList.remove('playing');
+}
+function showDossier(){
+  if(S.mode==='dossier')return;S.mode='dossier';
+  const T=S.tele,p=S.p,wave=S.wave,nShared=TYPES.filter(t=>S.shared[t]).length;
+  // achievements
+  if(wave>=6&&nShared===0)unlock('ghost');
+  if(nShared===6)unlock('open');
+  if(T.paid>=4)unlock('paid');
+  if(T.breachSurvived)unlock('breach');
+  if(wave>=10)unlock('deep');
+  if(store.get('disc',[]).length>=6)unlock('all');
+  // history (cross-session analysis)
+  const hist=store.get('hist',[]);
+  hist.push({wave,score:S.score,free:T.free,paid:T.paid,declined:T.declined,first:T.firstPick,picks:T.picks,shared:nShared});
+  store.set('hist',hist.slice(-40));
+  saveModel();saveProfile();
+  const best=store.get('best',{score:0,wave:0});const isBest=S.score>best.score;
+  if(isBest)store.set('best',{score:S.score,wave});
+  // analysis
+  const quadN=['upper-left','upper-right','lower-left','lower-right'];
+  const qt=T.q.reduce((a,b)=>a+b,0)||1,qi=T.q.indexOf(Math.max(...T.q));
+  const cells=Array.from(T.heat).sort((a,b)=>b-a),tot=cells.reduce((a,b)=>a+b,0)||1;
+  const topShare=cells.slice(0,Math.ceil(cells.length*.1)).reduce((a,b)=>a+b,0)/tot;
+  const predictability=Math.round(clamp((topShare-.1)/.9,0,1)*100);
+  const lr=T.dirs.l+T.dirs.r||1,leftPct=Math.round(T.dirs.l/lr*100);
+  const stillPct=Math.round(T.still/((T.still+T.moving)||1)*100);
+  const readAvg=T.termsTime.length?T.termsTime.reduce((a,b)=>a+b,0)/T.termsTime.length:0;
+  const mins=Math.max(T.time/60,.1),grazeRate=T.nearMiss/mins;
+  const choices=T.free+T.paid+T.declined;
+  const blocks=[],add=(sec,label,body,alert)=>{let b=blocks.find(x=>x.sec===sec);if(!b){b={sec,items:[]};blocks.push(b)}b.items.push({label,body,alert})};
+  add('HOW YOU MOVED','USUAL SPOT','The <b>'+quadN[qi]+'</b> · '+Math.round(T.q[qi]/qt*100)+'% of your time',0);
+  add('HOW YOU MOVED','PREDICTABILITY','<b>'+predictability+'%</b> · '+(predictability>55?'You return to the same spots.':'You roam.'),predictability>55);
+  if(Math.abs(leftPct-50)>6)add('HOW YOU MOVED','SIDE BIAS','Drifts <b>'+(leftPct>50?'left':'right')+'</b> '+Math.max(leftPct,100-leftPct)+'% of sideways movement',0);
+  if(T.stressN>5&&T.calmN>5){const r=(T.stressSpd/T.stressN)/((T.calmSpd/T.calmN)||1);add('HOW YOU MOVED','UNDER STRESS','<b>'+Math.abs(Math.round((r-1)*100))+'% '+(r>=1?'faster':'slower')+'</b> · '+(r>=1?'reactive':'freezes'),1)}
+  add('HOW YOU MOVED','PLAY STYLE','Still <b>'+stillPct+'%</b> of the time · <b>'+T.nearMiss+'</b> grazes · '+(grazeRate>8?'thrill-seeker':grazeRate>3?'calculated risk-taker':'cautious'),0);
+  if(T.termsTime.length)add('HOW YOU CHOSE','TERMS','<b>'+readAvg.toFixed(1)+'s</b> average · '+(T.fineOpen?'opened the fine print '+T.fineOpen+'×':'never opened the fine print')+' · full terms ~60s',readAvg<8);
+  if(T.caught||T.honest)add('HOW YOU CHOSE','FINE PRINT','Caught <b>'+T.caught+'×</b> · found <b>'+T.honest+'</b> honest deal'+(T.honest===1?'':'s'),T.caught>T.honest);
+  if(T.wifiT>5)add('HOW YOU CHOSE','FREE WI-FI','<b>'+Math.round(T.wifiT)+'s</b> connected · earned <b>'+T.wifiCoins+' ◈</b>',T.wifiT>30);
+  if(choices)add('HOW YOU CHOSE','UPGRADES','<b>'+T.free+'</b> free · <b>'+T.paid+'</b> paid · <b>'+T.declined+'</b> declined',T.free>T.paid);
+  if(T.adsShot)add('HOW YOU CHOSE','AD ENGAGEMENT','<b>'+T.adsShot+'</b> ads shot · still counts as engagement',1);
+  {const hooks=[];
+    if(S.shared.HAB)hooks.push('random jackpots, streak-guilt, and a pumped soundtrack');
+    if(S.shared.HEA)hooks.push('don\'t-quit pressure and racing music when you were hurt');
+    if(S.shared.CON)hooks.push('a contact who stayed one wave ahead');
+    if(S.shared.MSG)hooks.push((S.unread||0)+' unread badges that turned the music up');
+    if(S.shared.BIO)hooks.push('happy/stressed labels and a mix that followed your face');
+    if(S.shared.LOC)hooks.push('"players near you haven\'t left" and a lull on free Wi-Fi');
+    if(hooks.length)add('HOW YOU CHOSE','KEEP YOU PLAYING','Used data you sold to hook you: <b>'+hooks.join(', ')+'</b>',1)}
+  const infNames=INF.filter(f=>S.inf[f.id]).map(f=>f.name);
+  if(S.carriedShared.length)add('STILL ON FILE','SHARED LAST TIME','<b>'+S.carriedShared.map(t=>DATA[t].n).join(', ')+'</b> · still sold. Paying with credits later does not erase a past share.',1);
+  if(infNames.length)add('STILL ON FILE','GUESSED FROM YOUR DATA','<b>'+infNames.join(', ')+'</b>'+(S.carriedInf.length?' · still held from last time':''),1);
+  const behOn=BEH.filter(b=>S.model.on[b.id]);
+  const kept=behOn.filter(b=>S.model.carried.includes(b.id));
+  const newBeh=behOn.filter(b=>!S.model.carried.includes(b.id));
+  if(kept.length)add('STILL ON FILE','STILL WATCHING','<b>'+kept.map(b=>b.name).join(', ')+'</b> · from how you play, not from Accept. Still matching this run.',1);
+  if(newBeh.length)add('STILL ON FILE','LEARNED THIS RUN','<b>'+newBeh.map(b=>b.name).join(', ')+'</b> · watched from movement and choices. You never tapped Accept for these.',1);
+  if(S.model.lost.length)add('STILL ON FILE','SHOOK OFF','<b>'+S.model.lost.join(', ')+'</b> · you changed, so the model dropped them.',0);
+  const seg=T.free>T.paid+1?(grazeRate>5?'IMPULSIVE THRILL-SEEKER':'CONVENIENCE-FIRST'):T.paid>T.free?'PRIVACY-CONSCIOUS SPENDER':'CAUTIOUS NEGOTIATOR';
+  add('WHAT WE\'LL SELL','SEGMENT','<b>'+seg+'</b>',1);
+  if(hist.length>=2){
+    const tf=hist.reduce((a,h)=>a+h.free,0),tc=hist.reduce((a,h)=>a+h.free+h.paid+h.declined,0)||1;
+    const firsts={};hist.forEach(h=>{if(h.first)firsts[h.first]=(firsts[h.first]||0)+1});
+    const fav=Object.keys(firsts).sort((a,b)=>firsts[b]-firsts[a])[0];const favP=PERKS.find(q=>q.id===fav);
+    add('WHAT WE\'LL SELL','NEXT RUN','Accepts free <b>'+Math.round(tf/tc*100)+'%</b> across '+hist.length+' sessions'+(favP?' · likely first pick: <b>'+favP.name+'</b>':''),1);
+  }
+  let val=.08+T.time*.002+TYPES.reduce((a,t)=>a+(S.shared[t]?DATA[t].v*Math.sqrt(S.shared[t]):0),0)+infNames.length*.6+behOn.length*.4+hist.length*.05;
+  const rank=nShared===0?['GHOST','#7dff6a']:nShared<=2?['LOW PROFILE','#38e1ff']:nShared<=4?['TRACKED','#ffd23b']:['OPEN BOOK','#ff3b5c'];
+  const achs=store.get('ach',[]);
+  const id='#'+Math.floor(rand(100000,999999))+'-'+String.fromCharCode(65+Math.floor(Math.random()*26));
+  $('dossier').innerHTML=`<div class="dos">
+    <div class="dosTop"><div><div class="dosId">SUBJECT ${id} · OBSERVED FOR ${Math.floor(T.time/60)}m ${Math.floor(T.time%60)}s</div>
+      <div class="dosH">YOU REACHED WAVE ${wave}</div>
+      <div style="font-size:15px;color:#aab3d9">SCORE <b style="color:#fff">${S.score.toLocaleString()}</b> ${isBest?'<b style="color:#ffd23b">· NEW BEST</b>':'· BEST '+best.score.toLocaleString()}</div></div>
+      <div class="stamp">PROFILE ${predictability>50||nShared>3?'COMPLETE':'PARTIAL'}</div>
+      <div style="text-align:right"><div class="dosId">PRIVACY RANK</div><div class="dosRank" style="--c:${rank[1]}">${rank[0]}</div></div></div>
+    <div class="dosGrid">
+      <div>
+        <div class="sec">WHERE YOU SPENT YOUR TIME</div><canvas id="heat" width="24" height="16"></canvas>
+        <div class="sec">DATA YOU GAVE</div>
+        <div id="chipsD" style="display:flex;flex-wrap:wrap;gap:4px">${TYPES.map(t=>`<span class="chip ${S.shared[t]?'on':''}" style="--c:${DATA[t].c}">${DATA[t].i} ${DATA[t].n}${S.shared[t]>1?' ×'+S.shared[t]:''}</span>`).join('')}</div>
+        <div class="sec">DATA YOU DIDN'T KNOW YOU GAVE</div>
+        <div class="stat"><span>Position samples</span><b>${Math.round(tot)}</b></div>
+        <div class="stat"><span>Dashes L/R/U/D</span><b>${T.dashes} (${T.dashL}/${T.dashR}/${T.dashU}/${T.dashD})</b></div>
+        <div class="stat"><span>Hesitation on terms</span><b>${readAvg.toFixed(1)}s avg</b></div>
+        <div class="stat"><span>Stress samples</span><b>${T.stressN}</b></div>
+        <div class="sec">ESTIMATED VALUE OF YOUR PROFILE TO ADVERTISERS</div><div class="value">$${val.toFixed(2)}</div>
+        <div style="font-size:11px;color:#6a7299">Multiply by every app on your phone.</div>
+      </div>
+      <div>
+        ${(()=>{let n=0;return blocks.map(b=>`<div class="infBlock"><div class="sec">${b.sec}</div>${b.items.map(it=>`<div class="inf ${it.alert?'red':''}" style="animation-delay:${.2+(n++)*.12}s"><span class="k">${it.label}</span>${it.body}</div>`).join('')}</div>`).join('')})()}
+        <div class="sec" style="margin-top:18px">ACHIEVEMENTS</div>
+        <div class="achs">${Object.keys(ACH).map(k=>`<span class="ach ${achs.includes(k)?'on':''} ${S.newAch.includes(k)?'new':''}" title="${ACH[k][1]}">${achs.includes(k)?'★':'☆'} ${ACH[k][0]}<br><span style="font-size:9px;opacity:.7">${ACH[k][1]}</span></span>`).join('')}</div>
+      </div>
+    </div>
+    <div class="dosBtns"><button class="neon" id="againBtn">RUN IT BACK</button><button class="ghost" id="delBtn">DELETE MY DATA</button></div>
+    <div style="text-align:center;font-size:10px;color:#454b6b;margin-top:10px">press R to restart</div>
+  </div>`;
+  const hc=$('heat').getContext('2d'),mx=Math.max(...T.heat)||1;
+  for(let i=0;i<T.heat.length;i++){const v=Math.pow(T.heat[i]/mx,.5);if(v<=0)continue;hc.fillStyle=`hsla(${200-v*200},100%,${20+v*45}%,${.25+v*.75})`;hc.fillRect(i%24,Math.floor(i/24),1,1)}
+  $('againBtn').onclick=startGame;
+  $('delBtn').onclick=()=>{if(confirm('Delete ALL your OPT/IN data?\nThis removes shared data types, inferences, behavior patterns, your high score, and achievements.\nPrivacy has trade-offs too.')){store.clear();toast('Deleted. Your partners were not notified.');$('delBtn').disabled=true}};
+  $('dossier').classList.remove('hidden');$('hud').classList.add('hidden');$('pause').classList.add('hidden');document.body.classList.remove('paused');
+}
+
+// ================= HUD =================
+let hudCache={};
+function setH(id,v,prop='innerHTML'){if(hudCache[id]!==v){hudCache[id]=v;$(id)[prop]=v}}
+function updateHUD(){
+  if(!S||S.mode==='dossier')return;const p=S.p;
+  setH('hearts','♥'.repeat(Math.max(0,p.hp))+'<span class="e">'+'♥'.repeat(Math.max(0,p.maxHp-p.hp))+'</span>'+(p.revives?' <span style="font-size:14px;color:#ff6b6b">🚑×'+p.revives+'</span>':''));
+  setH('scoreL',S.score.toLocaleString());setH('coinL','◈ '+S.coins);setH('waveL','WAVE '+S.wave);
+  setH('comboL',S.combo>=(S.shared.HAB?2:3)?'×'+S.combo+' COMBO'+(S.shared.HAB&&S.combo>=5?' · DON\'T DROP IT':''):'');
+  const nags=[];
+  if(S.shared.MSG&&S.unread)nags.push('✉ '+S.unread+' UNREAD');
+  if(S.shared.HEA&&p.hp<=2&&S.mode==='play')nags.push('♥ ELEVATED · STAY IN');
+  if(S.shared.CON&&S.hookFriend)nags.push(S.hookFriend+' IS AHEAD');
+  setH('hookNag',nags.join('<br>'));
+  setH('chips',TYPES.map(t=>`<span class="chip ${S.shared[t]?'on':''}" style="--c:${DATA[t].c}">${DATA[t].i}<span class="cl">${DATA[t].s}${S.shared[t]>1?' ×'+S.shared[t]:''}</span></span>`).join(''));
+  setH('infs',INF.filter(f=>S.inf[f.id]).map(f=>`<div class="infc">⚠ ${f.name}</div>`).join('')
+    +BEH.filter(b=>S.model.on[b.id]).map(b=>`<div class="infc beh${S.model.strikes[b.id]?' weak':''}">👁 ${b.name}${S.model.strikes[b.id]?' · WEAKENING':''}</div>`).join(''));
+  const e=exposure();$('expFill').style.width=Math.min(100,e/10*100)+'%';
+  setH('dashBar',p.dashT<=0?'DASH READY':'');
+}
+
+// ================= render =================
+function drawGrid(ox,oy,t){
+  g.strokeStyle='rgba(56,225,255,.06)';g.lineWidth=1;const s=50;g.beginPath();
+  for(let x=((-ox)%s+s)%s;x<W;x+=s){g.moveTo(x,0);g.lineTo(x,H)}
+  for(let y=((-oy)%s+s)%s;y<H;y+=s){g.moveTo(0,y);g.lineTo(W,y)}g.stroke();
+}
+function glow(x,y,r,col,a){g.globalAlpha=a;g.fillStyle=col;g.beginPath();g.arc(x,y,r,0,TAU);g.fill();g.globalAlpha=1}
+function wrap(txt,maxW){const w=txt.split(' '),out=[];let l='';for(const s of w){const tt=l?l+' '+s:s;if(g.measureText(tt).width>maxW&&l){out.push(l);l=s}else l=tt}out.push(l);return out}
+let attractT=0;
+function render(dt){
+  g.setTransform(DPR,0,0,DPR,0,0);g.fillStyle='#07070f';g.fillRect(0,0,W,H);
+  if(!S){attractT+=dt;drawGrid(attractT*20,attractT*12);
+    for(let i=0;i<7;i++){const x=W/2+Math.cos(attractT*.3+i)*W*.35,y=H/2+Math.sin(attractT*.4+i*1.7)*H*.35;drawEye(x,y,16,W/2,H/2,'#ffa53b',0)}
+    return}
+  const p=S.p;
+  g.save();if(S.shake>0)g.translate(rand(-1,1)*S.shake,rand(-1,1)*S.shake);
+  drawGrid(p.x*.04,p.y*.04);
+  // free wi-fi hotspot
+  {const wx=S.wifi.x*W,wy=S.wifi.y*H,on=p.inWifi;
+    g.fillStyle=`rgba(125,255,106,${on?.09:.04})`;g.beginPath();g.arc(wx,wy,WIFI_R,0,TAU);g.fill();
+    g.strokeStyle='#7dff6a';g.globalAlpha=on?.7:.35;g.lineWidth=2;g.beginPath();g.arc(wx,wy,WIFI_R,0,TAU);g.stroke();
+    for(let i=1;i<=3;i++){g.globalAlpha=(on?.6:.25)*(.5+.5*Math.sin(S.t*3-i));g.beginPath();g.arc(wx,wy+10,i*9,-Math.PI*.75,-Math.PI*.25);g.stroke()}
+    g.fillStyle='#7dff6a';g.textAlign='center';
+    g.globalAlpha=on?.95:.6;g.font='bold 11px JetBrains Mono';g.fillText('FREE WI-FI',wx,wy+18);
+    g.font='bold 9px JetBrains Mono';
+    g.globalAlpha=on?.95:.5;g.fillText('IN RING · FAST FIRE',wx,wy+32);
+    g.globalAlpha=p.wifiStill?.95:on?.55:.4;g.fillText('STAND STILL · FASTER + ◈',wx,wy+44);g.globalAlpha=1}
+  // learned comfort zone
+  if(S.model.hot&&S.mode!=='dead'){const h=S.model.hot;g.strokeStyle='#c04bff';g.globalAlpha=.18+.08*Math.sin(S.t*2);g.lineWidth=2;g.setLineDash([6,8]);g.beginPath();g.arc(h.x,h.y,190,0,TAU);g.stroke();g.setLineDash([]);
+    g.fillStyle='#c04bff';g.font='10px JetBrains Mono';g.textAlign='center';g.fillText('YOUR USUAL SPOT',h.x,h.y-196);g.globalAlpha=1}
+  // spawn warnings
+  for(const s of S.spawns){const k=s.t/s.max;g.strokeStyle=s.type==='broker'?'#c04bff':'#ff3b5c';g.globalAlpha=.4+.6*(1-k);g.lineWidth=2;g.beginPath();g.arc(s.x,s.y,8+k*30,0,TAU);g.stroke();g.beginPath();g.moveTo(s.x-6,s.y);g.lineTo(s.x+6,s.y);g.moveTo(s.x,s.y-6);g.lineTo(s.x,s.y+6);g.stroke();g.globalAlpha=1}
+  // coins
+  for(const c of S.coinsArr){if(c.life<2&&Math.floor(S.t*8)%2)continue;const col=c.jack?'#ff5ad9':'#ffd23b',s=Math.abs(Math.cos(c.t*6))*(c.jack?7:5)+(c.jack?2:1);glow(c.x,c.y,c.jack?13:9,col,.22);g.fillStyle=col;g.beginPath();g.moveTo(c.x,c.y-(c.jack?8:6));g.lineTo(c.x+s,c.y);g.lineTo(c.x,c.y+(c.jack?8:6));g.lineTo(c.x-s,c.y);g.closePath();g.fill()}
+  // camera cones
+  for(const e of S.enemies)if(e.type==='camera'){g.fillStyle=`rgba(255,210,59,${e.lock>0?.1+e.lock*.35:.06})`;g.beginPath();g.moveTo(e.x,e.y);g.arc(e.x,e.y,460,e.ang-.38,e.ang+.38);g.closePath();g.fill()}
+  // crawler telegraphs
+  for(const e of S.enemies)if(e.type==='crawler'&&e.state==='aim'){g.strokeStyle='#ff4bd8';g.globalAlpha=.3+.5*Math.abs(Math.sin(S.t*30));g.lineWidth=3;g.setLineDash([10,8]);g.beginPath();g.moveTo(e.x,e.y);g.lineTo(e.x+Math.cos(e.da)*320,e.y+Math.sin(e.da)*320);g.stroke();g.setLineDash([]);g.globalAlpha=1}
+  // predicted-position ghost
+  if(S.inf.predict&&S.mode!=='dead'){const gx=p.x+p.vx*.5,gy=p.y+p.vy*.5;g.strokeStyle='rgba(255,59,92,.55)';g.lineWidth=1.5;g.setLineDash([4,4]);g.beginPath();g.arc(gx,gy,p.r+4,0,TAU);g.stroke();g.setLineDash([]);g.fillStyle='rgba(255,59,92,.7)';g.font='9px JetBrains Mono';g.textAlign='center';g.fillText('PREDICTED',gx,gy-p.r-8)}
+  // predicted panic dash
+  {const pp=S.model.panicPt;if(pp&&S.t<pp.until&&S.mode!=='dead'){g.strokeStyle='#c04bff';g.globalAlpha=.4+.4*Math.abs(Math.sin(S.t*10));g.lineWidth=2;g.setLineDash([4,4]);
+    g.beginPath();g.arc(pp.x,pp.y,p.r+8,0,TAU);g.stroke();g.setLineDash([]);g.fillStyle='#c04bff';g.font='9px JetBrains Mono';g.textAlign='center';g.fillText('PREDICTED DASH',pp.x,pp.y-p.r-12);g.globalAlpha=1}}
+  // particles (additive)
+  g.globalCompositeOperation='lighter';
+  for(const q of S.parts){g.globalAlpha=clamp(q.life/q.max,0,1);g.fillStyle=q.col;const s=q.size*(.4+.6*q.life/q.max);g.fillRect(q.x-s/2,q.y-s/2,s,s)}
+  g.globalAlpha=1;
+  for(const r of S.rings){const k=1-r.t/(r.max>200?.6:.3);g.strokeStyle=r.col;g.globalAlpha=clamp(1-k,0,1);g.lineWidth=3;g.beginPath();g.arc(r.x,r.y,r.r+(r.max-r.r)*clamp(k,0,1),0,TAU);g.stroke()}
+  g.globalAlpha=1;g.globalCompositeOperation='source-over';
+  // enemies
+  for(const e of S.enemies)drawEnemy(e);
+  if(S.p.homing>0){g.strokeStyle='#7dff6a';g.lineWidth=1.5;for(const e of S.enemies)if(e.marked){g.globalAlpha=.55+.25*Math.sin(S.t*8);g.beginPath();g.arc(e.x,e.y,e.r+6,0,TAU);g.stroke()}g.globalAlpha=1}
+  // player bullets
+  g.globalCompositeOperation='lighter';g.lineCap='round';
+  for(const b of S.bullets){g.strokeStyle=b.drone?'#ff5ad9':'#38e1ff';g.lineWidth=4;g.beginPath();g.moveTo(b.x,b.y);g.lineTo(b.x-b.vx*.022,b.y-b.vy*.022);g.stroke();g.strokeStyle='#fff';g.lineWidth=1.5;g.stroke()}
+  // enemy bullets
+  for(const b of S.ebullets){
+    if(p.lines){g.strokeStyle=b.col;g.globalAlpha=.22;g.lineWidth=1;g.beginPath();g.moveTo(b.x,b.y);g.lineTo(b.x+b.vx*.6,b.y+b.vy*.6);g.stroke();g.globalAlpha=1}
+    glow(b.x,b.y,b.r*2.4,b.col,.25);g.fillStyle=b.col;g.beginPath();g.arc(b.x,b.y,b.r,0,TAU);g.fill();g.fillStyle='#fff';g.beginPath();g.arc(b.x,b.y,b.r*.45,0,TAU);g.fill()}
+  g.globalCompositeOperation='source-over';
+  // player
+  if(S.mode!=='dead'){
+    for(let i=0;i<S.trail.length;i++){const t=S.trail[i];glow(t.x,t.y,p.r*(i/S.trail.length),'#38e1ff',.08)}
+    for(let i=0;i<p.drones;i++){const a=S.t*2.2+i*TAU/p.drones,dx=p.x+Math.cos(a)*48,dy=p.y+Math.sin(a)*48;g.strokeStyle='rgba(255,90,217,.25)';g.lineWidth=1;g.beginPath();g.moveTo(p.x,p.y);g.lineTo(dx,dy);g.stroke();glow(dx,dy,10,'#ff5ad9',.25);g.fillStyle='#ff5ad9';g.beginPath();g.arc(dx,dy,5,0,TAU);g.fill()}
+    const blink=p.inv>0&&Math.floor(S.t*20)%2===0;
+    if(!blink){
+      glow(p.x,p.y,p.r*2.6,'#38e1ff',.15);
+      g.save();g.translate(p.x,p.y);g.rotate(p.ang);g.translate(-p.recoil,0);
+      g.fillStyle='#e9fbff';g.beginPath();g.moveTo(p.r+7,0);g.lineTo(-p.r*.8,-p.r*.85);g.lineTo(-p.r*.35,0);g.lineTo(-p.r*.8,p.r*.85);g.closePath();g.fill();
+      g.strokeStyle='#38e1ff';g.lineWidth=2;g.stroke();g.restore();
+    }
+    if(p.dashT>0){g.strokeStyle='rgba(56,225,255,.5)';g.lineWidth=2;g.beginPath();g.arc(p.x,p.y,p.r+8,-Math.PI/2,-Math.PI/2+TAU*(1-p.dashT/p.dashCD));g.stroke()}
+  }
+  // ads (they block your view on purpose)
+  for(const ad of S.ads){
+    const k=Math.min(1,ad.t*5),sc=k<1?1-Math.pow(1-k,3)*1.0+Math.sin(k*Math.PI)*.15:1;
+    g.save();g.translate(ad.x,ad.y);g.scale(sc,sc);
+    g.fillStyle=ad.col;g.fillRect(-ad.w/2,-ad.h/2,ad.w,ad.h);g.fillStyle='#111';g.fillRect(-ad.w/2,-ad.h/2,ad.w,16);
+    g.fillStyle='#fff';g.font='bold 10px JetBrains Mono';g.textAlign='left';g.fillText('AD · Personalized for you',-ad.w/2+5,-ad.h/2+11);
+    g.textAlign='right';g.fillText('✕',ad.w/2-5,-ad.h/2+11);
+    g.fillStyle='#111';g.font='bold 14px Chakra Petch, sans-serif';g.textAlign='center';
+    const ls=wrap(ad.txt,ad.w-16);ls.forEach((l,i)=>g.fillText(l,0,-4+i*17-(ls.length-1)*8));
+    g.fillStyle='rgba(0,0,0,.25)';g.fillRect(-ad.w/2,ad.h/2-5,ad.w*(ad.hp/4),5);
+    g.restore();
+  }
+  // floating text
+  g.textAlign='center';
+  for(const t of S.texts){g.globalAlpha=clamp(t.life/t.max*1.5,0,1);g.font=`bold ${t.size}px Chakra Petch, sans-serif`;g.fillStyle=t.col;g.fillText(t.txt,t.x,t.y)}
+  g.globalAlpha=1;g.restore();
+  if(S.flash>0){g.fillStyle=`rgba(${S.flashCol},${S.flash*.35})`;g.fillRect(0,0,W,H)}
+  if(S.p.hp===1&&S.mode==='play'){g.fillStyle=`rgba(255,40,80,${.08+.06*Math.sin(S.t*8)})`;g.fillRect(0,0,W,H)}
+  // reticle
+  if(S.mode==='play'||S.mode==='clear'||S.mode==='breach'){g.strokeStyle='#fff';g.lineWidth=2;g.beginPath();g.arc(mouse.x,mouse.y,9,0,TAU);g.moveTo(mouse.x-15,mouse.y);g.lineTo(mouse.x-5,mouse.y);g.moveTo(mouse.x+5,mouse.y);g.lineTo(mouse.x+15,mouse.y);g.moveTo(mouse.x,mouse.y-15);g.lineTo(mouse.x,mouse.y-5);g.moveTo(mouse.x,mouse.y+5);g.lineTo(mouse.x,mouse.y+15);g.stroke()}
+}
+function drawEye(x,y,r,tx,ty,col,flash){
+  g.fillStyle=flash?'#fff':'#1a0f06';g.strokeStyle=col;g.lineWidth=2.5;g.beginPath();g.ellipse(x,y,r*1.25,r*.8,0,0,TAU);g.fill();g.stroke();
+  const a=Math.atan2(ty-y,tx-x);g.fillStyle=col;g.beginPath();g.arc(x+Math.cos(a)*r*.45,y+Math.sin(a)*r*.3,r*.42,0,TAU);g.fill();
+  g.fillStyle='#000';g.beginPath();g.arc(x+Math.cos(a)*r*.55,y+Math.sin(a)*r*.36,r*.18,0,TAU);g.fill();
+}
+function drawEnemy(e){
+  const p=S.p,f=e.flash>0,col=f?'#fff':e.col;
+  glow(e.x,e.y,e.r*2.2,e.col,.13);
+  g.save();g.translate(e.x,e.y);
+  if(e.type==='ping'){const a=Math.atan2(e.vy,e.vx);g.rotate(a);g.fillStyle=col;g.beginPath();g.moveTo(e.r+3,0);g.lineTo(-e.r,-e.r*.8);g.lineTo(-e.r*.5,0);g.lineTo(-e.r,e.r*.8);g.closePath();g.fill()}
+  else if(e.type==='watcher'){g.restore();drawEye(e.x,e.y,e.r,p.x,p.y,e.col,f);g.save();g.translate(e.x,e.y);if(e.fire<.35){g.strokeStyle='#ffa53b';g.globalAlpha=1-e.fire/.35;g.beginPath();g.arc(0,0,e.r*1.7,0,TAU);g.stroke();g.globalAlpha=1}}
+  else if(e.type==='crawler'){g.rotate(e.t*(e.state==='dash'?20:3));g.fillStyle=col;g.beginPath();g.moveTo(0,-e.r-3);g.lineTo(e.r,0);g.lineTo(0,e.r+3);g.lineTo(-e.r,0);g.closePath();g.fill()}
+  else if(e.type==='camera'){g.fillStyle=f?'#fff':'#2a2410';g.strokeStyle=e.col;g.lineWidth=3;g.fillRect(-e.r,-e.r,e.r*2,e.r*2);g.strokeRect(-e.r,-e.r,e.r*2,e.r*2);g.rotate(e.ang);g.fillStyle=e.lock>.2?'#ff3b5c':e.col;g.beginPath();g.arc(e.r*.3,0,e.r*.5,0,TAU);g.fill();g.fillStyle='#fff';g.fillRect(-4,-e.r-8,8,6);if(e.lock>0){g.fillStyle='#ff3b5c';g.beginPath();g.arc(0,-e.r-5,3,0,TAU);g.fill()}}
+  else if(e.type==='broker'){
+    g.rotate(e.t*.6);g.strokeStyle=col;g.lineWidth=4;g.fillStyle='#1a0826';g.beginPath();for(let i=0;i<6;i++){const a=i*TAU/6;g.lineTo(Math.cos(a)*e.r,Math.sin(a)*e.r)}g.closePath();g.fill();g.stroke();
+    g.rotate(-e.t*.6);g.fillStyle=col;g.font='bold 30px Chakra Petch, sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('$',0,1);g.textBaseline='alphabetic';
+  }
+  g.restore();
+  if(e.maxHp>6&&e.hp<e.maxHp){const w=e.r*2;g.fillStyle='rgba(0,0,0,.6)';g.fillRect(e.x-w/2,e.y-e.r-12,w,4);g.fillStyle=e.col;g.fillRect(e.x-w/2,e.y-e.r-12,w*Math.max(0,e.hp/e.maxHp),4)}
+}
+
+// ================= loop =================
+let last=performance.now();
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;
+  if(S&&!S.paused){
+    if(S.freeze>0)S.freeze-=dt;
+    else{const sd=dt*(S.mode==='dead'?S.timeScale:1);update(sd);if(S.mode!=='terms'&&S.mode!=='reveal')updateFX(sd)}
+  }
+  render(dt);updateHUD();musicTick();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+// ================= title =================
+function refreshTitle(){
+  const b=store.get('best',null),h=store.get('hist',[]),d=store.get('disc',[]),a=store.get('ach',[]);
+  $('bestLine').textContent=b&&b.score?`BEST ${b.score.toLocaleString()} · WAVE ${b.wave} · ${h.length} SESSIONS OBSERVED · ${a.length}/${Object.keys(ACH).length} ACHIEVEMENTS`:'';
+  $('discLine').innerHTML=d.length?'INFERENCES DISCOVERED '+d.length+'/6<br>'+INF.map(f=>`<span class="${d.includes(f.id)?'on':''}">${d.includes(f.id)?f.name:'??????'}</span>`).join(''):'';
+  const prof=store.get('profile',null),held=prof?TYPES.filter(t=>prof.shared&&prof.shared[t]):[],live=prof?INF.filter(f=>prof.inf&&prof.inf.includes(f.id)):[];
+  if(held.length||live.length)$('discLine').innerHTML+=(d.length?'<br>':'')+'<span style="color:#ff3b5c;border:none">STILL ON FILE</span><br>'+held.map(t=>`<span class="on">${DATA[t].i} ${DATA[t].n}</span>`).join('')+live.map(f=>`<span class="on">⚠ ${f.name}</span>`).join('');
+  const m=store.get('model',null),pats=m?BEH.filter(b=>m.on.includes(b.id)):[];
+  if(pats.length)$('discLine').innerHTML+=((d.length||held.length||live.length)?'<br>':'')+'<span style="color:#c04bff;border:none">BEHAVIOR PATTERNS ON FILE</span><br>'+pats.map(b=>`<span style="border-color:#c04bff;color:#dcb0ff">👁 ${b.name}</span>`).join('');
+}
+refreshTitle();
+$('pauseList').addEventListener('click',e=>{const row=e.target.closest('[data-pid]');if(!row||!S)return;pauseSel=row.dataset.pid;renderPause()});
+$('startBtn').addEventListener('click',startGame);
+</script>
+</body>
+</html>
