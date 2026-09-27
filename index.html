@@ -39,7 +39,11 @@ button{font-family:inherit;cursor:pointer;border:none}
 .controls{margin-top:34px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#7c86b0;letter-spacing:1px;text-align:center;line-height:1.9}
 .controls kbd{border:1px solid #3a4270;border-radius:4px;padding:1px 7px;color:#cfd6ff;background:#11142a}
 .best{margin-top:18px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--yl);min-height:1em;text-align:center}
-.legal{position:absolute;bottom:14px;font-size:10px;color:#454b6b;letter-spacing:1px;font-family:'JetBrains Mono',monospace}
+.titleFoot{position:absolute;bottom:14px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.titleDel{background:none;border:1px solid #2a2f55;color:#454b6b;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:5px 10px}
+.titleDel:hover:not(:disabled){color:#ff3b5c;border-color:#ff3b5c}
+.titleDel:disabled{opacity:.35;cursor:not-allowed}
+.legal{font-size:10px;color:#454b6b;letter-spacing:1px;font-family:'JetBrains Mono',monospace}
 .infoLine{margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#8a92c0;text-align:center;max-width:680px;line-height:1.7}
 .infoLine span{display:inline-block;padding:1px 8px;margin:2px;border:1px solid #2c3260;border-radius:3px}
 .infoLine span.on{border-color:var(--rd);color:var(--rd)}
@@ -250,7 +254,10 @@ button:disabled{opacity:.35;cursor:not-allowed}
   </div>
   <div class="best" id="bestLine"></div>
   <div class="infoLine" id="discLine"></div>
-  <div class="legal">By pressing PLAY you agree to be observed.</div>
+  <div class="titleFoot">
+    <button type="button" id="titleDel" class="titleDel">DELETE MY DATA</button>
+    <div class="legal">By pressing PLAY you agree to be observed.</div>
+  </div>
 </div>
 
 <div id="terms" class="screen hidden">
@@ -1524,7 +1531,7 @@ function showDossier(){
   const hc=$('heat').getContext('2d'),mx=Math.max(...T.heat)||1;
   for(let i=0;i<T.heat.length;i++){const v=Math.pow(T.heat[i]/mx,.5);if(v<=0)continue;hc.fillStyle=`hsla(${200-v*200},100%,${20+v*45}%,${.25+v*.75})`;hc.fillRect(i%24,Math.floor(i/24),1,1)}
   $('againBtn').onclick=startGame;
-  $('delBtn').onclick=()=>{if(confirm('Delete ALL your OPT/IN data?\nThis removes shared data types, inferences, behavior patterns, your high score, and achievements.\nPrivacy has trade-offs too.')){store.clear();toast('Deleted. Your partners were not notified.');$('delBtn').disabled=true}};
+  $('delBtn').onclick=deleteMyData;
   $('dossier').classList.remove('hidden');$('hud').classList.add('hidden');$('pause').classList.add('hidden');document.body.classList.remove('paused');
 }
 
@@ -1680,6 +1687,16 @@ function frame(now){
 requestAnimationFrame(frame);
 
 // ================= title =================
+function hasSavedData(){
+  return !!(store.get('best',null)||store.get('profile',null)||store.get('model',null)||(store.get('hist',[])||[]).length||(store.get('disc',[])||[]).length||(store.get('ach',[])||[]).length);
+}
+function paintTitleDel(){const b=$('titleDel');if(b)b.disabled=!hasSavedData()}
+function deleteMyData(){
+  if(!confirm('Delete ALL your OPT/IN data?\nThis removes shared data types, inferences, behavior patterns, your high score, and achievements.\nPrivacy has trade-offs too.'))return;
+  store.clear();toast('Deleted. Your partners were not notified.');
+  refreshTitle();
+  const d=$('delBtn');if(d)d.disabled=true;
+}
 function refreshTitle(){
   const b=store.get('best',null),h=store.get('hist',[]),d=store.get('disc',[]),a=store.get('ach',[]);
   $('bestLine').textContent=b&&b.score?`BEST ${b.score.toLocaleString()} · WAVE ${b.wave} · ${h.length} SESSIONS OBSERVED · ${a.length}/${Object.keys(ACH).length} ACHIEVEMENTS`:'';
@@ -1688,6 +1705,7 @@ function refreshTitle(){
   if(held.length||live.length)$('discLine').innerHTML+=(d.length?'<br>':'')+'<span style="color:#ff3b5c;border:none">STILL ON FILE</span><br>'+held.map(t=>`<span class="on">${DATA[t].i} ${DATA[t].n}</span>`).join('')+live.map(f=>`<span class="on">⚠ ${f.name}</span>`).join('');
   const m=store.get('model',null),pats=m?BEH.filter(b=>m.on.includes(b.id)):[];
   if(pats.length)$('discLine').innerHTML+=((d.length||held.length||live.length)?'<br>':'')+'<span style="color:#c04bff;border:none">BEHAVIOR PATTERNS ON FILE</span><br>'+pats.map(b=>`<span style="border-color:#c04bff;color:#dcb0ff">👁 ${b.name}</span>`).join('');
+  paintTitleDel();
 }
 refreshTitle();
 $('pauseList').addEventListener('click',e=>{const row=e.target.closest('[data-pid]');if(!row||!S)return;pauseSel=row.dataset.pid;renderPause()});
@@ -1697,6 +1715,7 @@ $('subConfirm').addEventListener('click',confirmFair);
 $('subNope').addEventListener('click',closeSubModal);
 $('subModal').addEventListener('click',e=>{if(e.target.id==='subModal')closeSubModal()});
 $('startBtn').addEventListener('click',startGame);
+$('titleDel').addEventListener('click',deleteMyData);
 </script>
 </body>
 </html>
