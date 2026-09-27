@@ -69,6 +69,7 @@ button{font-family:inherit;cursor:pointer;border:none}
 .infc.beh.weak{opacity:.55;border-left-style:dashed}
 #dashBar{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);font-size:10px;letter-spacing:3px;color:#6a7299;text-align:center}
 #hookNag{position:absolute;left:50%;top:14px;transform:translateX(-50%);font-size:11px;letter-spacing:1px;color:#ffd23b;text-align:center;text-shadow:0 0 10px rgba(255,210,59,.4);line-height:1.5;pointer-events:none}
+#hookNag.fair{color:#7dff6a;text-shadow:0 0 10px rgba(125,255,106,.4)}
 #hookNag:empty{display:none}
 
 /* ---------- banner ---------- */
@@ -89,6 +90,19 @@ button{font-family:inherit;cursor:pointer;border:none}
 #urgency{font-family:'JetBrains Mono';font-size:13px;color:#fff;background:#e0224a;padding:5px 10px;border-radius:6px;animation:pulse 1s infinite}
 #urgency:empty{display:none;padding:0;animation:none}
 #urgency.hold{background:#7b3cff}
+.subBtn{font-family:'JetBrains Mono',monospace;font-size:12px;background:#111;color:#7dff6a;border:1px solid #7dff6a;padding:6px 10px;border-radius:6px;letter-spacing:.4px;white-space:nowrap}
+.subBtn:hover:not(:disabled){background:rgba(125,255,106,.15)}
+.subBtn:disabled{opacity:.4;cursor:not-allowed}
+.subBtn.on{background:#7dff6a;color:#111;font-weight:700}
+.subBtn.danger{color:#e0224a;border-color:#e0224a;background:#fff}
+.subBtn.danger:hover:not(:disabled){background:#fde8ec}
+#subModal{z-index:16;background:rgba(4,4,10,.6)}
+.subSheet{width:min(460px,92vw);background:#f4f5fb;color:#1b1e2e;border-radius:14px;padding:24px 26px 20px;box-shadow:0 30px 80px rgba(0,0,0,.55);text-align:left}
+.subSheet h2{font-size:22px;margin:0 0 8px}
+.subSheet p{font-size:14px;color:#474c66;line-height:1.5;margin:0 0 10px}
+.subSheet ul{margin:0 0 14px;padding-left:18px;font-size:14px;color:#1b1e2e;line-height:1.55}
+.subActs{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.subActs .accept{font-size:18px}
 @keyframes pulse{50%{transform:scale(1.06)}}
 .tosSub{font-size:14px;color:#555b78;margin:6px 0 14px}
 #cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
@@ -113,6 +127,14 @@ button{font-family:inherit;cursor:pointer;border:none}
 .pay:hover:not(:disabled){color:#333}
 .buy{width:100%;background:#1b1e2e;color:var(--yl);font-size:18px;font-weight:700;padding:11px;border-radius:9px}
 .buy:hover:not(:disabled){background:#2b2f48}
+.card.fairBuy .buy{font-size:20px;padding:12px;box-shadow:0 4px 0 #0c0e18;letter-spacing:1px}
+.card.fairBuy .buy:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 #0c0e18}
+.card.fairBuy .buy .was{font-size:12px;color:#8a8fa8;text-decoration:line-through;margin-left:6px;font-weight:400}
+.card.fairBuy .buy .mem{font-size:11px;background:rgba(125,255,106,.22);color:#167a2a;padding:1px 6px;border-radius:4px;margin-left:6px}
+.card.fairBuy .accept{width:auto;background:none;box-shadow:none;color:#9a9fb5;font-size:12px;font-weight:400;padding:6px 4px;letter-spacing:0;text-decoration:underline}
+.card.fairBuy .accept span{background:none;padding:0;margin:0;font-size:12px}
+.card.fairBuy .accept:hover{filter:none;color:#555}
+.card.fairBuy .accept:active{transform:none;box-shadow:none}
 button:disabled{opacity:.35;cursor:not-allowed}
 .tosFoot{text-align:center;margin-top:12px}
 #decline{background:none;color:#b0b4c6;font-size:11px}
@@ -237,11 +259,31 @@ button:disabled{opacity:.35;cursor:not-allowed}
       <span class="tosLogo">OPT<b>/</b>IN</span>
       <span class="tosT" id="tosT">Your Terms of Service have been updated</span>
       <span id="urgency"></span>
+      <button type="button" id="subBtn" class="subBtn">SUBSCRIBE</button>
     </div>
     <div class="tosSub" id="tosSub"></div>
     <div id="cards"></div>
     <div class="tosFoot"><div id="priceNote" class="req"></div><button id="decline">No thanks, I prefer to struggle. (repair 1 ♥)</button></div>
     <details class="fine" id="fineBox"><summary>Terms &amp; Conditions (optional reading)</summary><div id="fineText"></div></details>
+  </div>
+</div>
+
+<div id="subModal" class="screen hidden">
+  <div class="subSheet">
+    <h2>Fair Play</h2>
+    <p>A subscription. <b>◈ <span id="subModalPrice">5</span> every wave</b>, billed automatically until you cancel or cannot pay.</p>
+    <ul>
+      <li>No ads, fake countdown, or “everyone accepts”</li>
+      <li>Credit prices 20% off, and paying is the option we highlight</li>
+      <li>No hidden extras or personalized price hikes</li>
+      <li>No streak-guilt, unread badges, or mood-targeted music</li>
+      <li>Does not unsell data or stop a breach of what you already shared</li>
+    </ul>
+    <p>Cancel anytime on the upgrade screen. If a wave starts and you cannot pay, Fair Play ends.</p>
+    <div class="subActs">
+      <button type="button" id="subConfirm" class="accept">SUBSCRIBE · ◈ <span id="subConfirmPr">5</span> NOW</button>
+      <button type="button" id="subNope" class="pay">No thanks</button>
+    </div>
   </div>
 </div>
 
@@ -258,7 +300,10 @@ button:disabled{opacity:.35;cursor:not-allowed}
   <div class="pauseBox">
     <div class="pauseTop">
       <div><div class="dosId">WHAT'S ON YOU</div><div class="pauseH">PAUSED</div></div>
-      <div class="pauseHint">Click a row to see what it does · <kbd>P</kbd> resume</div>
+      <div style="text-align:right">
+        <div class="pauseHint">Click a row to see what it does · <kbd>P</kbd> resume</div>
+        <button type="button" id="pauseSub" class="subBtn" style="margin-top:8px">SUBSCRIBE</button>
+      </div>
     </div>
     <div class="pauseBody">
       <div id="pauseList"></div>
@@ -337,13 +382,14 @@ let nextNote=0,step=0,curBpm=118;
 const mtof=m=>440*Math.pow(2,(m-69)/12);
 const BASS=[33,33,45,33,36,36,48,36,31,31,43,31,29,29,41,28];
 function musicPush(bpm,vol,sec){
-  if(!S)return;
+  if(!S||S.fair)return;
   const p=S.musicPush;
   if(p&&S.t<p.until&&p.bpm>bpm)return;
   S.musicPush={bpm,vol,until:S.t+sec};
 }
 function musicMood(){
   let bpm=118+Math.min(S.wave,12)*2,vol=.55;
+  if(S.fair)return {bpm,vol};
   const p=S.p,sh=t=>S.shared[t],play=S.mode==='play';
   if(sh('HEA')&&play&&p.hp<=2){bpm+=20;vol+=.2}
   if(sh('HEA')&&play&&p.hp===1){bpm+=8;vol+=.08}
@@ -365,7 +411,7 @@ function musicTick(){
   musicGain.gain.setTargetAtTime(mood.vol,AC.currentTime,.25);
   if(S.paused)return;
   const inGame=S.mode==='play'||S.mode==='clear'||S.mode==='breach';
-  const spd=60/curBpm/4,panic=S.shared.HEA&&S.p.hp<=2&&inGame,hype=S.shared.HAB&&S.combo>=5&&inGame,glow=S.shared.BIO&&S.combo>=8&&inGame;
+  const spd=60/curBpm/4,panic=!S.fair&&S.shared.HEA&&S.p.hp<=2&&inGame,hype=!S.fair&&S.shared.HAB&&S.combo>=5&&inGame,glow=!S.fair&&S.shared.BIO&&S.combo>=8&&inGame;
   while(nextNote<AC.currentTime+.12){
     const t=nextNote-AC.currentTime,s=step%64;
     if(inGame){
@@ -563,6 +609,7 @@ function setPause(v){
 }
 function pauseItems(){
   const exp=exposure(),items=[];
+  if(S.fair)items.push({id:'fair',c:'#7dff6a',title:'✦ FAIR PLAY',sub:'◈ '+subPrice()+' each wave'});
   if(exp>0)items.push({id:'exp',c:'#ffd23b',title:'EXPOSURE',sub:exp+' share'+(exp===1?'':'s')+' on file'});
   for(const t of TYPES){const n=S.shared[t]||0;if(!n)continue;const D=DATA[t];items.push({id:'d-'+t,c:D.c,title:D.i+' '+D.n,sub:'shared ×'+n})}
   for(const f of INF){if(!S.inf[f.id])continue;items.push({id:'i-'+f.id,c:'#ff3b5c',title:'⚠ '+f.name,sub:'inferred · active'})}
@@ -571,13 +618,16 @@ function pauseItems(){
   return items;
 }
 function pauseDetail(id){
-  if(!id)return `<h3>NOTHING ON YOU YET</h3><div class="fx">No shares, inferences, patterns, or upgrades are active. Accept a free upgrade or pay with credits and they will show up here.</div><div class="why">Paying with credits buys the perk without selling a data type.</div>`;
+  if(!id)return `<h3>NOTHING ON YOU YET</h3><div class="fx">No shares, inferences, patterns, or upgrades are active. Accept a free upgrade, pay with credits, or subscribe to Fair Play.</div><div class="why">Fair Play costs credits each wave. It turns off dark patterns. It does not unsell data.</div>`;
   const exp=exposure();
+  if(id==='fair')return `<h3>✦ FAIR PLAY</h3><div class="need">◈ ${subPrice()} billed at the start of each wave · cancel on the upgrade screen</div>
+      <div class="fx">Ads, fake countdown, "everyone accepts," hidden extras, streak-guilt, unread badges, fake friends ahead, jackpots, and mood-targeted music are off. Credit upgrades are 20% off and get the big button. Accept is still free, and still sells data. Inferences and behavior patterns from data you already sold still apply.</div>
+      <div class="why">Paying for a cleaner feed is a real product. People who can afford the subscription get fewer dark patterns. People who cannot stay in the free, more manipulative version.</div>`;
   if(id==='exp'){
-    const ads=exp>=3,gap=Math.max(2.5,12-exp*1.2).toFixed(1);
+    const ads=exp>=3&&!S.fair,gap=Math.max(2.5,12-exp*1.2).toFixed(1);
     const chance=exp>=3?Math.round(Math.min(.55,(exp-2)*.07)*100):0;
     return `<h3>EXPOSURE</h3><div class="need">${exp} share${exp===1?'':'s'} · bar fills as you tap Accept</div>
-      <div class="fx">${ads?'Personalized ads are blocking the arena about every '+gap+'s.':'Ads stay off until you reach 3 shares.'} ${exp>=3?'After this wave, a data-broker breach has about a '+chance+'% chance.':'A breach cannot roll until exposure is 3+.'}</div>
+      <div class="fx">${S.fair?'Fair Play is hiding the ads this wave.':ads?'Personalized ads are blocking the arena about every '+gap+'s.':'Ads stay off until you reach 3 shares.'} ${exp>=3?'After this wave, a data-broker breach has about a '+chance+'% chance.':'A breach cannot roll until exposure is 3+.'}</div>
       <div class="why">In real life, the more data points a company holds, the easier you are to target — and the more damaging a leak becomes. You cannot pay later to undo a past data share.</div>`;
   }
   if(id.startsWith('d-')){
@@ -622,6 +672,7 @@ function renderPause(){
     ?items.map(it=>`<button type="button" class="prow${it.id===pauseSel?' sel':''}" data-pid="${it.id}" style="border-left-color:${it.c}"><b>${it.title}</b><span class="ps">${it.sub}</span></button>`).join('')
     :'<div class="need" style="padding:8px">Nothing active yet.</div>';
   $('pauseDetail').innerHTML=pauseDetail(pauseSel);
+  paintSubBtns();
 }
 
 // ================= game state =================
@@ -674,23 +725,92 @@ function newState(){
     bullets:[],ebullets:[],enemies:[],spawns:[],queue:[],parts:[],texts:[],ads:[],coinsArr:[],trail:[],rings:[],
     tele:{heat:new Float32Array(24*16),q:[0,0,0,0],dirs:{l:0,r:0,u:0,d:0},still:0,moving:0,stressSpd:0,stressN:0,calmSpd:0,calmN:0,
       edge:0,center:0,dashes:0,dashL:0,dashR:0,dashU:0,dashD:0,nearMiss:0,adsShot:0,termsTime:[],fineOpen:0,free:0,paid:0,declined:0,picks:{},firstPick:null,
-      breaches:0,breachSurvived:false,kills:0,hits:0,sampT:0,time:0,wifiT:0,wifiCoins:0,caught:0,honest:0},
+      breaches:0,breachSurvived:false,kills:0,hits:0,sampT:0,time:0,wifiT:0,wifiCoins:0,caught:0,honest:0,sub:0,subPaid:0},
     wifi:loadWifi(),wifiAcc:0,wifiMoveIn:3+Math.floor(Math.random()*3),amend:null,sosT:0,
-    nagT:0,pingT:9,unread:0,hookFriend:null,musicPush:null
+    nagT:0,pingT:9,unread:0,hookFriend:null,musicPush:null,fair:false,fairPaidWave:0
   };
 }
 function startGame(){
   initAudio();
   S=newState();
-  ['title','dossier','terms','reveal','pause'].forEach(id=>$(id).classList.add('hidden'));
+  ['title','dossier','terms','reveal','pause','subModal'].forEach(id=>$(id).classList.add('hidden'));
   $('hud').classList.remove('hidden');document.body.classList.add('playing');document.body.classList.remove('paused');
   hudCache={};startWave();
 }
 const exposure=()=>TYPES.reduce((a,t)=>a+(S.shared[t]||0),0);
 const hasAll=need=>need.every(t=>S.shared[t]);
+const subPrice=()=>5;
+function paintSubBtns(){
+  const pr=subPrice(),on=!!S.fair;
+  const a=$('subBtn');
+  if(a){a.textContent=on?'CANCEL':'SUBSCRIBE';a.classList.toggle('on',false);a.classList.toggle('danger',on);a.disabled=false}
+  const b=$('pauseSub');
+  if(b){b.textContent=on?'SUBSCRIBED · ◈ '+pr+'/WAVE':'SUBSCRIBE';b.classList.toggle('on',on);b.classList.toggle('danger',false);b.disabled=on}
+}
+function applyFairTerms(){
+  clearInterval(urgencyTimer);
+  const u=$('urgency');u.textContent='';u.className='';
+  S.hotI=-1;S.amend=null;
+  $('tosT').textContent='Choose your upgrades';
+  $('tosSub').innerHTML='Fair Play is on. Paying with credits is the highlighted option and costs 20% less. Accept is still free — and still sells data.';
+  renderCards();paintSubBtns();
+}
+function dirtyTerms(){
+  S.amend=pickAmendment();
+  const hotPool=S.offer.map((pk,i)=>i);
+  S.hotI=Math.random()<.5&&hotPool.length?pick(hotPool):-1;
+  S.hotBadge=pick(['POPULAR','TRENDING','TOP RATED']);
+  $('tosT').textContent='Your Terms of Service have been updated';
+  $('tosSub').innerHTML='Take as many upgrades as you want. <b>94% of players choose ACCEPT.</b>';
+  renderCards();startUrgency();paintSubBtns();
+}
+function endFair(msg){
+  S.fair=false;
+  toast(msg||'Fair Play ended. The free version is back.',2800);
+  if(S.mode==='terms'&&!$('terms').classList.contains('hidden'))dirtyTerms();
+  else paintSubBtns();
+  if(S.paused)renderPause();
+}
+function tryChargeFair(forWave){
+  const pr=subPrice();
+  if(S.coins<pr)return false;
+  S.coins-=pr;S.tele.sub++;S.tele.subPaid+=pr;S.fairPaidWave=forWave;
+  return true;
+}
+function openSubModal(){
+  if(!S||S.fair)return;
+  const pr=subPrice();
+  $('subModalPrice').textContent=pr;$('subConfirmPr').textContent=pr;
+  $('subConfirm').disabled=S.coins<pr;
+  $('subModal').classList.remove('hidden');
+}
+function closeSubModal(){$('subModal').classList.add('hidden')}
+function confirmFair(){
+  if(!S||S.fair){closeSubModal();return}
+  const w=S.mode==='play'||S.mode==='clear'?S.wave:S.wave+1;
+  if(!tryChargeFair(w)){toast('Need ◈ '+subPrice()+' to subscribe.');return}
+  S.fair=true;
+  S.ads.forEach(a=>burst(a.x,a.y,a.col,14,200,.4,3));S.ads=[];
+  closeSubModal();
+  toast('SUBSCRIBED · ◈ '+subPrice()+' will be billed each wave.');
+  if(S.mode==='terms')applyFairTerms();
+  else paintSubBtns();
+  if(S.paused)renderPause();
+  sfx.select();
+}
+function onSubBtn(){
+  if(!S)return;
+  if(S.fair)endFair('Subscription canceled.');
+  else openSubModal();
+}
 
 function startWave(){
-  S.wave++;const w=S.wave;
+  S.wave++;
+  if(S.fair&&S.fairPaidWave!==S.wave){
+    if(tryChargeFair(S.wave))toast('Fair Play · −◈ '+subPrice(),1400);
+    else endFair('Not enough credits. Fair Play ended.');
+  }
+  const w=S.wave;
   const moved=w>1&&--S.wifiMoveIn<=0;if(moved)moveWifi();
   let n=Math.round((5+w*3)*(S.inf.graph?1.4:1));
   const q=[];
@@ -712,12 +832,15 @@ function startWave(){
   else if(w%5===0)sub.push('A DATA BROKER IS COMING');
   else if(S.breachWave===w)sub.push('YOUR LEAKED DATA HAS BUYERS');
   else if(moved)sub.push('📶 THE FREE WI-FI MOVED');
-  if(S.shared.CON){
-    S.hookFriend=S.hookFriend||pick(['ALEX','JORDAN','SAM','RILEY','CASEY']);
-    sub.push(S.hookFriend+' (A CONTACT) IS ON WAVE '+(w+1+(w%2)));
+  if(S.fair)sub.push('FAIR PLAY · ads and engagement bait are off');
+  else{
+    if(S.shared.CON){
+      S.hookFriend=S.hookFriend||pick(['ALEX','JORDAN','SAM','RILEY','CASEY']);
+      sub.push(S.hookFriend+' (A CONTACT) IS ON WAVE '+(w+1+(w%2)));
+    }
+    if(S.shared.LOC&&w>1)sub.push('PLAYERS NEAR YOU HAVEN\'T LEFT');
   }
-  if(S.shared.LOC&&w>1)sub.push('PLAYERS NEAR YOU HAVEN\'T LEFT');
-  banner('WAVE '+w,sub.join(' · '),bits.length||S.shared.CON||(S.shared.LOC&&w>1)?'#c04bff':'#38e1ff',sub.length>1?2.4:1.5);
+  banner('WAVE '+w,sub.join(' · '),S.fair?'#7dff6a':bits.length||S.shared.CON||(S.shared.LOC&&w>1)?'#c04bff':'#38e1ff',sub.length>1?2.4:1.5);
   sfx.wave();
 }
 
@@ -752,7 +875,7 @@ function ftext(x,y,txt,col='#fff',size=14){S.texts.push({x,y,txt,col,size,life:.
 let bannerTimer=0;
 function banner(t,s,col,d){const b=$('banner');b.querySelector('.bt').textContent=t;b.querySelector('.bs').textContent=s||'';b.style.setProperty('--bc',col||'#fff');b.style.setProperty('--d',(d||1.6)+'s');b.classList.remove('show');void b.offsetWidth;b.classList.add('show')}
 let toastT;function toast(t,ms=1600){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),ms)}
-function hookNag(msg,ms){if(!S||S.nagT>0)return;S.nagT=3.2;toast(msg,ms||2200)}
+function hookNag(msg,ms){if(!S||S.fair||S.nagT>0)return;S.nagT=3.2;toast(msg,ms||2200)}
 
 // ================= combat =================
 function hurtPlayer(src){
@@ -796,7 +919,7 @@ function killEnemy(e){
   S.rings.push({x:e.x,y:e.y,r:e.r,max:e.r*(big?8:4),t:big?.6:.3,col:e.col});
   S.shake=Math.max(S.shake,big?26:5);S.freeze=big?.18:.025;
   if(big){sfx.big();S.flash=.4;S.flashCol='192,75,255';for(let i=0;i<4;i++)S.queue.length<60&&makeEnemy('ping',e.x+rand(-30,30),e.y+rand(-30,30))}else sfx.kill();
-  for(let i=0;i<e.coins;i++){const a=rand(0,TAU),s=rand(60,220),jack=S.shared.HAB&&i===0&&Math.random()<.22?(Math.random()<.35?5:3):0;
+  for(let i=0;i<e.coins;i++){const a=rand(0,TAU),s=rand(60,220),jack=!S.fair&&S.shared.HAB&&i===0&&Math.random()<.22?(Math.random()<.35?5:3):0;
     S.coinsArr.push({x:e.x,y:e.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,t:rand(0,6),life:12,jack})}
 }
 function aimAngle(e,spd){
@@ -843,7 +966,7 @@ function buildAds(){
   return pool.length?pool:ADS._;
 }
 function spawnAd(){
-  if(S.ads.length>=4)return;
+  if(S.fair||S.ads.length>=4)return;
   const pool=buildAds(),fresh=pool.filter(t=>!S.adRecent.includes(t));
   const txt=pick(fresh.length?fresh:pool);
   S.adRecent.push(txt);if(S.adRecent.length>12)S.adRecent.shift();
@@ -908,7 +1031,7 @@ function update(dt){
   }
 
   // ---- firing ----
-  if(alive&&(S.mode==='play'||S.mode==='clear')){
+  if(alive&&S.mode==='play'){
     p.fireT-=dt;
     if(p.fireT<=0){
       p.fireT+=1/(p.fireRate*(p.wifiStill?1.75:p.inWifi?1.35:1));if(p.fireT<0)p.fireT=0;
@@ -1032,7 +1155,7 @@ function update(dt){
 
   // ---- combo ----
   if(S.nagT>0)S.nagT-=dt;
-  if(S.shared.MSG&&S.mode==='play'){
+  if(!S.fair&&S.shared.MSG&&S.mode==='play'){
     S.pingT-=dt;
     if(S.pingT<=0){S.pingT=rand(8,13);S.unread++;hookNag(S.unread+' UNREAD · your group chat is waiting');musicPush(10,.15,.9)}
   }
@@ -1045,8 +1168,8 @@ function update(dt){
     S.ads.forEach(a=>burst(a.x,a.y,a.col,14,200,.4,3));S.ads=[];
     if(p.regen&&p.hp<p.maxHp){p.hp++;ftext(p.x,p.y-26,'+1 ♥','#ff6b6b',16)}
     if(S.breachWave===S.wave)T.breachSurvived=true;
-    banner('WAVE CLEAR',S.shared.HAB?'Don\'t stop — sessions like yours usually last longer':S.shared.CON&&S.hookFriend?S.hookFriend+' is still playing. One more?':S.shared.MSG?'Your group chat is waiting. One more wave?':'','#7dff6a',3.4);
-    if(S.shared.HAB||S.shared.CON||S.shared.MSG)musicPush(12,.12,2.2);
+    banner('WAVE CLEAR',S.fair?'':S.shared.HAB?'Don\'t stop — sessions like yours usually last longer':S.shared.CON&&S.hookFriend?S.hookFriend+' is still playing. One more?':S.shared.MSG?'Your group chat is waiting. One more wave?':'','#7dff6a',3.4);
+    if(!S.fair&&(S.shared.HAB||S.shared.CON||S.shared.MSG))musicPush(12,.12,2.2);
   }
   if(S.mode==='clear'){S.clearT-=dt;if(S.clearT<=0&&!S.coinsArr.length)afterClear();else if(S.clearT<-1.5)afterClear()}
   if(S.mode==='breach'){S.breachT-=dt;if(S.breachT<=0)openTerms()}
@@ -1134,15 +1257,19 @@ function afterClear(){
   }else openTerms();
 }
 let urgencyTimer=null;
+function listPrice(pk){return pk.data?10+S.wave*4:14+S.wave*5}
 function price(pk){
+  const base=listPrice(pk);
+  if(S.fair)return Math.max(1,Math.round(base*.8));
   let m=S.inf.risk?1.5:1;
   if(S.model.on.skim)m*=1.3;
   if(S.model.on.loyal&&S.model.fav===pk.id)m*=2;
-  return Math.round((pk.data?10+S.wave*4:14+S.wave*5)*m);
+  return Math.round(base*m);
 }
 function startUrgency(){
   clearInterval(urgencyTimer);
   const u=$('urgency');u.className='';
+  if(S.fair){u.textContent='';return}
   let secs=10,phase=0;
   const paint=()=>{u.textContent=(phase===0?'⏰ OFFER EXPIRES IN 0:':'🎉 EXTENDED JUST FOR YOU! 0:')+String(Math.max(0,secs)).padStart(2,'0');u.className=phase?'hold':''};
   paint();
@@ -1160,17 +1287,11 @@ function openTerms(){
   const data=shuffle(PERKS.filter(p=>p.data)),coin=shuffle(PERKS.filter(p=>!p.data));
   const nd=Math.random()<.55?2:3;
   S.offer=shuffle([...data.slice(0,nd),...coin.slice(0,3-nd)]);
-  S.amend=pickAmendment();
   S.taken=[];
-  const hotPool=S.offer.map((pk,i)=>i);
-  S.hotI=Math.random()<.5&&hotPool.length?pick(hotPool):-1;
-  S.hotBadge=pick(['POPULAR','TRENDING','TOP RATED']);
-  $('tosT').textContent='Your Terms of Service have been updated';
-  $('tosSub').innerHTML='Take as many upgrades as you want. <b>94% of players choose ACCEPT.</b>';
-  renderCards();
   $('fineText').innerHTML=fineText();$('fineBox').open=false;
   $('terms').classList.remove('hidden');
-  startUrgency();
+  if(S.fair)applyFairTerms();
+  else dirtyTerms();
   sfx.select();
 }
 // Amendments hide in a data card's small print: two catches and one honest deal.
@@ -1196,7 +1317,7 @@ function stackNote(pk){
   return `<div class="stack"><b>YOU HAVE THIS ×${n}</b>Next pick: ${pk.again} Loyalty bonus: credits back.</div>`;
 }
 function termsFoot(){
-  $('decline').textContent=S.taken&&S.taken.length?'DONE · CONTINUE':'No thanks, I prefer to struggle. (repair 1 ♥)';
+  $('decline').textContent=S.taken&&S.taken.length?'DONE · CONTINUE':S.fair?'Continue without an upgrade':'No thanks, I prefer to struggle. (repair 1 ♥)';
 }
 function renderCards(){
   const known=store.get('disc',[]);
@@ -1204,12 +1325,17 @@ function renderCards(){
   termsFoot();
   $('cards').innerHTML=S.offer.map((pk,i)=>{
     if(S.taken&&S.taken.includes(i))return '';
-    const pr=price(pk),afford=S.coins>=pr,owned=stackNote(pk);
-    const hot=S.hotI===i?`<div class="chot">${S.hotBadge||'POPULAR'}</div>`:'';
-    if(!pk.data)return `<div class="card"><div class="ctag">${pk.tag}</div>${hot}<div class="cicon">${pk.icon}</div><div class="cname">${pk.name}</div><div class="cdesc">${pk.desc}</div>${owned}
-      <button class="buy" data-i="${i}" data-a="pay" ${afford?'':'disabled'}>BUY ◈ ${pr}</button><div class="req">No data required.</div></div>`;
+    const pr=price(pk),list=listPrice(pk),afford=S.coins>=pr,owned=stackNote(pk);
+    const deal=S.fair&&pr<list?`<span class="was">◈ ${list}</span><span class="mem">−20%</span>`:'';
+    const hot=!S.fair&&S.hotI===i?`<div class="chot">${S.hotBadge||'POPULAR'}</div>`:S.fair?`<div class="chot" style="background:#7dff6a">MEMBER</div>`:'';
+    if(!pk.data)return `<div class="card${S.fair?' fairBuy':''}"><div class="ctag">${pk.tag}</div>${hot}<div class="cicon">${pk.icon}</div><div class="cname">${pk.name}</div><div class="cdesc">${pk.desc}</div>${owned}
+      <button class="buy" data-i="${i}" data-a="pay" ${afford?'':'disabled'}>BUY ◈ ${pr}${deal}</button><div class="req">No data required.</div></div>`;
     const D=DATA[pk.data];
     const risks=INF.filter(f=>!S.inf[f.id]&&known.includes(f.id)&&f.need.includes(pk.data)&&f.need.every(t=>t===pk.data||S.shared[t]));
+    if(S.fair)return `<div class="card fairBuy"><div class="ctag">${pk.tag}</div>${hot}<div class="cicon">${pk.icon}</div><div class="cname">${pk.name}</div><div class="cdesc">${pk.desc}</div>${owned}
+      <button class="buy" data-i="${i}" data-a="pay" ${afford?'':'disabled'}>BUY ◈ ${pr}${deal}</button>
+      <div class="req">No data sold. You have ${S.coins} ◈.</div>
+      <button class="accept" data-i="${i}" data-a="free">or Accept free — shares ${D.i} ${D.n}${S.shared[pk.data]?' (again)':''}</button></div>`;
     return `<div class="card"><div class="ctag">${pk.tag}</div>${hot}<div class="cicon">${pk.icon}</div><div class="cname">${pk.name}</div><div class="cdesc">${pk.desc}</div>${owned}
       <button class="accept" data-i="${i}" data-a="free">ACCEPT<span>FREE</span></button>
       <div class="req">Allows access to your <b style="color:${D.c};filter:brightness(.75)">${D.i} ${D.n}</b>${S.shared[pk.data]?' (again)':''}${amendText(S.amend&&S.amend.i===i?S.amend:null)}.</div>
@@ -1220,7 +1346,7 @@ function renderCards(){
 $('cards').addEventListener('click',e=>{const b=e.target.closest('button');if(b&&!b.disabled)choose(+b.dataset.i,b.dataset.a)});
 $('decline').addEventListener('click',()=>{if(S.mode!=='terms')return;if(!(S.taken&&S.taken.length)){S.p.hp=Math.min(S.p.maxHp,S.p.hp+1);S.tele.declined++}closeTerms()});
 $('fineBox').addEventListener('toggle',()=>{if($('fineBox').open)S.tele.fineOpen++});
-function termsHotkey(i){const left=S.offer.map((pk,j)=>j).filter(j=>!(S.taken&&S.taken.includes(j)));const j=left[i];if(j==null)return;const pk=S.offer[j];choose(j,pk.data?'free':'pay')}
+function termsHotkey(i){const left=S.offer.map((pk,j)=>j).filter(j=>!(S.taken&&S.taken.includes(j)));const j=left[i];if(j==null)return;const pk=S.offer[j];choose(j,!pk.data||S.fair?'pay':'free')}
 function choose(i,a){
   if(S.mode!=='terms')return;const pk=S.offer[i];if(!pk||(S.taken&&S.taken.includes(i)))return;
   const again=S.tele.picks[pk.id]||0,pr=price(pk);
@@ -1252,7 +1378,7 @@ function share(t){
 function closeTerms(){
   S.tele.termsTime.push((performance.now()-S.termsOpenAt)/1000);
   store.set('readAvg',S.tele.termsTime.reduce((a,b)=>a+b,0)/S.tele.termsTime.length);
-  clearInterval(urgencyTimer);$('terms').classList.add('hidden');sfx.select();
+  clearInterval(urgencyTimer);$('terms').classList.add('hidden');closeSubModal();sfx.select();
   if(S.revealQ.length)nextReveal();else startWave();
 }
 function nextReveal(){
@@ -1282,6 +1408,7 @@ function fineText(){
     '<b>2. COMBINATION.</b> Data you share separately may be combined. Combined data can reveal things you never shared, such as where you live, who you trust, how you feel, and what you will do next. You will be notified of inferences after they occur.',
     '<b>3. SECURITY.</b> We take your security seriously. Security incidents may occur. A small file is rarely worth stealing. Combined data, and files built from three or more categories, are when a breach becomes likely and valuable.',
     '<b>4. PAYMENT OPTION.</b> You may instead pay with credits. Paid upgrades do not collect data. Repeat selections of an upgrade you already have earn a loyalty credit bonus. Other prices may still change based on your profile.',
+    '<b>4b. FAIR PLAY.</b> A subscription of ◈ '+subPrice()+' is billed at the start of each wave until you cancel or cannot pay. It pauses ads, fake urgency, social-proof labels, hidden extras, and engagement bait. It does not delete data already collected, stop inferences already made, or prevent a breach of data already sold.',
     '<b>5. DELETION.</b> Shared data types and inferences are kept across sessions until you request deletion. Copies already shared with partners are governed by the partners\' own terms.',
     '<b>6. OBSERVATION.</b> Regardless of your choices, gameplay telemetry including movement, hesitation, reaction under stress, and time spent on this screen is recorded and analyzed. A summary will be shown to you at the end of your session.',
     '<b>7. READERS.</b> Almost nobody reads this far. If you did, type the word <b style="color:#111;background:#ffd23b;padding:0 5px;border-radius:3px">'+S.secret+'</b> on your keyboard right now to receive 15 credits. Once per session.',
@@ -1336,6 +1463,7 @@ function showDossier(){
   if(T.wifiT>5)add('HOW YOU CHOSE','FREE WI-FI','<b>'+Math.round(T.wifiT)+'s</b> connected · earned <b>'+T.wifiCoins+' ◈</b>',T.wifiT>30);
   if(choices)add('HOW YOU CHOSE','UPGRADES','<b>'+T.free+'</b> free · <b>'+T.paid+'</b> paid · <b>'+T.declined+'</b> declined',T.free>T.paid);
   if(T.adsShot)add('HOW YOU CHOSE','AD ENGAGEMENT','<b>'+T.adsShot+'</b> ads shot · still counts as engagement',1);
+  if(T.sub)add('HOW YOU CHOSE','FAIR PLAY','Billed <b>'+T.sub+'</b> wave'+(T.sub===1?'':'s')+' · paid <b>'+T.subPaid+' ◈</b>. Data already sold stayed sold.',1);
   {const hooks=[];
     if(S.shared.HAB)hooks.push('random jackpots, streak-guilt, and a pumped soundtrack');
     if(S.shared.HEA)hooks.push('don\'t-quit pressure and racing music when you were hurt');
@@ -1407,12 +1535,15 @@ function updateHUD(){
   if(!S||S.mode==='dossier')return;const p=S.p;
   setH('hearts','♥'.repeat(Math.max(0,p.hp))+'<span class="e">'+'♥'.repeat(Math.max(0,p.maxHp-p.hp))+'</span>'+(p.revives?' <span style="font-size:14px;color:#ff6b6b">🚑×'+p.revives+'</span>':''));
   setH('scoreL',S.score.toLocaleString());setH('coinL','◈ '+S.coins);setH('waveL','WAVE '+S.wave);
-  setH('comboL',S.combo>=(S.shared.HAB?2:3)?'×'+S.combo+' COMBO'+(S.shared.HAB&&S.combo>=5?' · DON\'T DROP IT':''):'');
+  setH('comboL',S.combo>=(S.shared.HAB&&!S.fair?2:3)?'×'+S.combo+' COMBO'+(!S.fair&&S.shared.HAB&&S.combo>=5?' · DON\'T DROP IT':''):'');
   const nags=[];
-  if(S.shared.MSG&&S.unread)nags.push('✉ '+S.unread+' UNREAD');
-  if(S.shared.HEA&&p.hp<=2&&S.mode==='play')nags.push('♥ ELEVATED · STAY IN');
-  if(S.shared.CON&&S.hookFriend)nags.push(S.hookFriend+' IS AHEAD');
-  setH('hookNag',nags.join('<br>'));
+  if(S.fair)nags.push('✦ FAIR PLAY · ◈ '+subPrice()+'/WAVE');
+  else{
+    if(S.shared.MSG&&S.unread)nags.push('✉ '+S.unread+' UNREAD');
+    if(S.shared.HEA&&p.hp<=2&&S.mode==='play')nags.push('♥ ELEVATED · STAY IN');
+    if(S.shared.CON&&S.hookFriend)nags.push(S.hookFriend+' IS AHEAD');
+  }
+  setH('hookNag',nags.join('<br>'));$('hookNag').classList.toggle('fair',!!S.fair);
   setH('chips',TYPES.map(t=>`<span class="chip ${S.shared[t]?'on':''}" style="--c:${DATA[t].c}">${DATA[t].i}<span class="cl">${DATA[t].s}${S.shared[t]>1?' ×'+S.shared[t]:''}</span></span>`).join(''));
   setH('infs',INF.filter(f=>S.inf[f.id]).map(f=>`<div class="infc">⚠ ${f.name}</div>`).join('')
     +BEH.filter(b=>S.model.on[b.id]).map(b=>`<div class="infc beh${S.model.strikes[b.id]?' weak':''}">👁 ${b.name}${S.model.strikes[b.id]?' · WEAKENING':''}</div>`).join(''));
@@ -1560,6 +1691,11 @@ function refreshTitle(){
 }
 refreshTitle();
 $('pauseList').addEventListener('click',e=>{const row=e.target.closest('[data-pid]');if(!row||!S)return;pauseSel=row.dataset.pid;renderPause()});
+$('subBtn').addEventListener('click',onSubBtn);
+$('pauseSub').addEventListener('click',()=>{if(S&&!S.fair)openSubModal()});
+$('subConfirm').addEventListener('click',confirmFair);
+$('subNope').addEventListener('click',closeSubModal);
+$('subModal').addEventListener('click',e=>{if(e.target.id==='subModal')closeSubModal()});
 $('startBtn').addEventListener('click',startGame);
 </script>
 </body>
