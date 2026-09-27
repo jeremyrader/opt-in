@@ -435,7 +435,7 @@ const DATA={
     fx:'Ads now talk about nearby places and "your area." After wave 1 it claims players near you have not left yet. Standing still on free Wi-Fi slows and swells the music so the hotspot feels safe.',
     why:'Where a device spends time is enough to infer school, home, and routines — no address form required.'},
   CON:{n:'CONTACTS',s:'CONTACTS',i:'👥',c:'#ff5ad9',v:.6,
-    fx:'Ads now name your "friends." A contact stays one wave ahead of you, and the mix stays a little faster so you feel behind.',
+    fx:'Ads now name your friends. A friend stays one wave ahead of you, and the mix stays a little faster so you feel behind.',
     why:'Sharing contacts shares people who never tapped Accept. Their data rides along with yours.'},
   BIO:{n:'FACE SCAN',s:'FACE',i:'📷',c:'#ffd23b',v:1.3,
     fx:'Ads now comment on your face. When you combo it labels you happy and brightens the music; when you get hit it labels you stressed and the mix tightens.',
@@ -522,10 +522,10 @@ const ADS={
     'A STORE ON YOUR BLOCK RESTOCKED','THIS ARENA SITS IN A HIGH-SPEND ZONE'
   ],
   CON:[
-    'YOUR FRIEND JUST BOUGHT THIS','5 OF YOUR CONTACTS LIKED THIS','ALEX FROM YOUR CLASS IS ONLINE',
-    'YOUR MOM\'S CONTACTS SAW THIS TOO','2 FRIENDS ARE LOOKING AT THE SAME ITEM','ADD JORDAN? YOU HAVE 11 MUTUALS',
-    'YOUR GROUP CHAT WOULD LOVE THIS','SOMEONE YOU KNOW IS NEARBY · SAY HI?','YOUR CONTACTS\' KIDS PLAY THIS',
-    'FORWARD THIS DEAL TO YOUR SQUAD','A CONTACT CHANGED SCHOOLS · GIFT?','3 PEOPLE YOU KNOW SKIPPED THE PAYWALL'
+    'YOUR FRIEND JUST BOUGHT THIS','5 OF YOUR FRIENDS LIKED THIS','ALEX FROM YOUR CLASS IS ONLINE',
+    'YOUR MOM\'S FRIENDS SAW THIS TOO','2 FRIENDS ARE LOOKING AT THE SAME ITEM','ADD JORDAN? YOU HAVE 11 MUTUALS',
+    'YOUR GROUP CHAT WOULD LOVE THIS','SOMEONE YOU KNOW IS NEARBY · SAY HI?','YOUR FRIENDS\' KIDS PLAY THIS',
+    'FORWARD THIS DEAL TO YOUR SQUAD','A FRIEND CHANGED SCHOOLS · GIFT?','3 PEOPLE YOU KNOW SKIPPED THE PAYWALL'
   ],
   BIO:[
     'WE NOTICED YOU LOOK TIRED 😴','FILTER THAT FIXES YOUR FACE','SMILE DETECTED · EASY TO SELL TO',
@@ -554,14 +554,14 @@ const ADS={
   _:['LIMITED OFFER!!!','YOU WON\'T BELIEVE THIS','CLICK HERE 🔥','ONE WEIRD TRICK','HOT DEAL NEARBY']
 };
 const ADSX={
-  'BIO+CON':['YOUR FRIEND LOOKS TIRED TOO · SHARE THIS','A CONTACT\'S FACE MATCHED A STORE CAM'],
+  'BIO+CON':['YOUR FRIEND LOOKS TIRED TOO · SHARE THIS','A FRIEND\'S FACE MATCHED A STORE CAM'],
   'BIO+HAB':['YOU MAKE THIS FACE WHEN YOU SHOP','SAME EXPRESSION AS LAST CHECKOUT'],
   'BIO+HEA':['FACE + PULSE = FRUSTRATED. SHOP?','YOUR FACE SAYS STRESSED. YOUR HEART AGREES'],
   'BIO+LOC':['A CAMERA ON YOUR BLOCK JUST TAGGED YOU','THIS STORE ALREADY HAS YOUR FACE'],
   'BIO+MSG':['YOUR SELFIE + THAT TEXT = WEEKEND PLANS','YOU LOOK LIKE THE PERSON WHO TYPED "UGH"'],
   'CON+HAB':['YOUR SQUAD ALWAYS ACCEPTS ABOUT NOW','FRIENDS WHO PLAY LIKE YOU BOUGHT THIS'],
-  'CON+HEA':['3 CONTACTS BOUGHT THIS AFTER A SCARE','A FRIEND\'S WATCH SHARED A SIMILAR PULSE'],
-  'CON+LOC':['YOUR FRIENDS HANG OUT 0.4 MI FROM HERE','SOMEONE IN YOUR CONTACTS IS ON THIS BLOCK'],
+  'CON+HEA':['3 FRIENDS BOUGHT THIS AFTER A SCARE','A FRIEND\'S WATCH SHARED A SIMILAR PULSE'],
+  'CON+LOC':['YOUR FRIENDS HANG OUT 0.4 MI FROM HERE','A FRIEND IS ON THIS BLOCK'],
   'CON+MSG':['YOUR FRIEND TEXTED ABOUT THIS FIRST','THE GROUP CHAT ALREADY VOTED YES'],
   'HAB+HEA':['LATE NIGHTS + HEART DATA = ENERGY DRINK','YOU BUY SNACKS AFTER YOU GET HURT'],
   'HAB+LOC':['WE SAVED YOUR USUAL ROUTE · PIT STOP?','YOU ALWAYS CAMP THIS SIDE · LOCAL DEAL'],
@@ -836,7 +836,7 @@ function startWave(){
   else{
     if(S.shared.CON){
       S.hookFriend=S.hookFriend||pick(['ALEX','JORDAN','SAM','RILEY','CASEY']);
-      sub.push(S.hookFriend+' (A CONTACT) IS ON WAVE '+(w+1+(w%2)));
+      sub.push(S.hookFriend+' (A FRIEND) IS ON WAVE '+(w+1+(w%2)));
     }
     if(S.shared.LOC&&w>1)sub.push('PLAYERS NEAR YOU HAVEN\'T LEFT');
   }
@@ -942,7 +942,7 @@ function liveAds(){
   if(sh('LOC')&&S.model.on.zone)out.push('STORES IN YOUR USUAL CORNER MISS YOU');
   if(S.inf.home)out.push('STILL CLOSE TO HOME · WE FIGURED');
   if(S.inf.face)out.push('CAMERA '+(2+S.wave%7)+' RECOGNIZED YOU');
-  if(sh('CON')&&S.inf.graph)out.push('YOUR CONTACTS\' DATA IS IN THIS AD TOO');
+  if(sh('CON')&&S.inf.graph)out.push('YOUR FRIENDS\' DATA IS IN THIS AD TOO');
   if(S.inf.risk)out.push('YOUR RISK SCORE RAISED THIS PRICE');
   if(S.inf.predict)out.push('WE KNOW WHERE YOU\'RE HEADED · SHOP AHEAD');
   if(S.model.on.panic)out.push('PANIC DASHERS BUY ENERGY DRINKS');
@@ -1467,7 +1467,7 @@ function showDossier(){
   {const hooks=[];
     if(S.shared.HAB)hooks.push('random jackpots, streak-guilt, and a pumped soundtrack');
     if(S.shared.HEA)hooks.push('don\'t-quit pressure and racing music when you were hurt');
-    if(S.shared.CON)hooks.push('a contact who stayed one wave ahead');
+    if(S.shared.CON)hooks.push('a friend who stayed one wave ahead');
     if(S.shared.MSG)hooks.push((S.unread||0)+' unread badges that turned the music up');
     if(S.shared.BIO)hooks.push('happy/stressed labels and a mix that followed your face');
     if(S.shared.LOC)hooks.push('"players near you haven\'t left" and a lull on free Wi-Fi');
