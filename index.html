@@ -49,6 +49,12 @@ button{font-family:inherit;cursor:pointer;border:none}
 .titleDel{background:none;border:1px solid #2a2f55;color:#454b6b;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:5px 10px}
 .titleDel:hover:not(:disabled){color:#ff3b5c;border-color:#ff3b5c}
 .titleDel:disabled{opacity:.35;cursor:not-allowed}
+.whoLine{margin-top:16px;font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:2px;color:#38e1ff;min-height:1.2em}
+.nameBox{width:min(520px,92vw);text-align:center}
+.nameBox p{font-size:13px;color:#8a92c0;line-height:1.55;margin:10px 0 0}
+.nameBox input{width:100%;margin:18px 0 8px;background:#111428;border:1px solid #3a4270;color:#fff;font-family:'Chakra Petch',sans-serif;font-size:28px;font-weight:700;letter-spacing:2px;padding:12px 14px;text-align:center;outline:none;user-select:text}
+.nameBox input:focus{border-color:#38e1ff;box-shadow:0 0 12px rgba(56,225,255,.2)}
+#nameErr{min-height:1.5em;font-size:12px;color:#ff3b5c;letter-spacing:1px}
 .legal{font-size:10px;color:#454b6b;letter-spacing:1px;font-family:'JetBrains Mono',monospace}
 .infoLine{margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#8a92c0;text-align:center;max-width:680px;line-height:1.7}
 .infoLine span{display:inline-block;padding:1px 8px;margin:2px;border:1px solid #2c3260;border-radius:3px}
@@ -230,26 +236,23 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .boardNote{font-size:12px;color:#8a92c0;line-height:1.6;margin:12px 0 16px;max-width:720px}
 .boardNote b{color:#ff8fa3}
 .boardMeta{font-size:10px;letter-spacing:1px;color:#6a7299;margin-bottom:10px}
-.brow{width:100%;text-align:left;background:#111428;border:1px solid #23284a;color:#c8cff5;padding:10px 12px;border-radius:4px;font-family:'JetBrains Mono';font-size:12px;cursor:pointer;border-left:3px solid #23284a;margin-bottom:6px}
+.brow{width:100%;text-align:left;background:#111428;border:1px solid #23284a;color:#c8cff5;padding:8px 12px;border-radius:4px;font-family:'JetBrains Mono';font-size:13px;cursor:pointer;border-left:3px solid #23284a;margin-bottom:4px}
 .brow:hover{border-color:#3a4270;background:#181c36}
 .brow.you{border-left-color:#38e1ff;box-shadow:0 0 12px rgba(56,225,255,.12)}
 .brow.sel{border-color:#fff}
-.browTop{display:grid;grid-template-columns:36px 72px minmax(0,1fr) 140px;gap:8px;align-items:baseline}
+.browTop{display:grid;grid-template-columns:36px minmax(0,1fr) 92px 52px;gap:10px;align-items:center}
 .bn{color:#6a7299}
-.bw{color:#fff;font-weight:700}
-.bscore{color:#ffd23b}
-.btag{color:#38e1ff;letter-spacing:1px}
+.bw{color:#8a92c0;text-align:right;letter-spacing:1px}
+.bscore{color:#ffd23b;font-weight:700;text-align:right}
+.btag{color:#38e1ff;letter-spacing:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .byou{color:#7dff6a;font-size:10px;letter-spacing:1px;margin-left:6px}
-.brank{font-family:'Chakra Petch';font-weight:700;letter-spacing:1px;text-align:right}
-.bsub{margin-top:6px;font-size:11px;color:#8a92c0;line-height:1.5}
-.bsub b{color:#e8ecff}
 #boardDetail{margin-top:12px;border:1px solid #23284a;background:#080914;padding:14px 16px;font-size:12px;line-height:1.55;color:#c8cff5;display:none}
 #boardDetail.on{display:block}
 #boardDetail h3{font-family:'Chakra Petch';font-size:22px;letter-spacing:1px;color:#fff;margin:0 0 8px}
 #boardEmpty{color:#6a7299;font-size:13px;padding:20px 0}
 .dosBoard{text-align:center;font-size:11px;color:#8a92c0;margin-top:12px;letter-spacing:1px}
 .dosBoard b{color:#38e1ff}
-@media(max-width:640px){.browTop{grid-template-columns:28px 56px 1fr;}.brank{grid-column:2/-1;text-align:left;margin-top:2px}}
+@media(max-width:640px){.browTop{grid-template-columns:28px minmax(0,1fr) 72px 44px;gap:6px;font-size:12px}}
 #log{background:rgba(5,5,10,.93);overflow:auto;justify-content:flex-start;padding:30px 16px}
 .logBox{width:min(720px,96vw)}
 .logVer{margin-bottom:22px;padding-bottom:16px;border-bottom:1px dashed #2a2f55}
@@ -291,6 +294,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
 <div id="title" class="screen">
   <div class="logoBig glitch" data-t="OPT/IN">OPT<b>/</b>IN</div>
   <div class="tag">EVERYTHING IS <i>FREE</i>.</div>
+  <div class="whoLine" id="whoLine"></div>
   <div class="titleActs">
     <button id="startBtn" class="neon">PLAY</button>
     <button type="button" id="titleBoard" class="neon alt">LEADERBOARD</button>
@@ -302,7 +306,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
   <div class="best" id="bestLine"></div>
   <div class="infoLine" id="discLine"></div>
   <div class="titleFoot">
-    <button type="button" id="titleVer" class="titleVer">v1.2.0</button>
+    <button type="button" id="titleVer" class="titleVer">v1.3.0</button>
     <button type="button" id="titleDel" class="titleDel">DELETE MY DATA</button>
     <div class="legal">By pressing PLAY you agree to be observed.</div>
   </div>
@@ -384,6 +388,19 @@ button:disabled{opacity:.35;cursor:not-allowed}
     <div class="dosBtns"><button type="button" class="ghost" id="boardBack">BACK</button></div>
   </div>
 </div>
+<div id="name" class="screen hidden">
+  <div class="dos nameBox">
+    <div class="dosId">BEFORE WE OBSERVE YOU</div>
+    <div class="dosH">CHOOSE A NAME</div>
+    <p>This name is on the leaderboard for other players to see. Keep it classroom-safe. Delete My Data clears it.</p>
+    <input id="nameIn" maxlength="16" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="YOUR NAME">
+    <div id="nameErr"></div>
+    <div class="dosBtns">
+      <button type="button" class="neon" id="nameGo">CONTINUE</button>
+      <button type="button" class="ghost" id="nameBack">BACK</button>
+    </div>
+  </div>
+</div>
 <div id="log" class="screen hidden">
   <div class="dos logBox">
     <div class="dosTop">
@@ -391,7 +408,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
         <div class="dosId">PLAYER NOTES · NOT THE FINE PRINT</div>
         <div class="dosH">WHAT'S NEW</div>
       </div>
-      <div style="text-align:right"><div class="dosId">THIS BUILD</div><div class="dosRank" style="--c:#ffd23b" id="logNow">v1.2.0</div></div>
+      <div style="text-align:right"><div class="dosId">THIS BUILD</div><div class="dosRank" style="--c:#ffd23b" id="logNow">v1.3.0</div></div>
     </div>
     <div id="logList"></div>
     <div class="dosBtns"><button type="button" class="neon" id="logOk">GOT IT</button></div>
@@ -411,8 +428,13 @@ const TAU=Math.PI*2;
 const store={get(k,d){try{const v=localStorage.getItem('optin_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('optin_'+k,JSON.stringify(v))}catch(e){}},clear(){try{Object.keys(localStorage).filter(k=>k.startsWith('optin_')).forEach(k=>localStorage.removeItem(k))}catch(e){}}};
 
 // bump VERSION when you push a player-facing change, and add a CHANGELOG entry
-const VERSION='1.2.0';
+const VERSION='1.3.0';
 const CHANGELOG=[
+  {v:'1.3.0',name:'Player names',notes:[
+    'You choose a name before you play. It shows on the leaderboard.',
+    'Delete My Data clears your name. You pick a new one next time.',
+    'Names are checked for classroom use. Vulgar or sexual names are rejected.'
+  ]},
   {v:'1.2.0',name:'Leaderboard',notes:[
     'A shared leaderboard now records your run when you lose. No sign-in — you show up as a subject number.',
     'Other players can see what you sold, what was inferred, how you played, and what your file was worth.',
@@ -439,6 +461,47 @@ const BOARD={url:'https://mantledb.sh/v2/optin-leaderboard/board',key:'7abcfeea1
 let boardBack='title',boardSel=null,boardLive=false;
 function subjectId(){let id=store.get('pid','');if(!id){const a=new Uint8Array(6);if(crypto&&crypto.getRandomValues)crypto.getRandomValues(a);else for(let i=0;i<a.length;i++)a[i]=Math.random()*256|0;id=Array.from(a,b=>b.toString(16).padStart(2,'0')).join('');store.set('pid',id)}return id}
 function subjectTag(pid){return 'SUBJ-'+(pid||'0000').slice(0,6).toUpperCase()}
+function playerName(){return store.get('name','')||''}
+function boardName(e){return (e&&e.name)||(e&&e.tag)||subjectTag(e&&e.pid)}
+function nameFold(s){
+  return String(s||'').toLowerCase().replace(/[\u200b-\u200d\ufeff]/g,'').replace(/[@4àáâãäå]/g,'a').replace(/[3èéêë€]/g,'e').replace(/[1!|ìíîï]/g,'i').replace(/[0òóôõö]/g,'o').replace(/[$5]/g,'s').replace(/[7+]/g,'t').replace(/[^a-z0-9]+/g,'');
+}
+function nameSqueeze(s){return String(s||'').replace(/(.)\1{2,}/g,'$1')}
+const NAME_WHOLE=new Set('ass sex tit tits cum fag faggot dick dicks cock cocks pussy porn porno xxx anal anus slut sluts whore whores hoe hoes bitch bitches shit fuck hell damn rape rapist nazi kkk hitler penis vagina boob boobs jizz twat cunt nigger nigga retard retards 69'.split(' '));
+const NAME_PART='fuck shit bitch asshole bastard whore slut porn penis vagina nigger nigga faggot retard rape rapist horny hentai dildo orgasm semen nipple naked nudist erotic fellatio blowjob handjob jizz twat cunt clitoris masturbat onlyfans fck fuk fcuk phuck'.split(' ');
+function nameProblem(raw){
+  const name=String(raw||'').replace(/[\u200b-\u200d\ufeff]/g,'').replace(/\s+/g,' ').trim();
+  if(!name)return 'Type a name to continue.';
+  if(name.length<2)return 'Use at least 2 characters.';
+  if(name.length>16)return 'Keep it to 16 characters.';
+  if(!/^[a-z0-9][a-z0-9 \-']*$/i.test(name))return 'Letters, numbers, spaces, and hyphens only.';
+  if(!/[a-z]/i.test(name))return 'Names need at least one letter.';
+  const compact=nameFold(name),squeezed=nameSqueeze(compact);
+  const tokens=name.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean).map(nameFold);
+  if(compact==='xxx'||compact==='69'||/^x+$/.test(compact))return 'That name isn\'t allowed in class. Try another.';
+  if(NAME_WHOLE.has(compact)||NAME_WHOLE.has(squeezed)||tokens.some(t=>NAME_WHOLE.has(t)))return 'That name isn\'t allowed in class. Try another.';
+  if(NAME_PART.some(w=>compact.includes(w)||squeezed.includes(w)||tokens.some(t=>t.includes(w))))return 'That name isn\'t allowed in class. Try another.';
+  return '';
+}
+function openName(){
+  ['title','dossier','terms','reveal','pause','subModal','board','log'].forEach(id=>$(id).classList.add('hidden'));
+  $('hud').classList.add('hidden');document.body.classList.remove('playing');
+  $('nameErr').textContent='';$('nameIn').value='';
+  $('name').classList.remove('hidden');
+  setTimeout(()=>$('nameIn').focus(),40);
+}
+function closeName(){
+  $('name').classList.add('hidden');
+  $('title').classList.remove('hidden');
+  refreshTitle();
+}
+function submitName(){
+  const name=String($('nameIn').value||'').replace(/\s+/g,' ').trim();
+  const why=nameProblem(name);
+  if(why){$('nameErr').textContent=why;sfx.deny();return}
+  store.set('name',name);
+  startGame();
+}
 function boardHdr(){return {'Content-Type':'application/json','X-Mantle-Key':BOARD.key}}
 function boardSort(a){return a.sort((x,y)=>(y.score-x.score)||(y.wave-x.wave)||((y.at||0)-(x.at||0)))}
 function boardCache(list){store.set('board',list);return list}
@@ -476,7 +539,7 @@ function submitBoard(entry){return boardMutate(list=>{list.push(entry);return li
 function wipeMyBoard(pid){if(!pid)return Promise.resolve(store.get('board',[])||[]);return boardMutate(list=>list.filter(e=>e.pid!==pid))}
 function openBoard(from){
   boardBack=from||'title';boardSel=null;
-  ['title','dossier','terms','reveal','pause','subModal','log'].forEach(id=>$(id).classList.add('hidden'));
+  ['title','dossier','terms','reveal','pause','subModal','log','name'].forEach(id=>$(id).classList.add('hidden'));
   $('board').classList.remove('hidden');
   renderBoard();
 }
@@ -494,13 +557,11 @@ async function renderBoard(){
   $('boardDetail').className='';$('boardDetail').innerHTML='';
   const list=boardSort((await boardPull()).slice());
   paintTitleBoard(list.length);
-  $('boardMeta').textContent=(boardLive?'LIVE':'CACHED · OFFLINE')+' · '+list.length+' RUN'+(list.length===1?'':'S')+' · SORTED BY SCORE';
+  $('boardMeta').textContent=(boardLive?'LIVE':'CACHED · OFFLINE')+' · '+list.length+' RUN'+(list.length===1?'':'S')+' · SORTED BY SCORE · CLICK A ROW TO OPEN THEIR FILE';
   if(!list.length){$('boardList').innerHTML='<div id="boardEmpty">No scores yet. Die once and you will be on the leaderboard.</div>';return}
   $('boardList').innerHTML=list.map((e,i)=>{
     const you=me&&e.pid===me;
-    const sold=(e.types&&e.types.length?e.types.join(' · '):'NOTHING SOLD');
-    const extra=[e.infs&&e.infs.length?e.infs.length+' inference'+(e.infs.length===1?'':'s'):'',e.pats&&e.pats.length?e.pats.length+' pattern'+(e.pats.length===1?'':'s'):'',e.fair?'Fair Play':'Accept-first'].filter(Boolean).join(' · ');
-    return `<button type="button" class="brow${you?' you':''}" data-bi="${i}"><div class="browTop"><span class="bn">${i+1}</span><span class="bw">W${e.wave||0}</span><span><span class="btag">${esc(e.tag||subjectTag(e.pid))}</span>${you?'<span class="byou">YOU</span>':''}<div class="bscore">${(e.score||0).toLocaleString()}</div></span><span class="brank" style="color:${esc(e.rankC||'#38e1ff')}">${esc(e.rank||'UNKNOWN')}</span></div><div class="bsub">${esc(sold)} · <b>${esc(e.seg||'UNSEGMENTED')}</b><br>${extra?esc(extra)+' · ':''}${e.pred||0}% predictable · $${(e.val||0).toFixed(2)} file · ${boardWhen(e.at)}</div></button>`;
+    return `<button type="button" class="brow${you?' you':''}" data-bi="${i}"><div class="browTop"><span class="bn">${i+1}</span><span class="btag">${esc(boardName(e))}${you?'<span class="byou">YOU</span>':''}</span><span class="bscore">${(e.score||0).toLocaleString()}</span><span class="bw">W${e.wave||0}</span></div></button>`;
   }).join('');
   $('boardList').onclick=ev=>{
     const btn=ev.target.closest('[data-bi]');if(!btn)return;
@@ -512,7 +573,7 @@ async function renderBoard(){
     const infs=(e.infs||[]).join(', ')||'none yet';
     const pats=(e.pats||[]).join(', ')||'none observed';
     $('boardDetail').className='on';
-    $('boardDetail').innerHTML=`<h3>${esc(e.tag||subjectTag(e.pid))}${me2&&e.pid===me2?' · YOU':''}</h3>
+    $('boardDetail').innerHTML=`<h3>${esc(boardName(e))}${me2&&e.pid===me2?' · YOU':''}</h3>
       <div class="stat"><span>Wave / score</span><b>${e.wave||0} / ${(e.score||0).toLocaleString()}</b></div>
       <div class="stat"><span>Privacy rank</span><b style="color:${esc(e.rankC||'#38e1ff')}">${esc(e.rank||'UNKNOWN')}</b></div>
       <div class="stat"><span>Sold as</span><b>${esc(e.seg||'UNSEGMENTED')}</b></div>
@@ -793,6 +854,8 @@ addEventListener('keydown',e=>{
   const k=e.key.toLowerCase();keys[k]=true;
   if(k==='escape'&&!$('log').classList.contains('hidden')){closeLog();e.preventDefault();return}
   if(k==='escape'&&!$('board').classList.contains('hidden')){closeBoard();e.preventDefault();return}
+  if(k==='escape'&&!$('name').classList.contains('hidden')){closeName();e.preventDefault();return}
+  if(!$('name').classList.contains('hidden')){if(k==='enter'){submitName();e.preventDefault()}return}
   if(k===' '||k==='shift'){dashReq=true;e.preventDefault()}
   if(!S)return;
   if(S.mode==='terms'){
@@ -942,9 +1005,10 @@ function newState(){
   };
 }
 function startGame(){
+  if(!playerName()){openName();return}
   initAudio();
   S=newState();
-  ['title','dossier','terms','reveal','pause','subModal','board','log'].forEach(id=>$(id).classList.add('hidden'));
+  ['title','dossier','terms','reveal','pause','subModal','board','log','name'].forEach(id=>$(id).classList.add('hidden'));
   $('hud').classList.remove('hidden');document.body.classList.add('playing');document.body.classList.remove('paused');
   hudCache={};startWave();
 }
@@ -1743,7 +1807,7 @@ function showDossier(){
   const achs=store.get('ach',[]);
   const id='#'+Math.floor(rand(100000,999999))+'-'+String.fromCharCode(65+Math.floor(Math.random()*26));
   $('dossier').innerHTML=`<div class="dos">
-    <div class="dosTop"><div><div class="dosId">SUBJECT ${id} · OBSERVED FOR ${Math.floor(T.time/60)}m ${Math.floor(T.time%60)}s</div>
+    <div class="dosTop"><div><div class="dosId">${esc(playerName()||'UNNAMED')} · SUBJECT ${id} · OBSERVED FOR ${Math.floor(T.time/60)}m ${Math.floor(T.time%60)}s</div>
       <div class="dosH">YOU REACHED WAVE ${wave}</div>
       <div style="font-size:15px;color:#aab3d9">SCORE <b style="color:#fff">${S.score.toLocaleString()}</b> ${isBest?'<b style="color:#ffd23b">· NEW BEST</b>':'· BEST '+best.score.toLocaleString()}</div></div>
       <div class="stamp">PROFILE ${predictability>50||nShared>3?'COMPLETE':'PARTIAL'}</div>
@@ -1768,7 +1832,7 @@ function showDossier(){
       </div>
     </div>
     <div class="dosBtns"><button class="neon" id="againBtn">RUN IT BACK</button><button class="ghost" id="boardBtn">LEADERBOARD</button><button class="ghost" id="delBtn">DELETE MY DATA</button></div>
-    <div class="dosBoard" id="dosBoard">ADDING YOU TO THE LEADERBOARD · ${subjectTag(subjectId())}</div>
+    <div class="dosBoard" id="dosBoard">ADDING YOU TO THE LEADERBOARD · ${esc(playerName()||subjectTag(subjectId()))}</div>
     <div style="text-align:center;font-size:10px;color:#454b6b;margin-top:10px">press R to restart</div>
   </div>`;
   const hc=$('heat').getContext('2d'),mx=Math.max(...T.heat)||1;
@@ -1777,11 +1841,11 @@ function showDossier(){
   $('boardBtn').onclick=()=>openBoard('dossier');
   $('delBtn').onclick=deleteMyData;
   $('dossier').classList.remove('hidden');$('hud').classList.add('hidden');$('pause').classList.add('hidden');document.body.classList.remove('paused');
-  const filed={pid:subjectId(),tag:subjectTag(subjectId()),at:Date.now(),wave,score:S.score,rank:rank[0],rankC:rank[1],seg,
+  const filed={pid:subjectId(),tag:subjectTag(subjectId()),name:playerName(),at:Date.now(),wave,score:S.score,rank:rank[0],rankC:rank[1],seg,
     types:TYPES.filter(t=>S.shared[t]).map(t=>DATA[t].s+(S.shared[t]>1?'×'+S.shared[t]:'')),
     infs:infNames,pats:behOn.map(b=>b.name),free:T.free,paid:T.paid,declined:T.declined,fair:!!S.fair,
     exp:+exposure().toFixed(1),wifi:Math.round(T.wifiT||0),pred:predictability,val:+val.toFixed(2),still:stillPct,terms:+readAvg.toFixed(1)};
-  submitBoard(filed).then(()=>{const n=$('dosBoard');if(!n)return;n.innerHTML=boardLive?'ON THE LEADERBOARD · <b>'+esc(filed.tag)+'</b> · OTHER PLAYERS CAN SEE THIS':'SAVED ON THIS DEVICE · LEADERBOARD UNREACHABLE';paintTitleBoard()});
+  submitBoard(filed).then(()=>{const n=$('dosBoard');if(!n)return;n.innerHTML=boardLive?'ON THE LEADERBOARD · <b>'+esc(filed.name||filed.tag)+'</b> · OTHER PLAYERS CAN SEE THIS':'SAVED ON THIS DEVICE · LEADERBOARD UNREACHABLE';paintTitleBoard()});
 }
 
 // ================= HUD =================
@@ -1938,11 +2002,11 @@ requestAnimationFrame(frame);
 
 // ================= title =================
 function hasSavedData(){
-  return !!(store.get('pid','')||store.get('best',null)||store.get('profile',null)||store.get('model',null)||(store.get('hist',[])||[]).length||(store.get('disc',[])||[]).length||(store.get('ach',[])||[]).length);
+  return !!(store.get('name','')||store.get('pid','')||store.get('best',null)||store.get('profile',null)||store.get('model',null)||(store.get('hist',[])||[]).length||(store.get('disc',[])||[]).length||(store.get('ach',[])||[]).length);
 }
 function paintTitleDel(){const b=$('titleDel');if(b)b.disabled=!hasSavedData()}
 function deleteMyData(){
-  if(!confirm('Delete ALL your OPT/IN data?\nThis removes shared data types, inferences, behavior patterns, your high score, achievements, and your rows on the leaderboard.\nPrivacy has trade-offs too.'))return;
+  if(!confirm('Delete ALL your OPT/IN data?\nThis removes your name, shared data types, inferences, behavior patterns, your high score, achievements, and your rows on the leaderboard.\nYou will choose a new name next time.\nPrivacy has trade-offs too.'))return;
   const pid=store.get('pid',''),keep=(store.get('board',[])||[]).filter(e=>!pid||e.pid!==pid),seen=store.get('seen','');
   store.clear();
   store.set('board',keep);
@@ -1953,6 +2017,8 @@ function deleteMyData(){
   if(pid)wipeMyBoard(pid).then(()=>{if(!$('board').classList.contains('hidden'))renderBoard()});
 }
 function refreshTitle(){
+  const nm=playerName();
+  $('whoLine').textContent=nm?'PLAYING AS '+nm:'';
   const b=store.get('best',null),h=store.get('hist',[]),d=store.get('disc',[]),a=store.get('ach',[]);
   $('bestLine').textContent=b&&b.score?`BEST ${b.score.toLocaleString()} · WAVE ${b.wave} · ${h.length} SESSIONS OBSERVED · ${a.length}/${Object.keys(ACH).length} ACHIEVEMENTS`:'';
   $('discLine').innerHTML=d.length?'INFERENCES DISCOVERED '+d.length+'/6<br>'+INF.map(f=>`<span class="${d.includes(f.id)?'on':''}">${d.includes(f.id)?f.name:'??????'}</span>`).join(''):'';
@@ -1985,7 +2051,7 @@ function renderLog(){
   }).join('');
 }
 function openLog(){
-  ['title','dossier','terms','reveal','pause','subModal','board'].forEach(id=>$(id).classList.add('hidden'));
+  ['title','dossier','terms','reveal','pause','subModal','board','name'].forEach(id=>$(id).classList.add('hidden'));
   $('log').classList.remove('hidden');
   renderLog();
 }
@@ -2003,6 +2069,8 @@ $('subConfirm').addEventListener('click',confirmFair);
 $('subNope').addEventListener('click',closeSubModal);
 $('subModal').addEventListener('click',e=>{if(e.target.id==='subModal')closeSubModal()});
 $('startBtn').addEventListener('click',startGame);
+$('nameGo').addEventListener('click',submitName);
+$('nameBack').addEventListener('click',closeName);
 $('titleBoard').addEventListener('click',()=>openBoard('title'));
 $('boardBack').addEventListener('click',closeBoard);
 $('titleVer').addEventListener('click',openLog);
