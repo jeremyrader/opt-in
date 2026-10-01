@@ -121,6 +121,8 @@ button{font-family:inherit;cursor:pointer;border:none}
 .cdesc{font-size:14px;color:#474c66;margin:4px 0 12px;min-height:40px}
 .stack{font-size:12px;font-weight:700;color:#111;background:#ffd23b;border-radius:6px;padding:6px 8px;margin:-4px 0 10px;line-height:1.35;width:100%}
 .stack b{display:block;font-size:10px;letter-spacing:1px;color:#6a5200;margin-bottom:2px}
+.stack.maxed{background:#1b1e2e;color:#ffd23b}
+.stack.maxed b{color:#ff6b6b}
 .accept{width:100%;background:linear-gradient(180deg,#2bd46b,#14a44e);color:#fff;font-size:20px;font-weight:700;padding:12px;border-radius:9px;box-shadow:0 4px 0 #0c7a39;letter-spacing:1px}
 .accept span{font-size:13px;background:rgba(255,255,255,.25);padding:1px 6px;border-radius:4px;margin-left:4px}
 .accept:hover{filter:brightness(1.08)}
@@ -458,16 +460,16 @@ const DATA={
     why:'How you move, hesitate, and choose is a fingerprint. It can be collected without a permission prompt.'}
 };
 const PERKS=[
-  {id:'route',name:'SAFE ROUTE',icon:'🧭',data:'LOC',tag:'SAFETY',desc:'See the path of every incoming shot. +10% speed.',again:'Shot paths stay on. Another +10% speed.',apply:p=>{p.lines=true;p.speed*=1.1}},
-  {id:'squad',name:'SQUAD SYNC',icon:'🛸',data:'CON',tag:'SOCIAL',desc:'A friend drone orbits you and fires on its own.',again:'Another drone joins the first.',apply:p=>{p.drones++}},
-  {id:'face',name:'FACE UNLOCK',icon:'⚡',data:'BIO',tag:'ACCESS',desc:'Dash recharges 2× faster.',again:'Dash cooldown halves again.',apply:p=>{p.dashCD*=.5}},
-  {id:'sos',name:'WELLNESS GUARD',icon:'🚑',data:'HEA',tag:'SAFETY',desc:'Auto-SOS revives you once. Heal 1♥ every wave.',again:'Another SOS revive. The wave heal does not stack.',apply:p=>{p.revives++;p.regen=1}},
-  {id:'reply',name:'SMART REPLY',icon:'⌨️',data:'MSG',tag:'CONVENIENCE',desc:'+30% fire rate. It knows what you want to say.',again:'Another +30% fire rate.',apply:p=>{p.fireRate*=1.3}},
-  {id:'aim',name:'SMART AIM',icon:'🎯',data:'HAB',tag:'COMBAT',desc:'Shots curve toward enemies your reticle has hovered.',again:'Stronger curve on marked targets.',apply:p=>{p.homing+=3}},
-  {id:'armor',name:'ARMOR PLATE',icon:'🛡️',data:null,tag:'DEFENSE',desc:'+1 max ♥ and heal 1.',again:'Another +1 max ♥ and heal 1.',apply:p=>{p.maxHp++;p.hp=Math.min(p.maxHp,p.hp+1)}},
-  {id:'heavy',name:'HEAVY ROUNDS',icon:'💥',data:null,tag:'POWER',desc:'+1 damage per shot.',again:'Another +1 damage per shot.',apply:p=>{p.dmg++}},
-  {id:'split',name:'SPLIT SHOT',icon:'🔱',data:null,tag:'POWER',desc:'+1 projectile per volley.',again:'Another projectile per volley.',apply:p=>{p.shots++}},
-  {id:'magnet',name:'MAGNET',icon:'🧲',data:null,tag:'UTILITY',desc:'Pull credits from much farther away. +8% speed.',again:'Even farther pull. Another +8% speed.',apply:p=>{p.magnet+=140;p.speed*=1.08}}
+  {id:'route',name:'SAFE ROUTE',icon:'🧭',data:'LOC',tag:'SAFETY',cap:3,desc:'See the path of every incoming shot. +10% speed.',again:'Shot paths stay on. Another +10% speed.',apply:p=>{p.lines=true;p.speed*=1.1}},
+  {id:'squad',name:'SQUAD SYNC',icon:'🛸',data:'CON',tag:'SOCIAL',cap:2,desc:'A friend drone orbits you and fires on its own.',again:'Another drone joins the first.',apply:p=>{p.drones++}},
+  {id:'face',name:'FACE UNLOCK',icon:'⚡',data:'BIO',tag:'ACCESS',cap:2,desc:'Dash recharges 2× faster.',again:'Dash cooldown halves again.',apply:p=>{p.dashCD*=.5}},
+  {id:'sos',name:'WELLNESS GUARD',icon:'🚑',data:'HEA',tag:'SAFETY',cap:2,desc:'Auto-SOS revives you once. Heal 1♥ every wave.',again:'Another SOS revive. The wave heal does not stack.',apply:p=>{p.revives++;p.regen=1}},
+  {id:'reply',name:'SMART REPLY',icon:'⌨️',data:'MSG',tag:'CONVENIENCE',cap:3,desc:'+30% fire rate. It knows what you want to say.',again:'Another +30% fire rate.',apply:p=>{p.fireRate*=1.3}},
+  {id:'aim',name:'SMART AIM',icon:'🎯',data:'HAB',tag:'COMBAT',cap:2,desc:'Shots curve toward enemies your reticle has hovered.',again:'Stronger curve on marked targets.',apply:p=>{p.homing+=3}},
+  {id:'armor',name:'ARMOR PLATE',icon:'🛡️',data:null,tag:'DEFENSE',cap:4,desc:'+1 max ♥ and heal 1.',again:'Another +1 max ♥ and heal 1.',apply:p=>{p.maxHp++;p.hp=Math.min(p.maxHp,p.hp+1)}},
+  {id:'heavy',name:'HEAVY ROUNDS',icon:'💥',data:null,tag:'POWER',cap:3,desc:'+1 damage per shot.',again:'Another +1 damage per shot.',apply:p=>{p.dmg++}},
+  {id:'split',name:'SPLIT SHOT',icon:'🔱',data:null,tag:'POWER',cap:3,desc:'+1 projectile per volley.',again:'Another projectile per volley.',apply:p=>{p.shots++}},
+  {id:'magnet',name:'MAGNET',icon:'🧲',data:null,tag:'UTILITY',cap:2,desc:'Pull credits from much farther away. +8% speed.',again:'Even farther pull. Another +8% speed.',apply:p=>{p.magnet+=140;p.speed*=1.08}}
 ];
 const INF=[
   {id:'predict',need:['LOC','HAB'],name:'ROUTE PREDICTED',desc:'Enemies now aim where you WILL be, not where you are.',why:'Where you go + when you go = where you\'re going next. Navigation apps use this to guess your destination before you type it.'},
@@ -621,7 +623,7 @@ function pauseItems(){
   for(const t of TYPES){const n=S.shared[t]||0;if(!n)continue;const D=DATA[t];items.push({id:'d-'+t,c:D.c,title:D.i+' '+D.n,sub:'shared ×'+n})}
   for(const f of INF){if(!S.inf[f.id])continue;items.push({id:'i-'+f.id,c:'#ff3b5c',title:'⚠ '+f.name,sub:'inferred · active'})}
   for(const b of BEH){if(!S.model.on[b.id])continue;items.push({id:'b-'+b.id,c:'#c04bff',title:'👁 '+b.name,sub:S.model.strikes[b.id]?'watching you · weakening':'watching you · active'})}
-  for(const pk of PERKS){const n=S.tele.picks[pk.id]||0;if(!n)continue;items.push({id:'u-'+pk.id,c:pk.data?DATA[pk.data].c:'#38e1ff',title:pk.icon+' '+pk.name,sub:n>1?'upgrade ×'+n:'upgrade · active'})}
+  for(const pk of PERKS){const n=S.tele.picks[pk.id]||0;if(!n)continue;items.push({id:'u-'+pk.id,c:pk.data?DATA[pk.data].c:'#38e1ff',title:pk.icon+' '+pk.name,sub:perkMaxed(pk)?'upgrade · MAXED '+n+'/'+pk.cap:n>1?'upgrade ×'+n:'upgrade · active'})}
   return items;
 }
 function pauseDetail(id){
@@ -641,13 +643,14 @@ function pauseDetail(id){
     const t=id.slice(2),D=DATA[t],n=S.shared[t]||0;
     const got=PERKS.filter(p=>p.data===t&&S.tele.picks[p.id]);
     const mixed=INF.filter(f=>S.inf[f.id]&&f.need.includes(t));
+    const wait=INF.filter(f=>!S.inf[f.id]&&f.need.includes(t));
     return `<h3>${D.i} ${D.n}</h3><div class="need">Sold ×${n} · still on file across runs.${got.length?' · You took '+got.map(p=>p.name).join(', ')+'.':''}</div>
-      <div class="fx">${D.fx}${mixed.length?' They already mixed this with other shares you sold: '+mixed.map(f=>f.name+' ('+f.desc+')').join(' '):''}</div>
+      <div class="fx">${D.fx}${mixed.length?' They already mixed this with other shares you sold: '+mixed.map(f=>f.name+' ('+f.desc+')').join(' '):''}${wait.length?' Mixing in progress: '+wait.map(f=>f.name+' ('+inferProgress(f)+')').join(' · '):''}</div>
       <div class="why">${D.why}</div>`;
   }
   if(id.startsWith('i-')){
     const f=INF.find(x=>x.id===id.slice(2));
-    return `<h3>${f.name}</h3><div class="need">${f.need.map(t=>DATA[t].i+' '+DATA[t].n).join(' + ')} · active now</div>
+    return `<h3>${f.name}</h3><div class="need">${inferProgress(f)}</div>
       <div class="fx">${f.desc}</div>
       <div class="why">${f.why}</div>`;
   }
@@ -665,9 +668,11 @@ function pauseDetail(id){
   if(id.startsWith('u-')){
     const pk=PERKS.find(x=>x.id===id.slice(2)),n=S.tele.picks[pk.id]||1,D=pk.data&&DATA[pk.data];
     const how=D?(S.shared[pk.data]?'Accepted free · shared '+D.n:'Paid with credits · '+D.n+' was not sold'):'Paid with credits · no data sold';
-    return `<h3>${pk.icon} ${pk.name}</h3><div class="need">Taken ×${n} · ${how}</div>
-      <div class="fx">${pk.desc}${n>1?' Stacked '+n+'×: '+pk.again:''}</div>
-      <div class="why">${D?'This perk is the convenience. '+(S.shared[pk.data]?D.n+' is the price you already paid.':'You paid credits instead of sharing '+D.n+'.'):'Credit-only upgrades do not sell a data type.'}</div>`;
+    const maxed=perkMaxed(pk);
+    const capNote=maxed?' This is at its cap. Paying again repairs 1♥ or adds score. '+(D?'Accept still sells '+D.n+'. ':'')+'It will not get stronger.':'';
+    return `<h3>${pk.icon} ${pk.name}</h3><div class="need">Taken ×${n}${pk.cap?' / '+pk.cap:''} · ${how}${maxed?' · MAXED':''}</div>
+      <div class="fx">${pk.desc}${n>1&&!maxed?' Stacked '+n+'×: '+pk.again:''}${capNote}</div>
+      <div class="why">${D?'This perk is the convenience. '+(S.shared[pk.data]?D.n+' is the price you already paid.':'You paid credits instead of sharing '+D.n+'.'):'Credit-only upgrades do not sell a data type.'}${maxed?' Companies keep offering a product after it has nothing new left.':''}</div>`;
   }
   return '';
 }
@@ -745,7 +750,17 @@ function startGame(){
   hudCache={};startWave();
 }
 const exposure=()=>TYPES.reduce((a,t)=>a+(S.shared[t]||0),0);
-const hasAll=need=>need.every(t=>S.shared[t]);
+const sharedN=t=>S.shared[t]||0;
+const hasAll=need=>need.every(t=>sharedN(t));
+function countsWith(...adds){const c={};for(const t of TYPES)c[t]=sharedN(t);for(const t of adds)if(t)c[t]=(c[t]||0)+1;return c}
+function inferReady(need,c){c=c||countsWith();return need.every(t=>c[t])&&need.some(t=>c[t]>=2)}
+function inferProgress(f){
+  const a=f.need[0],b=f.need[1],na=sharedN(a),nb=sharedN(b);
+  if(S.inf[f.id])return DATA[a].n+' ×'+na+' + '+DATA[b].n+' ×'+nb+' · active';
+  if(na&&nb)return DATA[a].n+' ×'+na+' + '+DATA[b].n+' ×'+nb+' · need 2× of one type';
+  if(na||nb)return (na?DATA[a].n+' ×'+na:DATA[b].n+' ×'+nb)+' · still missing '+(na?DATA[b].n:DATA[a].n);
+  return DATA[a].n+' + '+DATA[b].n+' · nothing on file yet';
+}
 const subPrice=()=>5;
 function paintSubBtns(){
   const pr=subPrice(),on=!!S.fair;
@@ -870,7 +885,7 @@ function makeEnemy(type,x,y){
   if(type==='ping')Object.assign(e,{r:10,hp:1.5+w*.35,spd:120+w*6,col:'#ff3b5c',coins:1,pts:10});
   if(type==='watcher')Object.assign(e,{r:14,hp:3+w*.5,spd:95,col:'#ffa53b',fire:rand(1,2),coins:2,pts:25,dir:Math.random()<.5?1:-1});
   if(type==='crawler')Object.assign(e,{r:12,hp:2.5+w*.4,spd:70,col:'#ff4bd8',coins:2,pts:20,st:rand(1,2),state:'seek',da:0});
-  if(type==='camera')Object.assign(e,{r:16,hp:6+w,col:'#ffd23b',coins:3,pts:40,ang:rand(0,TAU),lock:0,cd:0,static:true});
+  if(type==='camera')Object.assign(e,{r:16,hp:6+w,col:'#ff7a3a',coins:3,pts:40,ang:rand(0,TAU),lock:0,cd:0,static:true});
   if(type==='broker')Object.assign(e,{r:34,hp:30+w*7,spd:45,col:'#c04bff',coins:12,pts:300,fire:2,burst:0});
   e.maxHp=e.hp;S.enemies.push(e);
   burst(x,y,e.col,14,220,.4,3);S.rings.push({x,y,r:4,max:e.r*3,t:.3,col:e.col});
@@ -1073,7 +1088,7 @@ function update(dt){
     else if(e.type==='watcher'){
       const want=d>320?1:d<220?-1:0;steer(nx*e.spd*want-ny*e.spd*.7*e.dir,ny*e.spd*want+nx*e.spd*.7*e.dir,2);
       if(Math.random()<dt*.3)e.dir*=-1;
-      e.fire-=dt;if(e.fire<=0&&d<700){e.fire=rand(1.5,2.3);const a=aimAngle(e,290);if(still)for(let i=-1;i<=1;i++)eshoot(e,a+i*.16,290);else eshoot(e,a,290)}
+      e.fire-=dt;if(e.fire<=0&&d<700){e.fire=rand(1.5,2.3);const a=aimAngle(e,290);if(still)for(let i=-1;i<=1;i++)eshoot(e,a+i*.16,290,'#ff3b5c');else eshoot(e,a,290,'#ff3b5c')}
     }
     else if(e.type==='crawler'){
       e.st-=dt;
@@ -1085,7 +1100,7 @@ function update(dt){
       const pa=Math.atan2(dy,dx);let diff=((pa-e.ang)%TAU+TAU*1.5)%TAU-Math.PI;
       const inCone=Math.abs(diff)<.38&&d<460;
       if(inCone){e.lock+=dt;e.ang+=clamp(diff,-2.5*dt,2.5*dt)}else{e.lock=Math.max(0,e.lock-dt*2);e.ang+=.9*dt}
-      e.cd-=dt;if(e.lock>.45&&e.cd<=0){e.cd=.8;eshoot(e,aimAngle(e,440),440,'#ffd23b',4)}
+      e.cd-=dt;if(e.lock>.45&&e.cd<=0){e.cd=.8;eshoot(e,aimAngle(e,440),440,'#ff3b5c',4)}
     }
     else if(e.type==='broker'){
       steer(nx*e.spd,ny*e.spd,1);e.fire-=dt;
@@ -1308,7 +1323,7 @@ function pickAmendment(){
   const i=pick(idx),t=S.offer[i].data,r=Math.random();
   if(r<.4){
     const pool=TYPES.filter(x=>x!==t&&!S.shared[x]);
-    const combo=pool.filter(x=>INF.some(f=>!S.inf[f.id]&&f.need.includes(x)&&f.need.every(y=>y===x||y===t||S.shared[y])));
+    const combo=pool.filter(x=>INF.some(f=>!S.inf[f.id]&&f.need.includes(x)&&inferReady(f.need,countsWith(t,x))));
     if(pool.length)return {i,kind:'bundle',extra:pick(combo.length?combo:pool)};
   }
   return {i,kind:r<.7?'resell':'local'};
@@ -1319,9 +1334,23 @@ function amendText(A){
   if(A.kind==='resell')return '. May be resold to data brokers (counts double toward breaches)';
   return '. Processed on your device only. Never uploaded or shared';
 }
+function perkOwned(pk){return S.tele.picks[pk.id]||0}
+function perkMaxed(pk){return pk.cap>0&&perkOwned(pk)>=pk.cap}
+function sinkPayLabel(){return S.p.hp<S.p.maxHp?'REPAIR 1♥':'+SCORE'}
+function applyMaxedSink(pk,paid,sold){
+  if(!paid)return 'Upgrade already maxed. It did not get stronger.'+(sold&&pk.data?' '+DATA[pk.data].n+' was still sold.':'');
+  if(S.p.hp<S.p.maxHp){S.p.hp++;return 'Upgrade already maxed. Repaired 1♥. It did not get stronger.'}
+  const pts=100+S.wave*40;S.score+=pts;return 'Upgrade already maxed. +'+pts+' score. It did not get stronger.';
+}
 function stackNote(pk){
-  const n=S.tele.picks[pk.id]||0;if(!n||!pk.again)return '';
-  return `<div class="stack"><b>YOU HAVE THIS ×${n}</b>Next pick: ${pk.again} Loyalty bonus: credits back.</div>`;
+  const n=perkOwned(pk);if(!n)return '';
+  if(perkMaxed(pk)){
+    const D=pk.data&&DATA[pk.data];
+    const pay=S.p.hp<S.p.maxHp?'Paying spends credits to repair 1♥.':'Paying spends credits for score because you are already full.';
+    return `<div class="stack maxed"><b>MAXED ${n}/${pk.cap}</b>This will not get stronger. ${pay}${D?' Accept is still free and still sells '+D.n+'.':''} Loyalty still returns some credits.</div>`;
+  }
+  const last=pk.cap&&n+1>=pk.cap;
+  return `<div class="stack"><b>YOU HAVE THIS ×${n}${pk.cap?' / '+pk.cap:''}</b>${last?'Last stack: '+pk.again+' Then it caps.':'Next pick: '+pk.again} Loyalty bonus: credits back.</div>`;
 }
 function termsFoot(){
   $('decline').textContent=S.taken&&S.taken.length?'DONE · CONTINUE':S.fair?'Continue without an upgrade':'No thanks, I prefer to struggle. (repair 1 ♥)';
@@ -1332,22 +1361,26 @@ function renderCards(){
   termsFoot();
   $('cards').innerHTML=S.offer.map((pk,i)=>{
     if(S.taken&&S.taken.includes(i))return '';
-    const pr=price(pk),list=listPrice(pk),afford=S.coins>=pr,owned=stackNote(pk);
+    const pr=price(pk),list=listPrice(pk),afford=S.coins>=pr,owned=stackNote(pk),maxed=perkMaxed(pk),sink=sinkPayLabel();
     const deal=S.fair&&pr<list?`<span class="was">◈ ${list}</span><span class="mem">−20%</span>`:'';
-    const hot=!S.fair&&S.hotI===i?`<div class="chot">${S.hotBadge||'POPULAR'}</div>`:S.fair?`<div class="chot" style="background:#7dff6a">MEMBER</div>`:'';
-    if(!pk.data)return `<div class="card${S.fair?' fairBuy':''}"><div class="ctag">${pk.tag}</div>${hot}<div class="cicon">${pk.icon}</div><div class="cname">${pk.name}</div><div class="cdesc">${pk.desc}</div>${owned}
-      <button class="buy" data-i="${i}" data-a="pay" ${afford?'':'disabled'}>BUY ◈ ${pr}${deal}</button><div class="req">No data required.</div></div>`;
+    const hot=maxed?`<div class="chot" style="background:#ff3b5c;color:#fff">MAXED</div>`:!S.fair&&S.hotI===i?`<div class="chot">${S.hotBadge||'POPULAR'}</div>`:S.fair?`<div class="chot" style="background:#7dff6a">MEMBER</div>`:'';
+    const buyTxt=`BUY ◈ ${pr}${deal}${maxed?' · '+sink:''}`;
+    if(!pk.data)return `<div class="card${S.fair?' fairBuy':''}"><div class="ctag">${pk.tag}</div>${hot}<div class="cicon">${pk.icon}</div><div class="cname">${pk.name}</div><div class="cdesc">${maxed?'Already at its cap. Buying will not add power.':pk.desc}</div>${owned}
+      <button class="buy" data-i="${i}" data-a="pay" ${afford?'':'disabled'}>${buyTxt}</button><div class="req">${maxed?'Spend credits to '+ (S.p.hp<S.p.maxHp?'repair 1♥':'add score')+'. No extra upgrade.':'No data required.'}</div></div>`;
     const D=DATA[pk.data];
-    const risks=INF.filter(f=>!S.inf[f.id]&&known.includes(f.id)&&f.need.includes(pk.data)&&f.need.every(t=>t===pk.data||S.shared[t]));
-    if(S.fair)return `<div class="card fairBuy"><div class="ctag">${pk.tag}</div>${hot}<div class="cicon">${pk.icon}</div><div class="cname">${pk.name}</div><div class="cdesc">${pk.desc}</div>${owned}
-      <button class="buy" data-i="${i}" data-a="pay" ${afford?'':'disabled'}>BUY ◈ ${pr}${deal}</button>
-      <div class="req">No data sold. You have ${S.coins} ◈.</div>
-      <button class="accept" data-i="${i}" data-a="free">or Accept free — shares ${D.i} ${D.n}${S.shared[pk.data]?' (again)':''}</button></div>`;
-    return `<div class="card"><div class="ctag">${pk.tag}</div>${hot}<div class="cicon">${pk.icon}</div><div class="cname">${pk.name}</div><div class="cdesc">${pk.desc}</div>${owned}
-      <button class="accept" data-i="${i}" data-a="free">ACCEPT<span>FREE</span></button>
-      <div class="req">Allows access to your <b style="color:${D.c};filter:brightness(.75)">${D.i} ${D.n}</b>${S.shared[pk.data]?' (again)':''}${amendText(S.amend&&S.amend.i===i?S.amend:null)}.</div>
-      ${risks.map(f=>`<div class="warn">⚠ You've seen this before: ${f.name}</div>`).join('')}
-      <button class="pay" data-i="${i}" data-a="pay" ${afford?'':'disabled'}>or pay ◈ ${pr} (you have ${S.coins})</button></div>`;
+    const risks=INF.filter(f=>!S.inf[f.id]&&f.need.includes(pk.data)&&inferReady(f.need,countsWith(pk.data)));
+    const again=S.shared[pk.data]?' (again)':'';
+    const am=amendText(S.amend&&S.amend.i===i?S.amend:null);
+    const access=`<b style="color:${D.c};filter:brightness(.75)">${D.i} ${D.n}</b>`;
+    if(S.fair)return `<div class="card fairBuy"><div class="ctag">${pk.tag}</div>${hot}<div class="cicon">${pk.icon}</div><div class="cname">${pk.name}</div><div class="cdesc">${maxed?'Already at its cap. Buying will not add power. Accept still sells '+D.n+'.':pk.desc}</div>${owned}
+      <button class="buy" data-i="${i}" data-a="pay" ${afford?'':'disabled'}>${buyTxt}</button>
+      <div class="req">${maxed?'Pay = '+(S.p.hp<S.p.maxHp?'repair 1♥':'score')+'. Accept = still shares '+D.n+', no extra power.':'No data sold. You have '+S.coins+' ◈.'}</div>
+      <button class="accept" data-i="${i}" data-a="free">${maxed?'or Accept free — still shares '+D.i+' '+D.n+', no extra power':'or Accept free — shares '+D.i+' '+D.n}${again}</button></div>`;
+    return `<div class="card"><div class="ctag">${pk.tag}</div>${hot}<div class="cicon">${pk.icon}</div><div class="cname">${pk.name}</div><div class="cdesc">${maxed?'Already at its cap. Accept still sells '+D.n+' and does not add power.':pk.desc}</div>${owned}
+      <button class="accept" data-i="${i}" data-a="free">${maxed?'ACCEPT<span>STILL SELLS '+D.n+'</span>':'ACCEPT<span>FREE</span>'}</button>
+      <div class="req">${maxed?'No extra power. Still allows access to your '+access+again+am+'.':'Allows access to your '+access+again+am+'.'}</div>
+      ${risks.map(f=>`<div class="warn">⚠ Accept completes ${f.name} (${inferProgress(f)})</div>`).join('')}
+      <button class="pay" data-i="${i}" data-a="pay" ${afford?'':'disabled'}>${maxed?'or pay ◈ '+pr+' to '+(S.p.hp<S.p.maxHp?'repair 1♥':'add score')+' (you have '+S.coins+')':'or pay ◈ '+pr+' (you have '+S.coins+')'}</button></div>`;
   }).join('');
 }
 $('cards').addEventListener('click',e=>{const b=e.target.closest('button');if(b&&!b.disabled)choose(+b.dataset.i,b.dataset.a)});
@@ -1357,30 +1390,35 @@ function termsHotkey(i){const left=S.offer.map((pk,j)=>j).filter(j=>!(S.taken&&S
 function choose(i,a){
   if(S.mode!=='terms')return;const pk=S.offer[i];if(!pk||(S.taken&&S.taken.includes(i)))return;
   const again=S.tele.picks[pk.id]||0,pr=price(pk);
-  let note='';
+  let note='',sold=false;
   if(a==='pay'){if(S.coins<pr){sfx.deny();return}S.coins-=pr;S.tele.paid++}
   else{
     const A=S.amend&&S.amend.i===i?S.amend:null;S.tele.free++;
     if(A&&A.kind==='local'){S.tele.honest++;note='Processed on-device. Nothing was shared. Reading paid off.'}
     else{
-      share(pk.data);
+      share(pk.data);sold=true;
       if(A&&A.kind==='bundle'&&A.extra){share(A.extra);S.tele.caught++;note='You also shared '+DATA[A.extra].n+'. It was on the card.'}
-      else if(A&&A.kind==='resell'){S.shared[pk.data]++;S.tele.caught++;note='Your '+DATA[pk.data].n+' was resold. It counts double now.'}
+      else if(A&&A.kind==='resell'){S.shared[pk.data]++;S.tele.caught++;note='Your '+DATA[pk.data].n+' was resold. It counts double now.';unlockInfs()}
     }
   }
   if(again){const bonus=Math.max(5,Math.round(pr*.4));S.coins+=bonus;note=(note?note+' ':'')+'Loyalty bonus +'+bonus+' ◈.';}
-  if(note)toast(note);
-  pk.apply(S.p);S.tele.picks[pk.id]=(S.tele.picks[pk.id]||0)+1;if(!S.tele.firstPick){S.tele.firstPick=pk.id;noteFirstPick(pk.id)}
+  if(perkMaxed(pk))note=(note?note+' ':'')+applyMaxedSink(pk,a==='pay',sold);
+  else pk.apply(S.p);
+  if(note)toast(note,perkMaxed(pk)?2800:1600);
+  S.tele.picks[pk.id]=(S.tele.picks[pk.id]||0)+1;if(!S.tele.firstPick){S.tele.firstPick=pk.id;noteFirstPick(pk.id)}
   S.taken.push(i);
   if(S.taken.length>=S.offer.length)closeTerms();
   else renderCards();
 }
-function share(t){
-  S.shared[t]=(S.shared[t]||0)+1;
+function unlockInfs(){
   const disc=store.get('disc',[]);
-  for(const f of INF)if(!S.inf[f.id]&&hasAll(f.need)){S.inf[f.id]=true;S.revealQ.push(f);if(!disc.includes(f.id))disc.push(f.id)}
+  for(const f of INF)if(!S.inf[f.id]&&inferReady(f.need)){S.inf[f.id]=true;S.revealQ.push(f);if(!disc.includes(f.id))disc.push(f.id)}
   store.set('disc',disc);
   saveProfile();
+}
+function share(t){
+  S.shared[t]=(S.shared[t]||0)+1;
+  unlockInfs();
 }
 function closeTerms(){
   S.tele.termsTime.push((performance.now()-S.termsOpenAt)/1000);
@@ -1412,9 +1450,9 @@ function checkSecret(){
 function fineText(){
   const clauses=[
     '<b>1. COLLECTION.</b> By selecting ACCEPT you grant OPT/IN Inc. and its 1,204 partners a perpetual, worldwide, royalty-free license to collect, store, analyze, combine and sell the data category listed on the offer, along with anything that can be inferred from it.',
-    '<b>2. COMBINATION.</b> Data you share separately may be combined. Combined data can reveal things you never shared, such as where you live, who you trust, how you feel, and what you will do next. You will be notified of inferences after they occur.',
+    '<b>2. COMBINATION.</b> Data you share separately may be combined once we hold both types and at least two shares of one of them. Combined data can reveal things you never shared, such as where you live, who you trust, how you feel, and what you will do next. You will be notified of inferences after they occur.',
     '<b>3. SECURITY.</b> We take your security seriously. Security incidents may occur. A small file is rarely worth stealing. Combined data, and files built from three or more categories, are when a breach becomes likely and valuable.',
-    '<b>4. PAYMENT OPTION.</b> You may instead pay with credits. Paid upgrades do not collect data. Repeat selections of an upgrade you already have earn a loyalty credit bonus. Other prices may still change based on your profile.',
+    '<b>4. PAYMENT OPTION.</b> You may instead pay with credits. Paid upgrades do not collect data. Repeat selections of an upgrade you already have earn a loyalty credit bonus. Each upgrade stops getting stronger after a set number of picks; we still offer it. Paying then repairs 1♥, or adds score if you are already full. Accepting a maxed data upgrade still collects that data and does not add power. Other prices may still change based on your profile.',
     '<b>4b. FAIR PLAY.</b> A subscription of ◈ '+subPrice()+' is billed at the start of each wave until you cancel or cannot pay. It pauses ads, fake urgency, social-proof labels, hidden extras, and engagement bait. It does not delete data already collected, stop inferences already made, or prevent a breach of data already sold.',
     '<b>5. DELETION.</b> Shared data types and inferences are kept across sessions until you request deletion. Copies already shared with partners are governed by the partners\' own terms.',
     '<b>6. OBSERVATION.</b> Regardless of your choices, gameplay telemetry including movement, hesitation, reaction under stress, and time spent on this screen is recorded and analyzed. A summary will be shown to you at the end of your session.',
@@ -1553,6 +1591,7 @@ function updateHUD(){
   setH('hookNag',nags.join('<br>'));$('hookNag').classList.toggle('fair',!!S.fair);
   setH('chips',TYPES.map(t=>`<span class="chip ${S.shared[t]?'on':''}" style="--c:${DATA[t].c}">${DATA[t].i}<span class="cl">${DATA[t].s}${S.shared[t]>1?' ×'+S.shared[t]:''}</span></span>`).join(''));
   setH('infs',INF.filter(f=>S.inf[f.id]).map(f=>`<div class="infc">⚠ ${f.name}</div>`).join('')
+    +INF.filter(f=>!S.inf[f.id]&&hasAll(f.need)).map(f=>`<div class="infc" style="opacity:.55">⚠ ${f.name} · 1+1 · NEED 2×</div>`).join('')
     +BEH.filter(b=>S.model.on[b.id]).map(b=>`<div class="infc beh${S.model.strikes[b.id]?' weak':''}">👁 ${b.name}${S.model.strikes[b.id]?' · WEAKENING':''}</div>`).join(''));
   const e=exposure();$('expFill').style.width=Math.min(100,e/10*100)+'%';
   setH('dashBar',p.dashT<=0?'DASH READY':'');
@@ -1593,7 +1632,7 @@ function render(dt){
   // coins
   for(const c of S.coinsArr){if(c.life<2&&Math.floor(S.t*8)%2)continue;const col=c.jack?'#ff5ad9':'#ffd23b',s=Math.abs(Math.cos(c.t*6))*(c.jack?7:5)+(c.jack?2:1);glow(c.x,c.y,c.jack?13:9,col,.22);g.fillStyle=col;g.beginPath();g.moveTo(c.x,c.y-(c.jack?8:6));g.lineTo(c.x+s,c.y);g.lineTo(c.x,c.y+(c.jack?8:6));g.lineTo(c.x-s,c.y);g.closePath();g.fill()}
   // camera cones
-  for(const e of S.enemies)if(e.type==='camera'){g.fillStyle=`rgba(255,210,59,${e.lock>0?.1+e.lock*.35:.06})`;g.beginPath();g.moveTo(e.x,e.y);g.arc(e.x,e.y,460,e.ang-.38,e.ang+.38);g.closePath();g.fill()}
+  for(const e of S.enemies)if(e.type==='camera'){g.fillStyle=`rgba(255,59,92,${e.lock>0?.1+e.lock*.35:.06})`;g.beginPath();g.moveTo(e.x,e.y);g.arc(e.x,e.y,460,e.ang-.38,e.ang+.38);g.closePath();g.fill()}
   // crawler telegraphs
   for(const e of S.enemies)if(e.type==='crawler'&&e.state==='aim'){g.strokeStyle='#ff4bd8';g.globalAlpha=.3+.5*Math.abs(Math.sin(S.t*30));g.lineWidth=3;g.setLineDash([10,8]);g.beginPath();g.moveTo(e.x,e.y);g.lineTo(e.x+Math.cos(e.da)*320,e.y+Math.sin(e.da)*320);g.stroke();g.setLineDash([]);g.globalAlpha=1}
   // predicted-position ghost
