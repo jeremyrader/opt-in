@@ -36,10 +36,16 @@ button{font-family:inherit;cursor:pointer;border:none}
 .logoBig b{color:var(--pk);text-shadow:0 0 30px rgba(255,59,212,.8)}
 .tag{font-size:clamp(18px,2.4vw,28px);letter-spacing:.35em;margin:10px 0 40px;color:#aab3d9}
 .tag i{font-style:normal;color:var(--rd)}
+.titleActs{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;align-items:center}
+.neon.alt{color:#ff3bd4;border-color:#ff3bd4;box-shadow:0 0 18px rgba(255,59,212,.45),inset 0 0 18px rgba(255,59,212,.22);padding:14px 36px;letter-spacing:4px}
+.neon.alt:hover{background:rgba(255,59,212,.15)}
 .controls{margin-top:34px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#7c86b0;letter-spacing:1px;text-align:center;line-height:1.9}
 .controls kbd{border:1px solid #3a4270;border-radius:4px;padding:1px 7px;color:#cfd6ff;background:#11142a}
 .best{margin-top:18px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--yl);min-height:1em;text-align:center}
 .titleFoot{position:absolute;bottom:14px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.titleVer{background:none;border:1px solid #3a4270;color:#aab3d9;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;padding:6px 12px}
+.titleVer:hover{color:#fff;border-color:#fff}
+.titleVer.fresh{border-color:#ffd23b;color:#ffd23b;box-shadow:0 0 12px rgba(255,210,59,.25)}
 .titleDel{background:none;border:1px solid #2a2f55;color:#454b6b;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:5px 10px}
 .titleDel:hover:not(:disabled){color:#ff3b5c;border-color:#ff3b5c}
 .titleDel:disabled{opacity:.35;cursor:not-allowed}
@@ -128,7 +134,6 @@ button{font-family:inherit;cursor:pointer;border:none}
 .accept:hover{filter:brightness(1.08)}
 .accept:active{transform:translateY(3px);box-shadow:0 1px 0 #0c7a39}
 .req{font-size:11px;color:#9a9fb5;margin:7px 0 4px}
-.warn{font-size:11px;color:#e0224a;font-weight:700;margin-bottom:4px}
 .pay{background:none;color:#a2a6ba;font-size:12px;text-decoration:underline;padding:4px}
 .pay:hover:not(:disabled){color:#333}
 .buy{width:100%;background:#1b1e2e;color:var(--yl);font-size:18px;font-weight:700;padding:11px;border-radius:9px}
@@ -218,6 +223,43 @@ button:disabled{opacity:.35;cursor:not-allowed}
 #pauseDetail .why{color:#8a92c0;margin-top:12px;font-size:12px}
 #pauseDetail .need{font-size:11px;color:#aab3d9;margin:6px 0}
 @media(max-width:760px){.pauseBody{grid-template-columns:1fr;max-height:70vh}}
+
+/* ---------- public file / leaderboard ---------- */
+#board{background:rgba(5,5,10,.93);overflow:auto;justify-content:flex-start;padding:30px 16px}
+.boardBox{width:min(1040px,96vw)}
+.boardNote{font-size:12px;color:#8a92c0;line-height:1.6;margin:12px 0 16px;max-width:720px}
+.boardNote b{color:#ff8fa3}
+.boardMeta{font-size:10px;letter-spacing:1px;color:#6a7299;margin-bottom:10px}
+.brow{width:100%;text-align:left;background:#111428;border:1px solid #23284a;color:#c8cff5;padding:10px 12px;border-radius:4px;font-family:'JetBrains Mono';font-size:12px;cursor:pointer;border-left:3px solid #23284a;margin-bottom:6px}
+.brow:hover{border-color:#3a4270;background:#181c36}
+.brow.you{border-left-color:#38e1ff;box-shadow:0 0 12px rgba(56,225,255,.12)}
+.brow.sel{border-color:#fff}
+.browTop{display:grid;grid-template-columns:36px 72px minmax(0,1fr) 140px;gap:8px;align-items:baseline}
+.bn{color:#6a7299}
+.bw{color:#fff;font-weight:700}
+.bscore{color:#ffd23b}
+.btag{color:#38e1ff;letter-spacing:1px}
+.byou{color:#7dff6a;font-size:10px;letter-spacing:1px;margin-left:6px}
+.brank{font-family:'Chakra Petch';font-weight:700;letter-spacing:1px;text-align:right}
+.bsub{margin-top:6px;font-size:11px;color:#8a92c0;line-height:1.5}
+.bsub b{color:#e8ecff}
+#boardDetail{margin-top:12px;border:1px solid #23284a;background:#080914;padding:14px 16px;font-size:12px;line-height:1.55;color:#c8cff5;display:none}
+#boardDetail.on{display:block}
+#boardDetail h3{font-family:'Chakra Petch';font-size:22px;letter-spacing:1px;color:#fff;margin:0 0 8px}
+#boardEmpty{color:#6a7299;font-size:13px;padding:20px 0}
+.dosBoard{text-align:center;font-size:11px;color:#8a92c0;margin-top:12px;letter-spacing:1px}
+.dosBoard b{color:#38e1ff}
+@media(max-width:640px){.browTop{grid-template-columns:28px 56px 1fr;}.brank{grid-column:2/-1;text-align:left;margin-top:2px}}
+#log{background:rgba(5,5,10,.93);overflow:auto;justify-content:flex-start;padding:30px 16px}
+.logBox{width:min(720px,96vw)}
+.logVer{margin-bottom:22px;padding-bottom:16px;border-bottom:1px dashed #2a2f55}
+.logVer:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.logTop{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.logV{font-family:'Chakra Petch';font-size:22px;font-weight:700;letter-spacing:2px;color:#fff}
+.logNew{font-size:10px;letter-spacing:2px;color:#111;background:#ffd23b;padding:2px 7px;border-radius:4px;font-weight:700}
+.logName{font-size:12px;color:#8a92c0;letter-spacing:1px}
+.logVer ul{margin:10px 0 0 18px;font-size:13px;line-height:1.55;color:#c8cff5}
+.logVer li{margin-bottom:6px}
 </style>
 </head>
 <body>
@@ -249,7 +291,10 @@ button:disabled{opacity:.35;cursor:not-allowed}
 <div id="title" class="screen">
   <div class="logoBig glitch" data-t="OPT/IN">OPT<b>/</b>IN</div>
   <div class="tag">EVERYTHING IS <i>FREE</i>.</div>
-  <button id="startBtn" class="neon">PLAY</button>
+  <div class="titleActs">
+    <button id="startBtn" class="neon">PLAY</button>
+    <button type="button" id="titleBoard" class="neon alt">LEADERBOARD</button>
+  </div>
   <div class="controls">
     <kbd>WASD</kbd> move &nbsp; <kbd>MOUSE</kbd> aim (auto-fire) &nbsp; <kbd>SPACE</kbd> dash<br>
     <kbd>P</kbd> pause (inspect profile) &nbsp; <kbd>M</kbd> mute
@@ -257,6 +302,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
   <div class="best" id="bestLine"></div>
   <div class="infoLine" id="discLine"></div>
   <div class="titleFoot">
+    <button type="button" id="titleVer" class="titleVer">v1.2.0</button>
     <button type="button" id="titleDel" class="titleDel">DELETE MY DATA</button>
     <div class="legal">By pressing PLAY you agree to be observed.</div>
   </div>
@@ -286,7 +332,8 @@ button:disabled{opacity:.35;cursor:not-allowed}
       <li>Credit prices 20% off, and paying is the option we highlight</li>
       <li>No hidden extras or personalized price hikes</li>
       <li>No streak-guilt, unread badges, or mood-targeted music</li>
-      <li>Does not unsell data or stop a breach of what you already shared</li>
+      <li>No new behavior patterns while subscribed; hotspot time does not add exposure</li>
+      <li>Does not unsell data, stop inferences already made, or stop a breach of what you already shared</li>
     </ul>
     <p>Cancel anytime on the upgrade screen. If a wave starts and you cannot pay, Fair Play ends.</p>
     <div class="subActs">
@@ -321,6 +368,35 @@ button:disabled{opacity:.35;cursor:not-allowed}
   </div>
 </div>
 <div id="dossier" class="screen hidden"></div>
+<div id="board" class="screen hidden">
+  <div class="dos boardBox">
+    <div class="dosTop">
+      <div>
+        <div class="dosId">SHARED WITH EVERY PLAYER</div>
+        <div class="dosH">LEADERBOARD</div>
+      </div>
+      <div style="text-align:right"><div class="dosId">NO SIGN-IN · SUBJECT NUMBERS ONLY</div><div class="dosRank" style="--c:#ffd23b">LIVE</div></div>
+    </div>
+    <div class="boardNote">When a player dies, their run is added here for everyone else to see. There is no account — you are a subject number. <b>Delete My Data</b> removes your rows. Anyone who already copied them was not notified.</div>
+    <div class="boardMeta" id="boardMeta">LOADING LEADERBOARD…</div>
+    <div id="boardList"></div>
+    <div id="boardDetail"></div>
+    <div class="dosBtns"><button type="button" class="ghost" id="boardBack">BACK</button></div>
+  </div>
+</div>
+<div id="log" class="screen hidden">
+  <div class="dos logBox">
+    <div class="dosTop">
+      <div>
+        <div class="dosId">PLAYER NOTES · NOT THE FINE PRINT</div>
+        <div class="dosH">WHAT'S NEW</div>
+      </div>
+      <div style="text-align:right"><div class="dosId">THIS BUILD</div><div class="dosRank" style="--c:#ffd23b" id="logNow">v1.2.0</div></div>
+    </div>
+    <div id="logList"></div>
+    <div class="dosBtns"><button type="button" class="neon" id="logOk">GOT IT</button></div>
+  </div>
+</div>
 <div class="scan"></div>
 
 <script>
@@ -333,6 +409,126 @@ const pick=a=>a[Math.floor(Math.random()*a.length)];
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const TAU=Math.PI*2;
 const store={get(k,d){try{const v=localStorage.getItem('optin_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('optin_'+k,JSON.stringify(v))}catch(e){}},clear(){try{Object.keys(localStorage).filter(k=>k.startsWith('optin_')).forEach(k=>localStorage.removeItem(k))}catch(e){}}};
+
+// bump VERSION when you push a player-facing change, and add a CHANGELOG entry
+const VERSION='1.2.0';
+const CHANGELOG=[
+  {v:'1.2.0',name:'Leaderboard',notes:[
+    'A shared leaderboard now records your run when you lose. No sign-in — you show up as a subject number.',
+    'Other players can see what you sold, what was inferred, how you played, and what your file was worth.',
+    'Delete My Data removes your rows from the board. Copies already taken stay out there.',
+    'You can open these notes anytime from the version number on the title screen.'
+  ]},
+  {v:'1.1.0',name:'Fair Play & free Wi-Fi',notes:[
+    'Fair Play costs 5 credits each wave. It hides ads and dark-pattern tricks, and paying is the option we highlight.',
+    'While subscribed, new behavior patterns pause and the hotspot no longer adds exposure. The ring is labeled Secure Wi-Fi.',
+    'Hanging out in free Wi-Fi slowly raises exposure. Standing still logs you faster.',
+    'Inferences wait until we have both data types and at least two shares of one of them.',
+    'Upgrades cap after a few stacks. Accepting a maxed data perk still sells that data.'
+  ]},
+  {v:'1.0.0',name:'OPT/IN',notes:[
+    'Accept a free upgrade to get stronger — and sell a slice of your data. Pay with credits to keep that slice.',
+    'Data you sell stays sold across runs until you tap Delete My Data.',
+    'The game also watches how you move and choose, even if you never Accept.',
+    'By pressing Play you agree to be observed.'
+  ]}
+];
+
+// public partner file (classroom-shared). the write key ships with the game — that's the joke.
+const BOARD={url:'https://mantledb.sh/v2/optin-leaderboard/board',key:'7abcfeea1ffab35110e4c70738bc57b23722badac6917690884187de52b7ac29',max:80,keep:8};
+let boardBack='title',boardSel=null,boardLive=false;
+function subjectId(){let id=store.get('pid','');if(!id){const a=new Uint8Array(6);if(crypto&&crypto.getRandomValues)crypto.getRandomValues(a);else for(let i=0;i<a.length;i++)a[i]=Math.random()*256|0;id=Array.from(a,b=>b.toString(16).padStart(2,'0')).join('');store.set('pid',id)}return id}
+function subjectTag(pid){return 'SUBJ-'+(pid||'0000').slice(0,6).toUpperCase()}
+function boardHdr(){return {'Content-Type':'application/json','X-Mantle-Key':BOARD.key}}
+function boardSort(a){return a.sort((x,y)=>(y.score-x.score)||(y.wave-x.wave)||((y.at||0)-(x.at||0)))}
+function boardCache(list){store.set('board',list);return list}
+async function boardPull(){
+  try{
+    const r=await fetch(BOARD.url,{headers:{'X-Mantle-Key':BOARD.key}});
+    if(!r.ok)throw 0;
+    const j=await r.json();
+    const entries=Array.isArray(j&&j.entries)?j.entries:[];
+    boardLive=true;return boardCache(entries);
+  }catch(e){boardLive=false;return store.get('board',[])||[]}
+}
+function boardPrune(entries){
+  const n={};const out=[];
+  for(const e of entries.slice().sort((a,b)=>(b.at||0)-(a.at||0))){
+    const p=e.pid||'?';n[p]=(n[p]||0)+1;if(n[p]<=BOARD.keep)out.push(e);
+  }
+  return boardSort(out).slice(0,BOARD.max);
+}
+async function boardMutate(fn){
+  let last=store.get('board',[])||[];
+  for(let i=0;i<3;i++){
+    const cur=await boardPull();
+    const next=boardPrune(fn(cur.slice()));
+    last=next;boardCache(next);
+    try{
+      const r=await fetch(BOARD.url,{method:'POST',headers:boardHdr(),body:JSON.stringify({entries:next})});
+      if(r.ok){boardLive=true;return next}
+    }catch(e){}
+    await new Promise(res=>setTimeout(res,180+i*280));
+  }
+  boardLive=false;return last;
+}
+function submitBoard(entry){return boardMutate(list=>{list.push(entry);return list})}
+function wipeMyBoard(pid){if(!pid)return Promise.resolve(store.get('board',[])||[]);return boardMutate(list=>list.filter(e=>e.pid!==pid))}
+function openBoard(from){
+  boardBack=from||'title';boardSel=null;
+  ['title','dossier','terms','reveal','pause','subModal','log'].forEach(id=>$(id).classList.add('hidden'));
+  $('board').classList.remove('hidden');
+  renderBoard();
+}
+function closeBoard(){
+  $('board').classList.add('hidden');
+  if(boardBack==='dossier')$('dossier').classList.remove('hidden');
+  else{$('title').classList.remove('hidden');refreshTitle()}
+}
+function boardWhen(ts){if(!ts)return '—';const d=Math.max(0,Date.now()-ts);if(d<60e3)return 'just now';if(d<3600e3)return Math.floor(d/60e3)+'m ago';if(d<86400e3)return Math.floor(d/3600e3)+'h ago';return Math.floor(d/86400e3)+'d ago'}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+async function renderBoard(){
+  const me=store.get('pid','');
+  $('boardMeta').textContent='SYNCING LEADERBOARD…';
+  $('boardList').innerHTML='<div id="boardEmpty">Opening the leaderboard…</div>';
+  $('boardDetail').className='';$('boardDetail').innerHTML='';
+  const list=boardSort((await boardPull()).slice());
+  paintTitleBoard(list.length);
+  $('boardMeta').textContent=(boardLive?'LIVE':'CACHED · OFFLINE')+' · '+list.length+' RUN'+(list.length===1?'':'S')+' · SORTED BY SCORE';
+  if(!list.length){$('boardList').innerHTML='<div id="boardEmpty">No scores yet. Die once and you will be on the leaderboard.</div>';return}
+  $('boardList').innerHTML=list.map((e,i)=>{
+    const you=me&&e.pid===me;
+    const sold=(e.types&&e.types.length?e.types.join(' · '):'NOTHING SOLD');
+    const extra=[e.infs&&e.infs.length?e.infs.length+' inference'+(e.infs.length===1?'':'s'):'',e.pats&&e.pats.length?e.pats.length+' pattern'+(e.pats.length===1?'':'s'):'',e.fair?'Fair Play':'Accept-first'].filter(Boolean).join(' · ');
+    return `<button type="button" class="brow${you?' you':''}" data-bi="${i}"><div class="browTop"><span class="bn">${i+1}</span><span class="bw">W${e.wave||0}</span><span><span class="btag">${esc(e.tag||subjectTag(e.pid))}</span>${you?'<span class="byou">YOU</span>':''}<div class="bscore">${(e.score||0).toLocaleString()}</div></span><span class="brank" style="color:${esc(e.rankC||'#38e1ff')}">${esc(e.rank||'UNKNOWN')}</span></div><div class="bsub">${esc(sold)} · <b>${esc(e.seg||'UNSEGMENTED')}</b><br>${extra?esc(extra)+' · ':''}${e.pred||0}% predictable · $${(e.val||0).toFixed(2)} file · ${boardWhen(e.at)}</div></button>`;
+  }).join('');
+  $('boardList').onclick=ev=>{
+    const btn=ev.target.closest('[data-bi]');if(!btn)return;
+    const i=+btn.dataset.bi,e=list[i];if(!e)return;
+    boardSel=i;
+    [...$('boardList').children].forEach((el,n)=>el.classList.toggle('sel',n===i));
+    const me2=store.get('pid','');
+    const types=(e.types||[]).join(', ')||'none';
+    const infs=(e.infs||[]).join(', ')||'none yet';
+    const pats=(e.pats||[]).join(', ')||'none observed';
+    $('boardDetail').className='on';
+    $('boardDetail').innerHTML=`<h3>${esc(e.tag||subjectTag(e.pid))}${me2&&e.pid===me2?' · YOU':''}</h3>
+      <div class="stat"><span>Wave / score</span><b>${e.wave||0} / ${(e.score||0).toLocaleString()}</b></div>
+      <div class="stat"><span>Privacy rank</span><b style="color:${esc(e.rankC||'#38e1ff')}">${esc(e.rank||'UNKNOWN')}</b></div>
+      <div class="stat"><span>Sold as</span><b>${esc(e.seg||'UNSEGMENTED')}</b></div>
+      <div class="stat"><span>Data types on file</span><b>${esc(types)}</b></div>
+      <div class="stat"><span>Guessed from their data</span><b>${esc(infs)}</b></div>
+      <div class="stat"><span>Watched from play</span><b>${esc(pats)}</b></div>
+      <div class="stat"><span>Upgrades</span><b>${e.free||0} free · ${e.paid||0} paid · ${e.declined||0} declined</b></div>
+      <div class="stat"><span>Fair Play</span><b>${e.fair?'subscribed · new patterns paused':'not subscribed'}</b></div>
+      <div class="stat"><span>Exposure / free Wi-Fi</span><b>${e.exp||0} · ${e.wifi||0}s connected</b></div>
+      <div class="stat"><span>Predictability / still</span><b>${e.pred||0}% · still ${e.still||0}%</b></div>
+      <div class="stat"><span>Terms read</span><b>${(e.terms||0).toFixed(1)}s average</b></div>
+      <div class="stat"><span>Est. file value</span><b>$${(e.val||0).toFixed(2)}</b></div>
+      <div class="stat"><span>Filed</span><b>${boardWhen(e.at)}</b></div>
+      <div style="margin-top:10px;font-size:11px;color:#6a7299">A partner already has this row. Deleting it here does not recall copies.</div>`;
+  };
+}
 
 const cv=$('c'),g=cv.getContext('2d');
 let W=innerWidth,H=innerHeight,DPR=1;
@@ -441,7 +637,7 @@ function musicTick(){
 const TYPES=['LOC','CON','BIO','HEA','MSG','HAB'];
 const DATA={
   LOC:{n:'LOCATION',s:'LOCATION',i:'📍',c:'#38e1ff',v:.9,
-    fx:'Ads now talk about nearby places and "your area." After wave 1 it claims players near you have not left yet. Standing still on free Wi-Fi slows and swells the music so the hotspot feels safe.',
+    fx:'Ads now talk about nearby places and "your area." After wave 1 it claims players near you have not left yet. Standing still on free Wi-Fi slows and swells the music so the hotspot feels safe. Time on the hotspot also drips extra exposure — faster if you stand still.',
     why:'Where a device spends time is enough to infer school, home, and routines — no address form required.'},
   CON:{n:'CONTACTS',s:'CONTACTS',i:'👥',c:'#ff5ad9',v:.6,
     fx:'Ads now name your friends. A friend stays one wave ahead of you, and the mix stays a little faster so you feel behind.',
@@ -595,6 +791,8 @@ const SECRETS=['OPTOUT','READER','CONSENT','NOTICE','PRIVACY','FINEPRINT'];
 const keys={};const mouse={x:W/2,y:H/2-100};let dashReq=false,typed='';
 addEventListener('keydown',e=>{
   const k=e.key.toLowerCase();keys[k]=true;
+  if(k==='escape'&&!$('log').classList.contains('hidden')){closeLog();e.preventDefault();return}
+  if(k==='escape'&&!$('board').classList.contains('hidden')){closeBoard();e.preventDefault();return}
   if(k===' '||k==='shift'){dashReq=true;e.preventDefault()}
   if(!S)return;
   if(S.mode==='terms'){
@@ -630,14 +828,15 @@ function pauseDetail(id){
   if(!id)return `<h3>NOTHING ON YOU YET</h3><div class="fx">No shares, inferences, patterns, or upgrades are active. Accept a free upgrade, pay with credits, or subscribe to Fair Play.</div><div class="why">Fair Play costs credits each wave. It turns off dark patterns. It does not unsell data.</div>`;
   const exp=exposure();
   if(id==='fair')return `<h3>✦ FAIR PLAY</h3><div class="need">◈ ${subPrice()} billed at the start of each wave · cancel on the upgrade screen</div>
-      <div class="fx">Ads, fake countdown, "everyone accepts," hidden extras, streak-guilt, unread badges, fake friends ahead, jackpots, and mood-targeted music are off. Credit upgrades are 20% off and get the big button. Accept is still free, and still sells data. Inferences and behavior patterns from data you already sold still apply.</div>
+      <div class="fx">Ads, fake countdown, "everyone accepts," hidden extras, streak-guilt, unread badges, fake friends ahead, jackpots, and mood-targeted music are off. New behavior patterns are paused and the hotspot does not add exposure. Credit upgrades are 20% off and get the big button. Accept is still free, and still sells data. Inferences and patterns already on file still apply.</div>
       <div class="why">Paying for a cleaner feed is a real product. People who can afford the subscription get fewer dark patterns. People who cannot stay in the free, more manipulative version.</div>`;
   if(id==='exp'){
     const ads=exp>=3&&!S.fair,gap=Math.max(2.5,12-exp*1.2).toFixed(1);
     const chance=exp>=3?Math.round(Math.min(.55,(exp-2)*.07)*100):0;
-    return `<h3>EXPOSURE</h3><div class="need">${exp} share${exp===1?'':'s'} · bar fills as you tap Accept</div>
-      <div class="fx">${S.fair?'Fair Play is hiding the ads this wave.':ads?'Personalized ads are blocking the arena about every '+gap+'s.':'Ads stay off until you reach 3 shares.'} ${exp>=3?'After this wave, a data-broker breach has about a '+chance+'% chance.':'A breach cannot roll until exposure is 3+.'}</div>
-      <div class="why">In real life, the more data points a company holds, the easier you are to target — and the more damaging a leak becomes. You cannot pay later to undo a past data share.</div>`;
+    const shares=shareExp(),wifi=S.expWifi||0;
+    return `<h3>EXPOSURE</h3><div class="need">${exp.toFixed(wifi?1:0)} · ${shares} share${shares===1?'':'s'}${wifi>=.05?' · +'+wifi.toFixed(1)+' from free Wi-Fi':''} · bar fills from Accept and from the hotspot</div>
+      <div class="fx">${S.fair?'Fair Play is hiding the ads this wave and pausing hotspot logging.':ads?'Personalized ads are blocking the arena about every '+gap+'s.':'Ads stay off until exposure reaches 3.'} ${exp>=3?'After this wave, a data-broker breach has about a '+chance+'% chance.':'A breach cannot roll until exposure is 3+.'} ${S.fair?'The ring still speeds up fire and can pay credits. It is not adding exposure while you are subscribed.':'Free Wi-Fi adds a trickle while you are in the ring, and more if you stand still for credits.'}</div>
+      <div class="why">In real life, the more data points a company holds, the easier you are to target — and the more damaging a leak becomes. You cannot pay later to undo a past data share. A "free" hotspot is still a sensor.</div>`;
   }
   if(id.startsWith('d-')){
     const t=id.slice(2),D=DATA[t],n=S.shared[t]||0;
@@ -737,19 +936,20 @@ function newState(){
     bullets:[],ebullets:[],enemies:[],spawns:[],queue:[],parts:[],texts:[],ads:[],coinsArr:[],trail:[],rings:[],
     tele:{heat:new Float32Array(24*16),q:[0,0,0,0],dirs:{l:0,r:0,u:0,d:0},still:0,moving:0,stressSpd:0,stressN:0,calmSpd:0,calmN:0,
       edge:0,center:0,dashes:0,dashL:0,dashR:0,dashU:0,dashD:0,nearMiss:0,adsShot:0,termsTime:[],fineOpen:0,free:0,paid:0,declined:0,picks:{},firstPick:null,
-      breaches:0,breachSurvived:false,kills:0,hits:0,sampT:0,time:0,wifiT:0,wifiCoins:0,caught:0,honest:0,sub:0,subPaid:0},
-    wifi:loadWifi(),wifiAcc:0,wifiMoveIn:3+Math.floor(Math.random()*3),amend:null,sosT:0,
+      breaches:0,breachSurvived:false,kills:0,hits:0,sampT:0,time:0,wifiT:0,wifiCoins:0,wifiExp:0,caught:0,honest:0,sub:0,subPaid:0},
+    wifi:loadWifi(),wifiAcc:0,wifiMoveIn:3+Math.floor(Math.random()*3),expWifi:0,amend:null,sosT:0,
     nagT:0,pingT:9,unread:0,hookFriend:null,musicPush:null,fair:false,fairPaidWave:0
   };
 }
 function startGame(){
   initAudio();
   S=newState();
-  ['title','dossier','terms','reveal','pause','subModal'].forEach(id=>$(id).classList.add('hidden'));
+  ['title','dossier','terms','reveal','pause','subModal','board','log'].forEach(id=>$(id).classList.add('hidden'));
   $('hud').classList.remove('hidden');document.body.classList.add('playing');document.body.classList.remove('paused');
   hudCache={};startWave();
 }
-const exposure=()=>TYPES.reduce((a,t)=>a+(S.shared[t]||0),0);
+const shareExp=()=>TYPES.reduce((a,t)=>a+(S.shared[t]||0),0);
+const exposure=()=>shareExp()+(S.expWifi||0);
 const sharedN=t=>S.shared[t]||0;
 const hasAll=need=>need.every(t=>sharedN(t));
 function countsWith(...adds){const c={};for(const t of TYPES)c[t]=sharedN(t);for(const t of adds)if(t)c[t]=(c[t]||0)+1;return c}
@@ -774,7 +974,7 @@ function applyFairTerms(){
   const u=$('urgency');u.textContent='';u.className='';
   S.hotI=-1;S.amend=null;
   $('tosT').textContent='Choose your upgrades';
-  $('tosSub').innerHTML='Fair Play is on. Paying with credits is the highlighted option and costs 20% less. Accept is still free — and still sells data.';
+  $('tosSub').innerHTML='Fair Play is on. Paying with credits is the highlighted option and costs 20% less. New patterns and hotspot logging are paused. Accept is still free — and still sells data.';
   renderCards();paintSubBtns();
 }
 function dirtyTerms(){
@@ -853,8 +1053,8 @@ function startWave(){
   if(bits.length)sub.push('WELCOME BACK · '+bits.join(' · '));
   else if(w%5===0)sub.push('A DATA BROKER IS COMING');
   else if(S.breachWave===w)sub.push('YOUR LEAKED DATA HAS BUYERS');
-  else if(moved)sub.push('📶 THE FREE WI-FI MOVED');
-  if(S.fair)sub.push('FAIR PLAY · ads and engagement bait are off');
+  else if(moved)sub.push(S.fair?'📶 THE SECURE WI-FI MOVED':'📶 THE FREE WI-FI MOVED');
+  if(S.fair)sub.push('FAIR PLAY · ads off · new patterns and hotspot log paused');
   else{
     if(S.shared.CON){
       S.hookFriend=S.hookFriend||pick(['ALEX','JORDAN','SAM','RILEY','CASEY']);
@@ -1048,6 +1248,13 @@ function update(dt){
   p.wifiStill=p.inWifi&&Math.hypot(p.vx,p.vy)<20;
   if(p.inWifi&&S.mode==='play'){
     T.wifiT+=dt;
+    if(!S.fair){
+      const before=Math.floor(S.expWifi||0);
+      S.expWifi=(S.expWifi||0)+(p.wifiStill?.024:.008)*dt;
+      T.wifiExp=S.expWifi;
+      const after=Math.floor(S.expWifi);
+      if(after>before)ftext(p.x,p.y-38,'HOTSPOT +EXP','#7dff6a',11);
+    }
     if(p.wifiStill){S.wifiAcc+=dt;if(S.wifiAcc>=1.75){S.wifiAcc-=1.75;S.coins++;T.wifiCoins++;ftext(p.x,p.y-24,'+1 ◈','#7dff6a',12);sfx.coin(0)}}
     else S.wifiAcc=0;
   }
@@ -1253,7 +1460,7 @@ function learnPatterns(){
     else if(r){M.ev[b.id]=r;delete M.strikes[b.id]}
   }
   if(msgs.length)toast(msgs.join(' · '),3500);
-  if(S.wave>=(S.shared.HAB?1:2)){
+  if(!S.fair&&S.wave>=(S.shared.HAB?1:2)){
     let n=S.shared.HAB?2:1;
     for(const b of shuffle(BEH)){
       if(!n)break;if(M.on[b.id])continue;
@@ -1356,7 +1563,6 @@ function termsFoot(){
   $('decline').textContent=S.taken&&S.taken.length?'DONE · CONTINUE':S.fair?'Continue without an upgrade':'No thanks, I prefer to struggle. (repair 1 ♥)';
 }
 function renderCards(){
-  const known=store.get('disc',[]);
   $('priceNote').textContent='';
   termsFoot();
   $('cards').innerHTML=S.offer.map((pk,i)=>{
@@ -1368,7 +1574,6 @@ function renderCards(){
     if(!pk.data)return `<div class="card${S.fair?' fairBuy':''}"><div class="ctag">${pk.tag}</div>${hot}<div class="cicon">${pk.icon}</div><div class="cname">${pk.name}</div><div class="cdesc">${maxed?'Already at its cap. Buying will not add power.':pk.desc}</div>${owned}
       <button class="buy" data-i="${i}" data-a="pay" ${afford?'':'disabled'}>${buyTxt}</button><div class="req">${maxed?'Spend credits to '+ (S.p.hp<S.p.maxHp?'repair 1♥':'add score')+'. No extra upgrade.':'No data required.'}</div></div>`;
     const D=DATA[pk.data];
-    const risks=INF.filter(f=>!S.inf[f.id]&&f.need.includes(pk.data)&&inferReady(f.need,countsWith(pk.data)));
     const again=S.shared[pk.data]?' (again)':'';
     const am=amendText(S.amend&&S.amend.i===i?S.amend:null);
     const access=`<b style="color:${D.c};filter:brightness(.75)">${D.i} ${D.n}</b>`;
@@ -1379,7 +1584,6 @@ function renderCards(){
     return `<div class="card"><div class="ctag">${pk.tag}</div>${hot}<div class="cicon">${pk.icon}</div><div class="cname">${pk.name}</div><div class="cdesc">${maxed?'Already at its cap. Accept still sells '+D.n+' and does not add power.':pk.desc}</div>${owned}
       <button class="accept" data-i="${i}" data-a="free">${maxed?'ACCEPT<span>STILL SELLS '+D.n+'</span>':'ACCEPT<span>FREE</span>'}</button>
       <div class="req">${maxed?'No extra power. Still allows access to your '+access+again+am+'.':'Allows access to your '+access+again+am+'.'}</div>
-      ${risks.map(f=>`<div class="warn">⚠ Accept completes ${f.name} (${inferProgress(f)})</div>`).join('')}
       <button class="pay" data-i="${i}" data-a="pay" ${afford?'':'disabled'}>${maxed?'or pay ◈ '+pr+' to '+(S.p.hp<S.p.maxHp?'repair 1♥':'add score')+' (you have '+S.coins+')':'or pay ◈ '+pr+' (you have '+S.coins+')'}</button></div>`;
   }).join('');
 }
@@ -1453,7 +1657,7 @@ function fineText(){
     '<b>2. COMBINATION.</b> Data you share separately may be combined once we hold both types and at least two shares of one of them. Combined data can reveal things you never shared, such as where you live, who you trust, how you feel, and what you will do next. You will be notified of inferences after they occur.',
     '<b>3. SECURITY.</b> We take your security seriously. Security incidents may occur. A small file is rarely worth stealing. Combined data, and files built from three or more categories, are when a breach becomes likely and valuable.',
     '<b>4. PAYMENT OPTION.</b> You may instead pay with credits. Paid upgrades do not collect data. Repeat selections of an upgrade you already have earn a loyalty credit bonus. Each upgrade stops getting stronger after a set number of picks; we still offer it. Paying then repairs 1♥, or adds score if you are already full. Accepting a maxed data upgrade still collects that data and does not add power. Other prices may still change based on your profile.',
-    '<b>4b. FAIR PLAY.</b> A subscription of ◈ '+subPrice()+' is billed at the start of each wave until you cancel or cannot pay. It pauses ads, fake urgency, social-proof labels, hidden extras, and engagement bait. It does not delete data already collected, stop inferences already made, or prevent a breach of data already sold.',
+    '<b>4b. FAIR PLAY.</b> A subscription of ◈ '+subPrice()+' is billed at the start of each wave until you cancel or cannot pay. It pauses ads, fake urgency, social-proof labels, hidden extras, and engagement bait. It also pauses new behavior-pattern unlocks and does not add exposure from free Wi-Fi. It does not delete data already collected, stop inferences already made, forget patterns already learned, or prevent a breach of data already sold.',
     '<b>5. DELETION.</b> Shared data types and inferences are kept across sessions until you request deletion. Copies already shared with partners are governed by the partners\' own terms.',
     '<b>6. OBSERVATION.</b> Regardless of your choices, gameplay telemetry including movement, hesitation, reaction under stress, and time spent on this screen is recorded and analyzed. A summary will be shown to you at the end of your session.',
     '<b>7. READERS.</b> Almost nobody reads this far. If you did, type the word <b style="color:#111;background:#ffd23b;padding:0 5px;border-radius:3px">'+S.secret+'</b> on your keyboard right now to receive 15 credits. Once per session.',
@@ -1505,7 +1709,7 @@ function showDossier(){
   add('HOW YOU MOVED','PLAY STYLE','Still <b>'+stillPct+'%</b> of the time · <b>'+T.nearMiss+'</b> grazes · '+(grazeRate>8?'thrill-seeker':grazeRate>3?'calculated risk-taker':'cautious'),0);
   if(T.termsTime.length)add('HOW YOU CHOSE','TERMS','<b>'+readAvg.toFixed(1)+'s</b> average · '+(T.fineOpen?'opened the fine print '+T.fineOpen+'×':'never opened the fine print')+' · full terms ~60s',readAvg<8);
   if(T.caught||T.honest)add('HOW YOU CHOSE','FINE PRINT','Caught <b>'+T.caught+'×</b> · found <b>'+T.honest+'</b> honest deal'+(T.honest===1?'':'s'),T.caught>T.honest);
-  if(T.wifiT>5)add('HOW YOU CHOSE','FREE WI-FI','<b>'+Math.round(T.wifiT)+'s</b> connected · earned <b>'+T.wifiCoins+' ◈</b>',T.wifiT>30);
+  if(T.wifiT>5)add('HOW YOU CHOSE','FREE WI-FI','<b>'+Math.round(T.wifiT)+'s</b> connected · earned <b>'+T.wifiCoins+' ◈</b> · hotspot added <b>'+(T.wifiExp||0).toFixed(1)+'</b> exposure'+(T.wifiT>30?' · standing still logged you faster':''),T.wifiT>30||(T.wifiExp||0)>=1);
   if(choices)add('HOW YOU CHOSE','UPGRADES','<b>'+T.free+'</b> free · <b>'+T.paid+'</b> paid · <b>'+T.declined+'</b> declined',T.free>T.paid);
   if(T.adsShot)add('HOW YOU CHOSE','AD ENGAGEMENT','<b>'+T.adsShot+'</b> ads shot · still counts as engagement',1);
   if(T.sub)add('HOW YOU CHOSE','FAIR PLAY','Billed <b>'+T.sub+'</b> wave'+(T.sub===1?'':'s')+' · paid <b>'+T.subPaid+' ◈</b>. Data already sold stayed sold.',1);
@@ -1563,14 +1767,21 @@ function showDossier(){
         <div class="achs">${Object.keys(ACH).map(k=>`<span class="ach ${achs.includes(k)?'on':''} ${S.newAch.includes(k)?'new':''}" title="${ACH[k][1]}">${achs.includes(k)?'★':'☆'} ${ACH[k][0]}<br><span style="font-size:9px;opacity:.7">${ACH[k][1]}</span></span>`).join('')}</div>
       </div>
     </div>
-    <div class="dosBtns"><button class="neon" id="againBtn">RUN IT BACK</button><button class="ghost" id="delBtn">DELETE MY DATA</button></div>
+    <div class="dosBtns"><button class="neon" id="againBtn">RUN IT BACK</button><button class="ghost" id="boardBtn">LEADERBOARD</button><button class="ghost" id="delBtn">DELETE MY DATA</button></div>
+    <div class="dosBoard" id="dosBoard">ADDING YOU TO THE LEADERBOARD · ${subjectTag(subjectId())}</div>
     <div style="text-align:center;font-size:10px;color:#454b6b;margin-top:10px">press R to restart</div>
   </div>`;
   const hc=$('heat').getContext('2d'),mx=Math.max(...T.heat)||1;
   for(let i=0;i<T.heat.length;i++){const v=Math.pow(T.heat[i]/mx,.5);if(v<=0)continue;hc.fillStyle=`hsla(${200-v*200},100%,${20+v*45}%,${.25+v*.75})`;hc.fillRect(i%24,Math.floor(i/24),1,1)}
   $('againBtn').onclick=startGame;
+  $('boardBtn').onclick=()=>openBoard('dossier');
   $('delBtn').onclick=deleteMyData;
   $('dossier').classList.remove('hidden');$('hud').classList.add('hidden');$('pause').classList.add('hidden');document.body.classList.remove('paused');
+  const filed={pid:subjectId(),tag:subjectTag(subjectId()),at:Date.now(),wave,score:S.score,rank:rank[0],rankC:rank[1],seg,
+    types:TYPES.filter(t=>S.shared[t]).map(t=>DATA[t].s+(S.shared[t]>1?'×'+S.shared[t]:'')),
+    infs:infNames,pats:behOn.map(b=>b.name),free:T.free,paid:T.paid,declined:T.declined,fair:!!S.fair,
+    exp:+exposure().toFixed(1),wifi:Math.round(T.wifiT||0),pred:predictability,val:+val.toFixed(2),still:stillPct,terms:+readAvg.toFixed(1)};
+  submitBoard(filed).then(()=>{const n=$('dosBoard');if(!n)return;n.innerHTML=boardLive?'ON THE LEADERBOARD · <b>'+esc(filed.tag)+'</b> · OTHER PLAYERS CAN SEE THIS':'SAVED ON THIS DEVICE · LEADERBOARD UNREACHABLE';paintTitleBoard()});
 }
 
 // ================= HUD =================
@@ -1620,10 +1831,10 @@ function render(dt){
     g.strokeStyle='#7dff6a';g.globalAlpha=on?.7:.35;g.lineWidth=2;g.beginPath();g.arc(wx,wy,WIFI_R,0,TAU);g.stroke();
     for(let i=1;i<=3;i++){g.globalAlpha=(on?.6:.25)*(.5+.5*Math.sin(S.t*3-i));g.beginPath();g.arc(wx,wy+10,i*9,-Math.PI*.75,-Math.PI*.25);g.stroke()}
     g.fillStyle='#7dff6a';g.textAlign='center';
-    g.globalAlpha=on?.95:.6;g.font='bold 11px JetBrains Mono';g.fillText('FREE WI-FI',wx,wy+18);
+    g.globalAlpha=on?.95:.6;g.font='bold 11px JetBrains Mono';g.fillText(S.fair?'SECURE WI-FI':'FREE WI-FI',wx,wy+18);
     g.font='bold 9px JetBrains Mono';
     g.globalAlpha=on?.95:.5;g.fillText('IN RING · FAST FIRE',wx,wy+32);
-    g.globalAlpha=p.wifiStill?.95:on?.55:.4;g.fillText('STAND STILL · FASTER + ◈',wx,wy+44);g.globalAlpha=1}
+    g.globalAlpha=p.wifiStill?.95:on?.55:.4;g.fillText(S.fair?'STAND STILL · FASTER + ◈':'STAND STILL · FASTER + ◈ · LOGS MORE',wx,wy+44);g.globalAlpha=1}
   // learned comfort zone
   if(S.model.hot&&S.mode!=='dead'){const h=S.model.hot;g.strokeStyle='#c04bff';g.globalAlpha=.18+.08*Math.sin(S.t*2);g.lineWidth=2;g.setLineDash([6,8]);g.beginPath();g.arc(h.x,h.y,190,0,TAU);g.stroke();g.setLineDash([]);
     g.fillStyle='#c04bff';g.font='10px JetBrains Mono';g.textAlign='center';g.fillText('YOUR USUAL SPOT',h.x,h.y-196);g.globalAlpha=1}
@@ -1727,14 +1938,19 @@ requestAnimationFrame(frame);
 
 // ================= title =================
 function hasSavedData(){
-  return !!(store.get('best',null)||store.get('profile',null)||store.get('model',null)||(store.get('hist',[])||[]).length||(store.get('disc',[])||[]).length||(store.get('ach',[])||[]).length);
+  return !!(store.get('pid','')||store.get('best',null)||store.get('profile',null)||store.get('model',null)||(store.get('hist',[])||[]).length||(store.get('disc',[])||[]).length||(store.get('ach',[])||[]).length);
 }
 function paintTitleDel(){const b=$('titleDel');if(b)b.disabled=!hasSavedData()}
 function deleteMyData(){
-  if(!confirm('Delete ALL your OPT/IN data?\nThis removes shared data types, inferences, behavior patterns, your high score, and achievements.\nPrivacy has trade-offs too.'))return;
-  store.clear();toast('Deleted. Your partners were not notified.');
+  if(!confirm('Delete ALL your OPT/IN data?\nThis removes shared data types, inferences, behavior patterns, your high score, achievements, and your rows on the leaderboard.\nPrivacy has trade-offs too.'))return;
+  const pid=store.get('pid',''),keep=(store.get('board',[])||[]).filter(e=>!pid||e.pid!==pid),seen=store.get('seen','');
+  store.clear();
+  store.set('board',keep);
+  if(seen)store.set('seen',seen);
+  toast('Deleted. Your partners were not notified.');
   refreshTitle();
   const d=$('delBtn');if(d)d.disabled=true;
+  if(pid)wipeMyBoard(pid).then(()=>{if(!$('board').classList.contains('hidden'))renderBoard()});
 }
 function refreshTitle(){
   const b=store.get('best',null),h=store.get('hist',[]),d=store.get('disc',[]),a=store.get('ach',[]);
@@ -1745,6 +1961,39 @@ function refreshTitle(){
   const m=store.get('model',null),pats=m?BEH.filter(b=>m.on.includes(b.id)):[];
   if(pats.length)$('discLine').innerHTML+=((d.length||held.length||live.length)?'<br>':'')+'<span style="color:#c04bff;border:none">BEHAVIOR PATTERNS ON FILE</span><br>'+pats.map(b=>`<span style="border-color:#c04bff;color:#dcb0ff">👁 ${b.name}</span>`).join('');
   paintTitleDel();
+  paintTitleBoard();
+  paintTitleVer();
+}
+function paintTitleBoard(n){
+  const b=$('titleBoard');if(!b)return;
+  if(n==null)n=(store.get('board',[])||[]).length;
+  b.textContent=n?'LEADERBOARD · '+n:'LEADERBOARD';
+}
+function logFresh(){return store.get('seen','')!==VERSION}
+function paintTitleVer(){
+  const b=$('titleVer');if(!b)return;
+  b.textContent=logFresh()?'v'+VERSION+' · WHAT\'S NEW':'v'+VERSION+' · CHANGELOG';
+  b.classList.toggle('fresh',logFresh());
+}
+function verNum(v){return String(v||'0').split('.').reduce((a,n)=>a*1000+(+n||0),0)}
+function renderLog(){
+  const seen=store.get('seen','');
+  $('logNow').textContent='v'+VERSION;
+  $('logList').innerHTML=CHANGELOG.map(e=>{
+    const neu=seen?verNum(e.v)>verNum(seen):e.v===VERSION;
+    return `<div class="logVer"><div class="logTop"><span class="logV">v${esc(e.v)}</span>${neu?'<span class="logNew">NEW</span>':''}<span class="logName">${esc(e.name)}</span></div><ul>${e.notes.map(n=>'<li>'+esc(n)+'</li>').join('')}</ul></div>`;
+  }).join('');
+}
+function openLog(){
+  ['title','dossier','terms','reveal','pause','subModal','board'].forEach(id=>$(id).classList.add('hidden'));
+  $('log').classList.remove('hidden');
+  renderLog();
+}
+function closeLog(){
+  store.set('seen',VERSION);
+  $('log').classList.add('hidden');
+  $('title').classList.remove('hidden');
+  refreshTitle();
 }
 refreshTitle();
 $('pauseList').addEventListener('click',e=>{const row=e.target.closest('[data-pid]');if(!row||!S)return;pauseSel=row.dataset.pid;renderPause()});
@@ -1754,7 +2003,13 @@ $('subConfirm').addEventListener('click',confirmFair);
 $('subNope').addEventListener('click',closeSubModal);
 $('subModal').addEventListener('click',e=>{if(e.target.id==='subModal')closeSubModal()});
 $('startBtn').addEventListener('click',startGame);
+$('titleBoard').addEventListener('click',()=>openBoard('title'));
+$('boardBack').addEventListener('click',closeBoard);
+$('titleVer').addEventListener('click',openLog);
+$('logOk').addEventListener('click',closeLog);
 $('titleDel').addEventListener('click',deleteMyData);
+boardPull().then(list=>paintTitleBoard(list.length));
+if(logFresh())openLog();
 </script>
 </body>
 </html>
