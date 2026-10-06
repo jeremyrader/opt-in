@@ -46,6 +46,8 @@ button{font-family:inherit;cursor:pointer;border:none}
 .titleVer{background:none;border:1px solid #3a4270;color:#aab3d9;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;padding:6px 12px}
 .titleVer:hover{color:#fff;border-color:#fff}
 .titleVer.fresh{border-color:#ffd23b;color:#ffd23b;box-shadow:0 0 12px rgba(255,210,59,.25)}
+#abandonBtn{margin-top:14px}
+#runLine:empty{display:none}
 .titleDel{background:none;border:1px solid #2a2f55;color:#454b6b;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;padding:5px 10px}
 .titleDel:hover:not(:disabled){color:#ff3b5c;border-color:#ff3b5c}
 .titleDel:disabled{opacity:.35;cursor:not-allowed}
@@ -299,6 +301,8 @@ button:disabled{opacity:.35;cursor:not-allowed}
     <button id="startBtn" class="neon">PLAY</button>
     <button type="button" id="titleBoard" class="neon alt">LEADERBOARD</button>
   </div>
+  <div class="best" id="runLine"></div>
+  <button type="button" id="abandonBtn" class="titleDel hidden">ABANDON SAVED RUN</button>
   <div class="controls">
     <kbd>WASD</kbd> move &nbsp; <kbd>MOUSE</kbd> aim (auto-fire) &nbsp; <kbd>SPACE</kbd> dash<br>
     <kbd>P</kbd> pause (inspect profile) &nbsp; <kbd>M</kbd> mute
@@ -306,7 +310,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
   <div class="best" id="bestLine"></div>
   <div class="infoLine" id="discLine"></div>
   <div class="titleFoot">
-    <button type="button" id="titleVer" class="titleVer">v1.3.0</button>
+    <button type="button" id="titleVer" class="titleVer">v1.4.0</button>
     <button type="button" id="titleDel" class="titleDel">DELETE MY DATA</button>
     <div class="legal">By pressing PLAY you agree to be observed.</div>
   </div>
@@ -381,7 +385,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
       </div>
       <div style="text-align:right"><div class="dosId">NO SIGN-IN · SUBJECT NUMBERS ONLY</div><div class="dosRank" style="--c:#ffd23b">LIVE</div></div>
     </div>
-    <div class="boardNote">When a player dies, their run is added here for everyone else to see. There is no account — you are a subject number. <b>Delete My Data</b> removes your rows. Anyone who already copied them was not notified.</div>
+    <div class="boardNote">When a player dies, their run is added here for everyone else to see. The board keeps <b>20</b> runs — a higher score can knock a lower one off. There is no account. You show up by the name you chose. <b>Delete My Data</b> removes your rows. Anyone who already copied them was not notified.</div>
     <div class="boardMeta" id="boardMeta">LOADING LEADERBOARD…</div>
     <div id="boardList"></div>
     <div id="boardDetail"></div>
@@ -408,7 +412,7 @@ button:disabled{opacity:.35;cursor:not-allowed}
         <div class="dosId">PLAYER NOTES · NOT THE FINE PRINT</div>
         <div class="dosH">WHAT'S NEW</div>
       </div>
-      <div style="text-align:right"><div class="dosId">THIS BUILD</div><div class="dosRank" style="--c:#ffd23b" id="logNow">v1.3.0</div></div>
+      <div style="text-align:right"><div class="dosId">THIS BUILD</div><div class="dosRank" style="--c:#ffd23b" id="logNow">v1.4.0</div></div>
     </div>
     <div id="logList"></div>
     <div class="dosBtns"><button type="button" class="neon" id="logOk">GOT IT</button></div>
@@ -428,8 +432,13 @@ const TAU=Math.PI*2;
 const store={get(k,d){try{const v=localStorage.getItem('optin_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('optin_'+k,JSON.stringify(v))}catch(e){}},clear(){try{Object.keys(localStorage).filter(k=>k.startsWith('optin_')).forEach(k=>localStorage.removeItem(k))}catch(e){}}};
 
 // bump VERSION when you push a player-facing change, and add a CHANGELOG entry
-const VERSION='1.3.0';
+const VERSION='1.4.0';
 const CHANGELOG=[
+  {v:'1.4.0',name:'Saved runs',notes:[
+    'The leaderboard keeps 20 runs. A higher score can knock a lower one off.',
+    'Clearing a wave saves the run on this device. Dying saves it too.',
+    'CONTINUE on the title screen picks the saved run back up. Abandon saved run drops that run only.'
+  ]},
   {v:'1.3.0',name:'Player names',notes:[
     'You choose a name before you play. It shows on the leaderboard.',
     'Delete My Data clears your name. You pick a new one next time.',
@@ -457,7 +466,7 @@ const CHANGELOG=[
 ];
 
 // public partner file (classroom-shared). the write key ships with the game — that's the joke.
-const BOARD={url:'https://mantledb.sh/v2/optin-leaderboard/board',key:'7abcfeea1ffab35110e4c70738bc57b23722badac6917690884187de52b7ac29',max:80,keep:8};
+const BOARD={url:'https://mantledb.sh/v2/optin-leaderboard/board',key:'7abcfeea1ffab35110e4c70738bc57b23722badac6917690884187de52b7ac29',max:20,keep:8};
 let boardBack='title',boardSel=null,boardLive=false;
 function subjectId(){let id=store.get('pid','');if(!id){const a=new Uint8Array(6);if(crypto&&crypto.getRandomValues)crypto.getRandomValues(a);else for(let i=0;i<a.length;i++)a[i]=Math.random()*256|0;id=Array.from(a,b=>b.toString(16).padStart(2,'0')).join('');store.set('pid',id)}return id}
 function subjectTag(pid){return 'SUBJ-'+(pid||'0000').slice(0,6).toUpperCase()}
@@ -555,9 +564,9 @@ async function renderBoard(){
   $('boardMeta').textContent='SYNCING LEADERBOARD…';
   $('boardList').innerHTML='<div id="boardEmpty">Opening the leaderboard…</div>';
   $('boardDetail').className='';$('boardDetail').innerHTML='';
-  const list=boardSort((await boardPull()).slice());
+  const list=boardPrune((await boardPull()).slice());
   paintTitleBoard(list.length);
-  $('boardMeta').textContent=(boardLive?'LIVE':'CACHED · OFFLINE')+' · '+list.length+' RUN'+(list.length===1?'':'S')+' · SORTED BY SCORE · CLICK A ROW TO OPEN THEIR FILE';
+  $('boardMeta').textContent=(boardLive?'LIVE':'CACHED · OFFLINE')+' · '+list.length+' / '+BOARD.max+' RUN'+(list.length===1?'':'S')+' · SORTED BY SCORE · CLICK A ROW TO OPEN THEIR FILE';
   if(!list.length){$('boardList').innerHTML='<div id="boardEmpty">No scores yet. Die once and you will be on the leaderboard.</div>';return}
   $('boardList').innerHTML=list.map((e,i)=>{
     const you=me&&e.pid===me;
@@ -950,16 +959,29 @@ function renderPause(){
 }
 
 // ================= game state =================
-function loadModel(){
-  const m={on:{},ev:{},strikes:{},lost:[],carried:[],sideX:0,sideY:0,fav:null,brokeFav:null,loyalRearm:0,hot:null,
+function blankModel(){
+  return {on:{},ev:{},strikes:{},lost:[],carried:[],sideX:0,sideY:0,fav:null,brokeFav:null,loyalRearm:0,hot:null,
     win:{heat:new Float32Array(24*16),q:[0,0,0,0],dL:0,dR:0,dU:0,dD:0,mL:0,mR:0,mU:0,mD:0,still:0,moving:0,camp:0,trail:[],hits:0,panic:0,rc:0,rs:0},hitAt:null,hitAway:0,panicPt:null};
-  const s=store.get('model',null);
+}
+function heatFrom(src){
+  const heat=new Float32Array(24*16),a=src||[];
+  for(let i=0;i<heat.length&&i<a.length;i++)heat[i]=+a[i]||0;
+  return heat;
+}
+function fillModel(m,s,carryAll){
   if(!s)return m;
-  for(const id of s.on)if(BEH.some(b=>b.id===id)){m.on[id]=true;m.carried.push(id)}
-  Object.assign(m.ev,s.ev);Object.assign(m.strikes,s.strikes||{});m.sideX=s.sideX||(s.side||0);m.sideY=s.sideY||0;m.fav=s.fav||null;m.brokeFav=s.brokeFav||null;m.loyalRearm=s.loyalRearm||0;
-  Object.assign(m.win,s.win,{heat:Float32Array.from(s.win.heat),trail:[]});
+  const on=Array.isArray(s.on)?s.on:[];
+  for(const id of on)if(BEH.some(b=>b.id===id))m.on[id]=true;
+  if(carryAll){for(const id of Object.keys(m.on))m.carried.push(id)}
+  else m.carried=(s.carried||[]).filter(id=>BEH.some(b=>b.id===id));
+  if(s.ev)Object.assign(m.ev,s.ev);
+  if(s.strikes)Object.assign(m.strikes,s.strikes);
+  if(!carryAll&&s.lost)m.lost=s.lost.slice();
+  m.sideX=s.sideX||s.side||0;m.sideY=s.sideY||0;m.fav=s.fav||null;m.brokeFav=s.brokeFav||null;m.loyalRearm=s.loyalRearm||0;
+  if(s.win)Object.assign(m.win,s.win,{heat:heatFrom(s.win.heat),trail:[]});
   return m;
 }
+function loadModel(){return fillModel(blankModel(),store.get('model',null),true)}
 function saveModel(){
   const m=S.model;
   store.set('model',{on:Object.keys(m.on),ev:m.ev,strikes:m.strikes,sideX:m.sideX,sideY:m.sideY,fav:m.fav,brokeFav:m.brokeFav,loyalRearm:m.loyalRearm,win:{...m.win,heat:Array.from(m.win.heat),trail:[]}});
@@ -975,6 +997,75 @@ function loadProfile(){
 function saveProfile(){
   store.set('profile',{shared:S.shared,inf:INF.filter(f=>S.inf[f.id]).map(f=>f.id)});
 }
+function packReveal(f){
+  if(!f)return null;
+  if(f.kind==='beh')return {kind:'beh',id:f.id,name:f.name,desc:f.desc,why:f.why,ev:f.ev,fix:f.fix};
+  return {id:f.id,name:f.name,desc:f.desc,why:f.why,need:f.need&&f.need.slice()};
+}
+function packPlayer(p){
+  const o={...p};
+  delete o.inWifi;delete o.wifiStill;
+  o.vx=0;o.vy=0;o.fireT=0;o.dashing=0;o.ddx=0;o.ddy=0;o.inv=0;o.recoil=0;
+  return o;
+}
+function livingRun(){
+  const r=store.get('run',null);
+  if(!r||r.checkpoint==='dead'||!r.checkpoint)return null;
+  return r;
+}
+function saveGame(){
+  if(!S||!S.checkpoint)return;
+  saveModel();saveProfile();
+  const m=S.model;
+  store.set('run',{
+    checkpoint:S.checkpoint,filed:!!S.filed,wave:S.wave,score:S.score,coins:S.coins,t:S.t,
+    combo:S.combo,comboT:S.comboT,shared:S.shared,inf:S.inf,
+    carriedShared:S.carriedShared,carriedInf:S.carriedInf,
+    revealQ:(S.revealQ||[]).map(packReveal).filter(Boolean),
+    offerIds:(S.offer||[]).map(p=>p&&p.id).filter(Boolean),
+    taken:S.taken||[],breachNext:!!S.breachNext,breachWave:S.breachWave,breachLine:S.breachLine||'',
+    adT:S.adT,adRecent:S.adRecent||[],secret:S.secret,secretUsed:!!S.secretUsed,newAch:S.newAch||[],
+    queue:(S.queue||[]).slice(),spawnT:S.spawnT,
+    amend:S.amend||null,hotI:S.hotI==null?-1:S.hotI,hotBadge:S.hotBadge||'',
+    fair:!!S.fair,fairPaidWave:S.fairPaidWave||0,expWifi:S.expWifi||0,
+    wifi:S.wifi,wifiAcc:S.wifiAcc||0,wifiMoveIn:S.wifiMoveIn,
+    unread:S.unread||0,hookFriend:S.hookFriend||null,pingT:S.pingT,
+    p:packPlayer(S.p),
+    tele:{...S.tele,heat:Array.from(S.tele.heat)},
+    model:{on:Object.keys(m.on),ev:m.ev,strikes:m.strikes,lost:m.lost,carried:m.carried,
+      sideX:m.sideX,sideY:m.sideY,fav:m.fav,brokeFav:m.brokeFav,loyalRearm:m.loyalRearm,
+      win:{...m.win,heat:Array.from(m.win.heat),trail:[]}}
+  });
+}
+function restoreRun(snap){
+  if(!snap||!snap.p||!snap.tele||!snap.model)throw 0;
+  const s=newState();
+  s.checkpoint=snap.checkpoint;s.filed=!!snap.filed;
+  s.wave=snap.wave||0;s.score=snap.score||0;s.coins=snap.coins||0;s.t=snap.t||0;
+  s.combo=snap.combo||0;s.comboT=snap.comboT||0;
+  s.shared=snap.shared||{};s.inf=snap.inf||{};
+  s.carriedShared=snap.carriedShared||[];s.carriedInf=snap.carriedInf||[];
+  s.revealQ=snap.revealQ||[];
+  s.offer=(snap.offerIds||[]).map(id=>PERKS.find(p=>p.id===id)).filter(Boolean);
+  s.taken=snap.taken||[];
+  s.breachNext=!!snap.breachNext;s.breachWave=snap.breachWave==null?-1:snap.breachWave;s.breachLine=snap.breachLine||'';
+  s.adT=snap.adT==null?6:snap.adT;s.adRecent=snap.adRecent||[];
+  s.queue=(snap.queue||[]).slice();s.spawnT=snap.spawnT==null?1.2:snap.spawnT;
+  s.secret=snap.secret||s.secret;s.secretUsed=!!snap.secretUsed;s.newAch=snap.newAch||[];
+  s.amend=snap.amend||null;s.hotI=snap.hotI==null?-1:snap.hotI;s.hotBadge=snap.hotBadge||'';
+  s.fair=!!snap.fair;s.fairPaidWave=snap.fairPaidWave||0;s.expWifi=snap.expWifi||0;
+  if(snap.wifi)s.wifi=snap.wifi;
+  s.wifiAcc=snap.wifiAcc||0;s.wifiMoveIn=snap.wifiMoveIn||s.wifiMoveIn;
+  s.unread=snap.unread||0;s.hookFriend=snap.hookFriend||null;s.pingT=snap.pingT==null?9:snap.pingT;
+  Object.assign(s.p,snap.p);
+  s.p.x=clamp(s.p.x,s.p.r,Math.max(s.p.r,W-s.p.r));
+  s.p.y=clamp(s.p.y,s.p.r,Math.max(s.p.r,H-s.p.r));
+  Object.assign(s.tele,snap.tele,{heat:heatFrom(snap.tele.heat)});
+  s.model=fillModel(blankModel(),snap.model,false);
+  s.mode='play';s.paused=false;
+  return s;
+}
+function maybeSaveShop(){if(S&&S.checkpoint==='terms'&&S.mode==='terms')saveGame()}
 const WIFI_R=95;
 function randWifi(){return {x:Math.random()<.5?rand(.15,.3):rand(.7,.85),y:Math.random()<.5?rand(.2,.35):rand(.65,.8)}}
 function loadWifi(){
@@ -1001,16 +1092,59 @@ function newState(){
       edge:0,center:0,dashes:0,dashL:0,dashR:0,dashU:0,dashD:0,nearMiss:0,adsShot:0,termsTime:[],fineOpen:0,free:0,paid:0,declined:0,picks:{},firstPick:null,
       breaches:0,breachSurvived:false,kills:0,hits:0,sampT:0,time:0,wifiT:0,wifiCoins:0,wifiExp:0,caught:0,honest:0,sub:0,subPaid:0},
     wifi:loadWifi(),wifiAcc:0,wifiMoveIn:3+Math.floor(Math.random()*3),expWifi:0,amend:null,sosT:0,
-    nagT:0,pingT:9,unread:0,hookFriend:null,musicPush:null,fair:false,fairPaidWave:0
+    nagT:0,pingT:9,unread:0,hookFriend:null,musicPush:null,fair:false,fairPaidWave:0,
+    checkpoint:null,filed:false,breachLine:'',hotI:-1,hotBadge:'',taken:[]
   };
+}
+function hideScreens(){['title','dossier','terms','reveal','pause','subModal','board','log','name'].forEach(id=>$(id).classList.add('hidden'))}
+function enterRun(){
+  initAudio();
+  hideScreens();
+  $('hud').classList.remove('hidden');document.body.classList.add('playing');document.body.classList.remove('paused');
+  hudCache={};
 }
 function startGame(){
   if(!playerName()){openName();return}
-  initAudio();
+  store.set('run',null);
   S=newState();
-  ['title','dossier','terms','reveal','pause','subModal','board','log','name'].forEach(id=>$(id).classList.add('hidden'));
-  $('hud').classList.remove('hidden');document.body.classList.add('playing');document.body.classList.remove('paused');
-  hudCache={};startWave();
+  enterRun();
+  startWave();
+}
+function continueGame(){
+  if(!playerName()){openName();return}
+  const run=livingRun();
+  if(!run){startGame();return}
+  try{S=restoreRun(run)}catch(e){store.set('run',null);startGame();return}
+  enterRun();
+  resumeCheckpoint();
+}
+function resumeCheckpoint(){
+  if(S.checkpoint==='dead'){showDossier();return}
+  if(S.checkpoint==='terms'){
+    if(!S.offer.length){openTerms();S.checkpoint='terms';saveGame();return}
+    presentTerms();sfx.select();return;
+  }
+  if(S.checkpoint==='breach'){
+    S.mode='breach';S.breachT=2.4;document.body.classList.add('playing');
+    banner('DATA BREACH',S.breachLine||'Your data leaked. Someone bought it.','#ff3b5c',2.4);
+    sfx.alarm();return;
+  }
+  if(S.checkpoint==='live'){
+    S.mode='play';S.spawnT=S.spawnT||1.2;dashReq=false;
+    S.model.hot=S.model.on.zone?hotSpot(S.model.win.heat):null;
+    document.body.classList.add('playing');
+    banner('WAVE '+S.wave,'SAVED RUN RESTORED',S.fair?'#7dff6a':'#38e1ff',1.5);
+    return;
+  }
+  if(S.revealQ.length)nextReveal();else startWave();
+}
+function bootDeadRun(){
+  const run=store.get('run',null);
+  if(!run||run.checkpoint!=='dead')return false;
+  try{S=restoreRun(run)}catch(e){store.set('run',null);return false}
+  hideScreens();
+  showDossier();
+  return true;
 }
 const shareExp=()=>TYPES.reduce((a,t)=>a+(S.shared[t]||0),0);
 const exposure=()=>shareExp()+(S.expWifi||0);
@@ -1033,22 +1167,38 @@ function paintSubBtns(){
   const b=$('pauseSub');
   if(b){b.textContent=on?'SUBSCRIBED · ◈ '+pr+'/WAVE':'SUBSCRIBE';b.classList.toggle('on',on);b.classList.toggle('danger',false);b.disabled=on}
 }
-function applyFairTerms(){
+function paintTerms(){
   clearInterval(urgencyTimer);
-  const u=$('urgency');u.textContent='';u.className='';
-  S.hotI=-1;S.amend=null;
-  $('tosT').textContent='Choose your upgrades';
-  $('tosSub').innerHTML='Fair Play is on. Paying with credits is the highlighted option and costs 20% less. New patterns and hotspot logging are paused. Accept is still free — and still sells data.';
+  const u=$('urgency');
+  if(S.fair){
+    u.textContent='';u.className='';
+    $('tosT').textContent='Choose your upgrades';
+    $('tosSub').innerHTML='Fair Play is on. Paying with credits is the highlighted option and costs 20% less. New patterns and hotspot logging are paused. Accept is still free — and still sells data.';
+  }else{
+    $('tosT').textContent='Your Terms of Service have been updated';
+    $('tosSub').innerHTML='Take as many upgrades as you want. <b>94% of players choose ACCEPT.</b>';
+    startUrgency();
+  }
   renderCards();paintSubBtns();
+}
+function presentTerms(){
+  S.mode='terms';S.termsOpenAt=performance.now();typed='';
+  document.body.classList.remove('playing');
+  $('fineText').innerHTML=fineText();$('fineBox').open=false;
+  $('terms').classList.remove('hidden');
+  $('hud').classList.remove('hidden');
+  paintTerms();
+}
+function applyFairTerms(){
+  S.hotI=-1;S.amend=null;
+  paintTerms();
 }
 function dirtyTerms(){
   S.amend=pickAmendment();
   const hotPool=S.offer.map((pk,i)=>i);
   S.hotI=Math.random()<.5&&hotPool.length?pick(hotPool):-1;
   S.hotBadge=pick(['POPULAR','TRENDING','TOP RATED']);
-  $('tosT').textContent='Your Terms of Service have been updated';
-  $('tosSub').innerHTML='Take as many upgrades as you want. <b>94% of players choose ACCEPT.</b>';
-  renderCards();startUrgency();paintSubBtns();
+  paintTerms();
 }
 function endFair(msg){
   S.fair=false;
@@ -1056,6 +1206,7 @@ function endFair(msg){
   if(S.mode==='terms'&&!$('terms').classList.contains('hidden'))dirtyTerms();
   else paintSubBtns();
   if(S.paused)renderPause();
+  maybeSaveShop();
 }
 function tryChargeFair(forWave){
   const pr=subPrice();
@@ -1083,6 +1234,7 @@ function confirmFair(){
   else paintSubBtns();
   if(S.paused)renderPause();
   sfx.select();
+  maybeSaveShop();
 }
 function onSubBtn(){
   if(!S)return;
@@ -1128,6 +1280,7 @@ function startWave(){
   }
   banner('WAVE '+w,sub.join(' · '),S.fair?'#7dff6a':bits.length||S.shared.CON||(S.shared.LOC&&w>1)?'#c04bff':'#38e1ff',sub.length>1?2.4:1.5);
   sfx.wave();
+  if(w>1){S.checkpoint='live';saveGame()}
 }
 
 // ================= spawning =================
@@ -1465,7 +1618,7 @@ function update(dt){
     if(!S.fair&&(S.shared.HAB||S.shared.CON||S.shared.MSG))musicPush(12,.12,2.2);
   }
   if(S.mode==='clear'){S.clearT-=dt;if(S.clearT<=0&&!S.coinsArr.length)afterClear();else if(S.clearT<-1.5)afterClear()}
-  if(S.mode==='breach'){S.breachT-=dt;if(S.breachT<=0)openTerms()}
+  if(S.mode==='breach'){S.breachT-=dt;if(S.breachT<=0){openTerms();S.checkpoint='terms';saveGame()}}
   if(S.mode==='dead'){S.deadT-=dt/S.timeScale;S.timeScale=Math.max(.15,S.timeScale-dt*2);if(S.deadT<=0)showDossier()}
 }
 function updateFX(dt){
@@ -1545,9 +1698,12 @@ function afterClear(){
   if(exp>=3&&Math.random()<Math.min(.55,(exp-2)*.07)){
     S.breachNext=true;S.tele.breaches++;
     const leaked=TYPES.filter(t=>S.shared[t]).map(t=>DATA[t].n).join(', ');
-    banner('DATA BREACH',leaked+' leaked to '+Math.floor(rand(8,30)+exp*9)+' brokers. Someone bought it.','#ff3b5c',2.4);
+    S.breachLine=leaked+' leaked to '+Math.floor(rand(8,30)+exp*9)+' brokers. Someone bought it.';
+    banner('DATA BREACH',S.breachLine,'#ff3b5c',2.4);
     sfx.alarm();S.shake=18;S.flash=.7;S.flashCol='255,40,80';S.mode='breach';S.breachT=2.4;
-  }else openTerms();
+    S.checkpoint='breach';
+    saveGame();
+  }else{openTerms();S.checkpoint='terms';saveGame()}
 }
 let urgencyTimer=null;
 function listPrice(pk){return pk.data?10+S.wave*4:14+S.wave*5}
@@ -1576,15 +1732,19 @@ function startUrgency(){
   },1000);
 }
 function openTerms(){
-  S.mode='terms';S.termsOpenAt=performance.now();typed='';document.body.classList.remove('playing');
+  S.mode='terms';typed='';
   const data=shuffle(PERKS.filter(p=>p.data)),coin=shuffle(PERKS.filter(p=>!p.data));
   const nd=Math.random()<.55?2:3;
   S.offer=shuffle([...data.slice(0,nd),...coin.slice(0,3-nd)]);
   S.taken=[];
-  $('fineText').innerHTML=fineText();$('fineBox').open=false;
-  $('terms').classList.remove('hidden');
-  if(S.fair)applyFairTerms();
-  else dirtyTerms();
+  if(S.fair){S.hotI=-1;S.amend=null}
+  else{
+    S.amend=pickAmendment();
+    const hotPool=S.offer.map((pk,i)=>i);
+    S.hotI=Math.random()<.5&&hotPool.length?pick(hotPool):-1;
+    S.hotBadge=pick(['POPULAR','TRENDING','TOP RATED']);
+  }
+  presentTerms();
   sfx.select();
 }
 // Amendments hide in a data card's small print: two catches and one honest deal.
@@ -1676,7 +1836,7 @@ function choose(i,a){
   S.tele.picks[pk.id]=(S.tele.picks[pk.id]||0)+1;if(!S.tele.firstPick){S.tele.firstPick=pk.id;noteFirstPick(pk.id)}
   S.taken.push(i);
   if(S.taken.length>=S.offer.length)closeTerms();
-  else renderCards();
+  else{renderCards();maybeSaveShop()}
 }
 function unlockInfs(){
   const disc=store.get('disc',[]);
@@ -1692,6 +1852,8 @@ function closeTerms(){
   S.tele.termsTime.push((performance.now()-S.termsOpenAt)/1000);
   store.set('readAvg',S.tele.termsTime.reduce((a,b)=>a+b,0)/S.tele.termsTime.length);
   clearInterval(urgencyTimer);$('terms').classList.add('hidden');closeSubModal();sfx.select();
+  S.checkpoint='advance';
+  saveGame();
   if(S.revealQ.length)nextReveal();else startWave();
 }
 function nextReveal(){
@@ -1713,7 +1875,7 @@ function advanceReveal(){if(S.mode==='reveal'&&performance.now()-S.revealAt>500)
 $('reveal').addEventListener('click',advanceReveal);
 function checkSecret(){
   if(S.secretUsed||!typed.endsWith(S.secret.toLowerCase()))return;
-  S.secretUsed=true;S.coins+=15;sfx.secret();toast('+15 ◈ You actually read the terms.');unlock('reader');renderCards();
+  S.secretUsed=true;S.coins+=15;sfx.secret();toast('+15 ◈ You actually read the terms.');unlock('reader');renderCards();maybeSaveShop();
 }
 function fineText(){
   const clauses=[
@@ -1734,26 +1896,34 @@ function fineText(){
 function unlock(id){const a=store.get('ach',[]);if(!a.includes(id)){a.push(id);store.set('ach',a);if(S)S.newAch.push(id)}}
 function die(){
   S.mode='dead';S.deadT=1.6;S.timeScale=1;S.shake=30;S.freeze=.25;S.flash=1;S.flashCol='255,40,80';
+  S.checkpoint='dead';
+  saveGame();
   burst(S.p.x,S.p.y,'#38e1ff',120,700,1.4,5);burst(S.p.x,S.p.y,'#fff',40,400,.8,3);sfx.big();
   document.body.classList.remove('playing');
 }
 function showDossier(){
-  if(S.mode==='dossier')return;S.mode='dossier';
-  const T=S.tele,p=S.p,wave=S.wave,nShared=TYPES.filter(t=>S.shared[t]).length;
-  // achievements
-  if(wave>=6&&nShared===0)unlock('ghost');
-  if(nShared===6)unlock('open');
-  if(T.paid>=4)unlock('paid');
-  if(T.breachSurvived)unlock('breach');
-  if(wave>=10)unlock('deep');
-  if(store.get('disc',[]).length>=6)unlock('all');
-  // history (cross-session analysis)
+  if(S.mode==='dossier')return;
+  const first=!S.filed;
+  S.mode='dossier';
+  const T=S.tele,wave=S.wave,nShared=TYPES.filter(t=>S.shared[t]).length;
   const hist=store.get('hist',[]);
-  hist.push({wave,score:S.score,free:T.free,paid:T.paid,declined:T.declined,first:T.firstPick,picks:T.picks,shared:nShared});
-  store.set('hist',hist.slice(-40));
-  saveModel();saveProfile();
-  const best=store.get('best',{score:0,wave:0});const isBest=S.score>best.score;
-  if(isBest)store.set('best',{score:S.score,wave});
+  let isBest=false;
+  if(first){
+    if(wave>=6&&nShared===0)unlock('ghost');
+    if(nShared===6)unlock('open');
+    if(T.paid>=4)unlock('paid');
+    if(T.breachSurvived)unlock('breach');
+    if(wave>=10)unlock('deep');
+    if(store.get('disc',[]).length>=6)unlock('all');
+    hist.push({wave,score:S.score,free:T.free,paid:T.paid,declined:T.declined,first:T.firstPick,picks:T.picks,shared:nShared});
+    store.set('hist',hist.slice(-40));
+    const prev=store.get('best',{score:0,wave:0});
+    isBest=S.score>prev.score;
+    if(isBest)store.set('best',{score:S.score,wave});
+    S.filed=true;S.checkpoint='dead';
+    saveGame();
+  }
+  const best=store.get('best',{score:0,wave:0});
   // analysis
   const quadN=['upper-left','upper-right','lower-left','lower-right'];
   const qt=T.q.reduce((a,b)=>a+b,0)||1,qi=T.q.indexOf(Math.max(...T.q));
@@ -1841,6 +2011,7 @@ function showDossier(){
   $('boardBtn').onclick=()=>openBoard('dossier');
   $('delBtn').onclick=deleteMyData;
   $('dossier').classList.remove('hidden');$('hud').classList.add('hidden');$('pause').classList.add('hidden');document.body.classList.remove('paused');
+  if(!first){$('dosBoard').textContent='ALREADY ON THE LEADERBOARD · '+ (playerName()||subjectTag(subjectId()));return}
   const filed={pid:subjectId(),tag:subjectTag(subjectId()),name:playerName(),at:Date.now(),wave,score:S.score,rank:rank[0],rankC:rank[1],seg,
     types:TYPES.filter(t=>S.shared[t]).map(t=>DATA[t].s+(S.shared[t]>1?'×'+S.shared[t]:'')),
     infs:infNames,pats:behOn.map(b=>b.name),free:T.free,paid:T.paid,declined:T.declined,fair:!!S.fair,
@@ -2002,11 +2173,11 @@ requestAnimationFrame(frame);
 
 // ================= title =================
 function hasSavedData(){
-  return !!(store.get('name','')||store.get('pid','')||store.get('best',null)||store.get('profile',null)||store.get('model',null)||(store.get('hist',[])||[]).length||(store.get('disc',[])||[]).length||(store.get('ach',[])||[]).length);
+  return !!(livingRun()||store.get('name','')||store.get('pid','')||store.get('best',null)||store.get('profile',null)||store.get('model',null)||store.get('run',null)||(store.get('hist',[])||[]).length||(store.get('disc',[])||[]).length||(store.get('ach',[])||[]).length);
 }
 function paintTitleDel(){const b=$('titleDel');if(b)b.disabled=!hasSavedData()}
 function deleteMyData(){
-  if(!confirm('Delete ALL your OPT/IN data?\nThis removes your name, shared data types, inferences, behavior patterns, your high score, achievements, and your rows on the leaderboard.\nYou will choose a new name next time.\nPrivacy has trade-offs too.'))return;
+  if(!confirm('Delete ALL your OPT/IN data?\nThis removes your name, saved run, shared data types, inferences, behavior patterns, your high score, achievements, and your rows on the leaderboard.\nYou will choose a new name next time.\nPrivacy has trade-offs too.'))return;
   const pid=store.get('pid',''),keep=(store.get('board',[])||[]).filter(e=>!pid||e.pid!==pid),seen=store.get('seen','');
   store.clear();
   store.set('board',keep);
@@ -2016,9 +2187,26 @@ function deleteMyData(){
   const d=$('delBtn');if(d)d.disabled=true;
   if(pid)wipeMyBoard(pid).then(()=>{if(!$('board').classList.contains('hidden'))renderBoard()});
 }
+function runBlurb(run){
+  const score=(run.score||0).toLocaleString();
+  if(run.checkpoint==='live')return `SAVED RUN · WAVE ${run.wave} · ${score}`;
+  if(run.checkpoint==='terms')return `SAVED · UPGRADES · WAVE ${run.wave} CLEARED · ${score}`;
+  if(run.checkpoint==='advance')return `SAVED · ABOUT TO START WAVE ${(run.wave||0)+1} · ${score}`;
+  return `SAVED · AFTER WAVE ${run.wave} · ${score}`;
+}
+function abandonRun(){
+  if(!livingRun())return;
+  if(!confirm('Abandon the saved run?\nShared data and behavior patterns stay on file. This run\'s score and upgrades are dropped.'))return;
+  store.set('run',null);
+  refreshTitle();
+}
 function refreshTitle(){
   const nm=playerName();
   $('whoLine').textContent=nm?'PLAYING AS '+nm:'';
+  const run=livingRun();
+  $('startBtn').textContent=run?'CONTINUE':'PLAY';
+  $('runLine').textContent=run?runBlurb(run):'';
+  $('abandonBtn').classList.toggle('hidden',!run);
   const b=store.get('best',null),h=store.get('hist',[]),d=store.get('disc',[]),a=store.get('ach',[]);
   $('bestLine').textContent=b&&b.score?`BEST ${b.score.toLocaleString()} · WAVE ${b.wave} · ${h.length} SESSIONS OBSERVED · ${a.length}/${Object.keys(ACH).length} ACHIEVEMENTS`:'';
   $('discLine').innerHTML=d.length?'INFERENCES DISCOVERED '+d.length+'/6<br>'+INF.map(f=>`<span class="${d.includes(f.id)?'on':''}">${d.includes(f.id)?f.name:'??????'}</span>`).join(''):'';
@@ -2032,7 +2220,7 @@ function refreshTitle(){
 }
 function paintTitleBoard(n){
   const b=$('titleBoard');if(!b)return;
-  if(n==null)n=(store.get('board',[])||[]).length;
+  if(n==null)n=boardPrune(store.get('board',[])||[]).length;
   b.textContent=n?'LEADERBOARD · '+n:'LEADERBOARD';
 }
 function logFresh(){return store.get('seen','')!==VERSION}
@@ -2068,7 +2256,8 @@ $('pauseSub').addEventListener('click',()=>{if(S&&!S.fair)openSubModal()});
 $('subConfirm').addEventListener('click',confirmFair);
 $('subNope').addEventListener('click',closeSubModal);
 $('subModal').addEventListener('click',e=>{if(e.target.id==='subModal')closeSubModal()});
-$('startBtn').addEventListener('click',startGame);
+$('startBtn').addEventListener('click',()=>{if(livingRun())continueGame();else startGame()});
+$('abandonBtn').addEventListener('click',abandonRun);
 $('nameGo').addEventListener('click',submitName);
 $('nameBack').addEventListener('click',closeName);
 $('titleBoard').addEventListener('click',()=>openBoard('title'));
@@ -2076,8 +2265,16 @@ $('boardBack').addEventListener('click',closeBoard);
 $('titleVer').addEventListener('click',openLog);
 $('logOk').addEventListener('click',closeLog);
 $('titleDel').addEventListener('click',deleteMyData);
-boardPull().then(list=>paintTitleBoard(list.length));
-if(logFresh())openLog();
+const resumedDead=bootDeadRun();
+boardPull().then(async list=>{
+  paintTitleBoard(boardPrune(list).length);
+  if(boardPrune(list).length<list.length){
+    const next=await boardMutate(xs=>xs);
+    paintTitleBoard(next.length);
+    if(!$('board').classList.contains('hidden'))renderBoard();
+  }
+});
+if(!resumedDead&&logFresh())openLog();
 </script>
 </body>
 </html>
