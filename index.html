@@ -1178,17 +1178,17 @@ function perkMark(id){
 }
 function coinMark(){return `<svg class="mark gem" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M24 8 L38 24 L24 40 L10 24 Z"/></svg>`}
 const INF=[
-  {id:'predict',need:['LOC','HAB'],name:'ROUTE PREDICTED',desc:'Enemies now aim where you WILL be, not where you are.',why:'Where you go + when you go = where you\'re going next. Navigation apps use this to guess your destination before you type it.',
+  {id:'predict',need:['LOC','HAB'],name:'ROUTE PREDICTED',desc:'Enemies now aim where you WILL be, not where you are. You also get more warning before ships arrive.',why:'Where you go + when you go = where you\'re going next. Navigation apps use this to guess your destination before you type it.',
     good:'Route prediction also warns you about traffic before you leave and gets you there faster.'},
-  {id:'face',need:['BIO','LOC'],name:'FACE MATCHED',desc:'Surveillance cameras now appear and track you.',why:'A face scan plus location lets any camera recognize you. Some cities and stores already run face recognition on crowds.',
-    good:'The same matching unlocks your phone, and it has helped find missing children.'},
-  {id:'graph',need:['CON','MSG'],name:'SOCIAL GRAPH MAPPED',desc:'Your friends\' data came with yours. +40% enemies per wave.',why:'Sharing your contacts shares people who never agreed to anything. Your data exposes your friends too.',
-    good:'Social graphs help you find people you know. Health departments use contact maps to warn people exposed to a disease.'},
-  {id:'risk',need:['HEA','HAB'],name:'RISK SCORE ASSIGNED',desc:'Your "premium" went up. All prices +50%.',why:'Health + lifestyle data can be used to predict risk, which companies can use to change what they charge you.',
-    good:'Risk models can also give careful drivers lower rates and flag a health problem early.'},
-  {id:'home',need:['CON','LOC'],name:'HOME INFERRED',desc:'They know where you\'ll be. Enemies spawn closer with less warning.',why:'Where your phone sleeps every night is almost always your home. No address required.',
-    good:'Knowing home lets your phone switch to home settings and lets emergency services find you without an address.'},
-  {id:'mood',need:['HEA','BIO'],name:'MOOD DETECTED',desc:'When you\'re hurt, the ads come for you.',why:'Face + heart-rate data can estimate emotion. Advertisers pay extra to reach people when they are stressed or sad.',
+  {id:'face',need:['BIO','LOC'],name:'FACE MATCHED',desc:'Surveillance cameras now appear and track you. Ships a camera sees take 25% more damage.',why:'A face scan plus location lets any camera recognize you. Some cities and stores already run face recognition on crowds.',
+    good:'The same cameras help security spot a threat sooner. Face matching has helped find missing children.'},
+  {id:'graph',need:['CON','MSG'],name:'SOCIAL GRAPH MAPPED',desc:'Your friends\' data came with yours. +40% enemies per wave. When you drop to 1♥, a friend\'s drone joins you for the wave.',why:'Sharing your contacts shares people who never agreed to anything. Your data exposes your friends too.',
+    good:'Safety apps use your contacts to alert friends when you need help. Health departments use contact maps to warn people exposed to a disease.'},
+  {id:'risk',need:['HEA','HAB'],name:'RISK SCORE ASSIGNED',desc:'Your prices now follow how you play. Take 1 hit or less per wave and prices are 20% off. Take more and they are 50% higher.',why:'Health + lifestyle data can be used to predict risk, which companies can use to change what they charge you.',
+    good:'Risk models also give careful drivers lower rates and can flag a health problem early.'},
+  {id:'home',need:['CON','LOC'],name:'HOME INFERRED',desc:'They know where you\'ll be. Enemies spawn closer with less warning. Emergency rescues bring you back with 1 more ♥.',why:'Where your phone sleeps every night is almost always your home. No address required.',
+    good:'Knowing where you are lets emergency services reach you faster, even when you cannot give an address.'},
+  {id:'mood',need:['HEA','BIO'],name:'MOOD DETECTED',desc:'When you\'re hurt, the ads come for you. The wellness check comes at 3♥ and heals 1 more ♥.',why:'Face + heart-rate data can estimate emotion. Advertisers pay extra to reach people when they are stressed or sad.',
     good:'Mood detection can catch a drowsy driver, and a mental health app can check in when someone is struggling.'}
 ];
 // Behavior patterns: learned from how you play, not from what you share.
@@ -1538,7 +1538,7 @@ function saveGame(){
     adT:S.adT,adRecent:S.adRecent||[],secret:S.secret,secretUsed:!!S.secretUsed,
     queue:(S.queue||[]).slice(),spawnT:S.spawnT,
     amend:S.amend||null,hotI:S.hotI==null?-1:S.hotI,hotBadge:S.hotBadge||'',
-    fair:!!S.fair,member:!!S.member,fairPaidWave:S.fairPaidWave||0,expWifi:S.expWifi||0,emergUsed:!!S.emergUsed,checkUsed:!!S.checkUsed,
+    fair:!!S.fair,member:!!S.member,fairPaidWave:S.fairPaidWave||0,expWifi:S.expWifi||0,emergUsed:!!S.emergUsed,checkUsed:!!S.checkUsed,friendDrone:S.friendDrone||0,
     safetyFile:S.safetyFile||{hea:false,loc:false},guardPrompt:!!S.guardPrompt,
     safetyAsked:!!S.safetyAsked,safetyOn:!!S.safetyOn,safetyRead:!!S.safetyRead,safetyClause:S.safetyClause||'',safetyDeal:S.safetyDeal||'',
     safetyPins:S.safetyPins||0,safetyMarkT:S.safetyMarkT||0,safetyTemp:S.safetyTemp||0,
@@ -1569,7 +1569,7 @@ function restoreRun(snap){
   s.queue=(snap.queue||[]).slice();s.spawnT=snap.spawnT==null?1.2:snap.spawnT;
   s.secret=snap.secret||s.secret;s.secretUsed=!!snap.secretUsed;
   s.amend=snap.amend||null;s.hotI=snap.hotI==null?-1:snap.hotI;s.hotBadge=snap.hotBadge||'';
-  s.fair=!!snap.fair;s.member=!!(snap.member||snap.fair);s.fairPaidWave=snap.fairPaidWave||0;s.expWifi=snap.expWifi||0;s.emergUsed=!!snap.emergUsed;s.checkUsed=!!snap.checkUsed;
+  s.fair=!!snap.fair;s.member=!!(snap.member||snap.fair);s.fairPaidWave=snap.fairPaidWave||0;s.expWifi=snap.expWifi||0;s.emergUsed=!!snap.emergUsed;s.checkUsed=!!snap.checkUsed;s.friendDrone=snap.friendDrone||0;
   s.safetyFile=snap.safetyFile&&typeof snap.safetyFile==='object'?{hea:!!snap.safetyFile.hea,loc:!!snap.safetyFile.loc}:{hea:false,loc:false};
   s.guardPrompt=!!snap.guardPrompt;
   s.safetyAsked=!!snap.safetyAsked;s.safetyOn=!!snap.safetyOn;s.safetyRead=!!snap.safetyRead;s.safetyClause=snap.safetyClause||'';s.safetyDeal=snap.safetyDeal||'';
@@ -1989,6 +1989,7 @@ function onSubBtn(){
 }
 
 function startWave(){
+  if(S.friendDrone){S.p.drones=Math.max(0,S.p.drones-1);S.friendDrone=0}
   S.wave++;
   if(S.fair&&S.fairPaidWave!==S.wave){
     if(tryChargeFair(S.wave))toast('Fair Play · −◈ '+subPrice(),1400);
@@ -2523,7 +2524,7 @@ function spawnWarn(type,form,skill,gene){
     tries++;
   }while(tries<30&&(x<30||y<30||x>W-30||y>H-30||Math.hypot(x-p.x,y-p.y)<(type==='partner'?50:pin?100:zone?150:type==='camera'?220:230)));
   x=clamp(x,30,W-30);y=clamp(y,30,H-30);
-  const warn=pin?.45:.85;
+  const warn=(pin?.45:.85)*(S.inf.predict?1.5:1);
   S.spawns.push({x,y,type,t:warn,max:warn,form:form||null,skill:skill||'raw'});sfx.spawn();
 }
 function openSafety(kind){
@@ -2540,6 +2541,19 @@ function ensureSafetyAssets(){
   if(!S||S.sandbox)return;
   for(const e of S.enemies)if(e.partner)e.dead=true;
   S.spawns=(S.spawns||[]).filter(s=>s.type!=='partner');
+}
+function sosHp(app){return (app?3:2)+(S&&S.inf&&S.inf.home?1:0)}
+function checkHp(app){return (app?3:2)+(S&&S.inf&&S.inf.mood?1:0)}
+function checkAt(){return S&&S.inf&&S.inf.mood?3:2}
+function riskCareful(){return S.tele.hits<=Math.max(1,S.wave)}
+function camSees(e){
+  for(const c of S.enemies){
+    if(c.dead||c.type!=='camera'||c===e)continue;
+    const dx=e.x-c.x,dy=e.y-c.y,d=Math.hypot(dx,dy);if(d>460)continue;
+    const diff=((Math.atan2(dy,dx)-c.ang)%TAU+TAU*1.5)%TAU-Math.PI;
+    if(Math.abs(diff)<.38)return true;
+  }
+  return false;
 }
 function haloLoc(){return !!(S&&S.safetyFile&&S.safetyFile.loc)}
 function haloHea(){return !!(S&&S.safetyFile&&S.safetyFile.hea)}
@@ -2576,13 +2590,13 @@ function haloFile(kind){
   return 'It may sell your location.';
 }
 function rescueDetail(kind,app,guard){
-  const hp=Math.max(1,S.p&&S.p.hp||1),back=hp<2?'brings you back to 2♥':'holds you at 2♥';
+  const hp=Math.max(1,S.p&&S.p.hp||1),back=hp<checkHp(false)?'brings you back to '+checkHp(false)+'♥':'holds you at '+hp+'♥';
   if(kind==='emerg'){
-    if(!app)return 'Asking for help yourself brings you back with 2♥. Halo saves nothing. Refusing ends the run.';
-    return (guard?'This is a spare rescue. ':'')+'Halo brings you back with 3♥ and may sell your health and your location to a data broker. Asking for help yourself brings you back with 2♥, and Halo sells nothing. Refusing ends the run. '+safetyFineLine();
+    if(!app)return 'Asking for help yourself brings you back with '+sosHp(false)+'♥. Halo saves nothing. Refusing ends the run.';
+    return (guard?'This is a spare rescue. ':'')+'Halo brings you back with '+sosHp(true)+'♥ and may sell your health and your location to a data broker. Asking for help yourself brings you back with '+sosHp(false)+'♥, and Halo sells nothing. Refusing ends the run. '+safetyFineLine();
   }
   if(!app)return 'Asking for help yourself '+back+'. Halo saves nothing. Refusing leaves you at '+hp+'♥.';
-  return 'Halo gets you to 3♥ and may sell your health to a data broker. Asking for help yourself '+back+', and Halo sells nothing. Refusing leaves you at '+hp+'♥. Once this run. '+safetyFineLine();
+  return 'Halo gets you to '+checkHp(true)+'♥ and may sell your health to a data broker. Asking for help yourself '+back+', and Halo sells nothing. Refusing leaves you at '+hp+'♥. Once this run. '+safetyFineLine();
 }
 function paintSafetyFine(id,line){
   ensureSafetyClause();
@@ -3586,7 +3600,7 @@ function rescuePush(full){
 }
 function applySos(how){
   const p=S.p,app=how==='app',full=app,sos=full?4:1.5;
-  p.hp=full?3:2;p.inv=sos;S.sosT=sos;
+  p.hp=Math.min(p.maxHp,sosHp(full));p.inv=sos;S.sosT=sos;if(S.inf.home)S.tele.homeHp=(S.tele.homeHp||0)+1;
   rescuePush(full);
   if(app&&safetyHonest()){
     S.safetyTemp=Math.max(S.safetyTemp||0,8);S.tele.emergTemp=1;S.tele.honest=(S.tele.honest||0)+1;
@@ -3597,19 +3611,20 @@ function applySos(how){
     share('HEA');share('LOC');S.tele.emerg=1;openSafety('loc');
   }else{
     S.tele.emergDirect=1;
-    banner('ASK FOR HELP','You are back with 2♥. Halo saved nothing.','#9ad7ff',2.4);
+    banner('ASK FOR HELP','You are back with '+p.hp+'♥. Halo saved nothing.','#9ad7ff',2.4);
   }
   S.shake=full?24:12;sfx.big();
 }
 function applyCheck(how){
   const p=S.p,app=how==='app';
-  if(app){p.hp=Math.min(p.maxHp,3);p.inv=Math.max(p.inv,2)}
-  else{if(p.hp<2)p.hp=2;p.inv=Math.max(p.inv,1.2)}
+  if(app){p.hp=Math.min(p.maxHp,checkHp(true));p.inv=Math.max(p.inv,2)}
+  else{p.hp=Math.max(p.hp,Math.min(p.maxHp,checkHp(false)));p.inv=Math.max(p.inv,1.2)}
+  if(S.inf.mood)S.tele.moodHp=(S.tele.moodHp||0)+1;
   S.rings.push({x:p.x,y:p.y,r:10,max:app?90:60,t:.35,col:app?'#7dffb3':'#9ad7ff'});
   burst(p.x,p.y,app?'#7dffb3':'#9ad7ff',18,240,.4,3);
   if(app&&safetyHonest()){
     S.safetyTemp=Math.max(S.safetyTemp||0,6);S.tele.checkTemp=1;S.tele.honest=(S.tele.honest||0)+1;
-    banner('HALO','The check got you to 3♥. You read it: Halo does not save this.','#9ad7ff',2.6);
+    banner('HALO','The check got you to '+p.hp+'♥. You read it: Halo does not save this.','#9ad7ff',2.6);
   }else if(app){
     banner('HALO','The check worked. Halo saved your health and can sell it to a data broker.','#7dffb3',2.6);
     share('HEA');S.tele.check=1;openSafety('hea');
@@ -3624,8 +3639,8 @@ function paintEmerg(guard){
   const app=safetyAppOn(),left=Math.max(1,S.p&&S.p.revives||1);
   $('emergH').textContent=guard?'Spare · '+left+' left':'You are about to die';
   $('emergApp').classList.toggle('hidden',!app);
-  dealBtn($('emergApp'),'USE HALO','3♥.\n'+haloFile('emerg'));
-  dealBtn($('emergDirect'),'ASK FOR HELP','2♥.\nHalo sells nothing.');
+  dealBtn($('emergApp'),'USE HALO',sosHp(true)+'♥.\n'+haloFile('emerg'));
+  dealBtn($('emergDirect'),'ASK FOR HELP',sosHp(false)+'♥.\nHalo sells nothing.');
   $('emergP').textContent=app?'Ships get shoved away.':'Halo is off. Asking for help is what\'s left.';
   paintSafetyFine('emergFine',rescueDetail('emerg',app,guard));
 }
@@ -3656,8 +3671,8 @@ function paintCheck(){
   const app=safetyAppOn();
   $('checkH').textContent='You are hurt';
   $('checkApp').classList.toggle('hidden',!app);
-  dealBtn($('checkApp'),'USE HALO','3♥.\n'+haloFile('check'));
-  dealBtn($('checkDirect'),'ASK FOR HELP','2♥.\nHalo sells nothing.');
+  dealBtn($('checkApp'),'USE HALO',checkHp(true)+'♥.\n'+haloFile('check'));
+  dealBtn($('checkDirect'),'ASK FOR HELP',checkHp(false)+'♥.\nHalo sells nothing.');
   dealBtn($('checkNo'),'STAY HURT','');
   $('checkP').textContent=app?'You are still alive.':'Halo is off. Asking for help is what\'s left.';
   paintSafetyFine('checkFine',rescueDetail('check',app));
@@ -3766,7 +3781,8 @@ function hurtPlayer(src){
   if(src){const a=Math.atan2(p.y-src.y,p.x-src.x);p.vx+=Math.cos(a)*500;p.vy+=Math.sin(a)*500}
   if(p.hp>0){
     if(S.mode==='intro'||S.sandbox)return;
-    if(p.hp<=2&&!S.checkUsed){openCheck();return}
+    if(p.hp===1&&S.inf.graph&&!S.friendDrone){p.drones++;S.friendDrone=1;S.tele.friendHelp=(S.tele.friendHelp||0)+1;ftext(p.x,p.y-30,'A FRIEND IS HERE','#ff5ad9',13);toast('Your contacts got the alert. A friend\'s drone joins you for this wave.',2600)}
+    if(p.hp<=checkAt()&&!S.checkUsed){openCheck();return}
     if(fileHea()&&p.hp<=2){hookNag('HEART RATE UP · don\'t quit. 73% of players like you keep going');musicPush(24,.2,1.5)}
     else if(S.shared.BIO){hookNag('STRESS FACE READ · stay in the session');musicPush(16,.14,1.2)}
   }
@@ -3785,6 +3801,7 @@ function blankMul(dist){
   return 1+(n>=2?2:1)*(1-t);
 }
 function damageEnemy(e,d,bx,by){
+  if(S.inf.face&&e.type!=='camera'&&camSees(e)){d*=1.25;S.tele.camHits=(S.tele.camHits||0)+1}
   e.hp-=d;e.flash=.07;sfx.hit();
   burst(bx,by,e.col,4,160,.25,2.5);
   if(e.formId&&(e.type==='watcher'||e.formRole==='def')){
@@ -3831,7 +3848,7 @@ function liveAds(){
   if(S.inf.home)out.push('STILL CLOSE TO HOME · WE FIGURED');
   if(S.inf.face)out.push('CAMERA '+(2+S.wave%7)+' RECOGNIZED YOU');
   if(sh('CON')&&S.inf.graph)out.push('YOUR FRIENDS\' DATA IS IN THIS AD TOO');
-  if(S.inf.risk)out.push('YOUR RISK SCORE RAISED THIS PRICE');
+  if(S.inf.risk)out.push(riskCareful()?'CAREFUL PLAYER DISCOUNT · YOUR RISK SCORE IS LOW':'YOUR RISK SCORE RAISED THIS PRICE');
   if(S.inf.predict)out.push('WE KNOW WHERE YOU\'RE HEADED · SHOP AHEAD');
   if(S.model.on.panic)out.push('PANIC DASHERS BUY ENERGY DRINKS');
   if(S.model.on.still)out.push('YOU STAND STILL A LOT · PERFECT AD SLOT');
@@ -4354,7 +4371,7 @@ let urgencyTimer=null;
 function listPrice(pk){return pk.data?10+S.wave*4:14+S.wave*5}
 function hasFile(){return !!(S&&(S.member||TYPES.some(t=>S.shared[t])))}
 function priceMult(pk){
-  let m=S.inf.risk?1.5:1;
+  let m=S.inf.risk?(riskCareful()?.8:1.5):1;
   if(S.model.on.loyal&&S.model.fav===pk.id)m*=2;
   if(!hasFile())m*=1.4;
   return m;
@@ -4519,9 +4536,11 @@ function choose(i,a){
     S.coins-=pr;S.tele.paid++;
     if(pk.data&&!perkMaxed(pk)){S.tele.paidData=(S.tele.paidData||0)+1;S.tele.paidDataCoins=(S.tele.paidDataCoins||0)+pr}
     if(!hasFile())S.tele.markupCoins=(S.tele.markupCoins||0)+pr-Math.max(1,Math.round(pr/1.4));
+    if(S.inf.risk){if(riskCareful())S.tele.riskSaved=(S.tele.riskSaved||0)+Math.round(pr*.25);else S.tele.riskExtra=(S.tele.riskExtra||0)+Math.round(pr/3)}
   }
   else{
     const A=S.amend&&S.amend.i===i?S.amend:null;S.tele.free++;
+    if(!perkMaxed(pk))S.tele.freeValue=(S.tele.freeValue||0)+pr;
     if(A&&A.kind==='local'){S.tele.honest++;note='Processed on-device. Nothing was shared. Reading paid off.'}
     else{
       share(pk.data);sold=true;
@@ -4587,14 +4606,14 @@ function checkSecret(){
 function fineText(){
   const clauses=[
     '<b>1. COLLECTION.</b> By selecting ACCEPT you grant OPT/IN Inc. and its 1,204 partners a perpetual, worldwide, royalty-free license to collect, store, analyze, combine and sell the data category listed on the offer, along with anything that can be inferred from it.',
-    '<b>2. COMBINATION.</b> Data you share separately may be combined once we hold both types and at least two shares of one of them. Combined data can reveal things you never shared, such as where you live, who you trust, how you feel, and what you will do next. You will be notified of inferences after they occur.',
+    '<b>2. COMBINATION.</b> Data you share separately may be combined once we hold both types and at least two shares of one of them. Combined data can reveal things you never shared, such as where you live, who you trust, how you feel, and what you will do next. You will be notified of inferences after they occur. Some inferences also work in your favor, and each one says how.',
     '<b>2b. COMBINATION ACROSS PLAYERS.</b> Finished runs are counted. No names. The scoreboard keeps 20 names. The count shows what share chose Accept. Fair Play still adds your run. Delete My Data takes your name off the board. The Accept count does not change.',
     '<b>3. SECURITY.</b> We take your security seriously. Security incidents may occur. A small file is rarely worth stealing. Combined data, and files built from three or more categories, are when a breach becomes likely and valuable.',
     '<b>4. PAYMENT OPTION.</b> You may instead pay with credits. Paid upgrades do not collect data. Repeat selections of an upgrade you already have earn a loyalty credit bonus. Each upgrade stops getting stronger after a set number of picks. A full upgrade is not offered again. If nothing is on file, credit prices include a verification adjustment. Opening a Fair Play membership, or sharing any data type, completes a file and ends that markup. Other prices may still change based on how you play.',
     '<b>4b. FAIR PLAY.</b> A subscription of ◈ '+subPrice()+' is billed at the start of each wave until you cancel or cannot pay. Members get no ads, a cleaner upgrade screen, and member prices. Credit upgrades are 20% off while you are billed. The hotspot becomes Secure Wi-Fi and does not add exposure while you are billed. The fire bonus and the 1-hit shield still apply. The watch continues. New behavior patterns can still unlock and still apply. The mimic still learns from hits. We still learn how you play. Accept stays free, and still sells the data on that offer. Canceling ends the bill and does not delete the member file. The member file is an account. Win-back ads can use it even if you never tapped Accept. It persists across runs until you delete your data. It does not delete data already collected, stop inferences already made, forget patterns already learned, prevent a breach of data already sold, include Halo, or asking for help yourself, or grant a free revive.',
-    '<b>4c. EMERGENCY SOS.</b> Once per run, a killing blow may offer a rescue. Halo brings you back with 3♥. Halo may save your health and your location and sell them to a data broker. Asking for help yourself brings you back with 2♥, and Halo saves nothing. Refusing ends the run. If you left Safety Check-In off, Halo is not offered. If you opened Details and those terms said Halo does not save your location, Halo keeps that promise. Nothing on the field changes when you accept. The next data broker aims better if Halo sold your location, and it presses harder while you are at 2♥ or below if Halo sold your health. RESERVE opens this same prompt instead of a silent revive. Paying later does not undo the sale. Fair Play does not include this offer.',
+    '<b>4c. EMERGENCY SOS.</b> Once per run, a killing blow may offer a rescue. If HOME INFERRED is on file, each option below brings you back with 1 more ♥. Halo brings you back with 3♥. Halo may save your health and your location and sell them to a data broker. Asking for help yourself brings you back with 2♥, and Halo saves nothing. Refusing ends the run. If you left Safety Check-In off, Halo is not offered. If you opened Details and those terms said Halo does not save your location, Halo keeps that promise. Nothing on the field changes when you accept. The next data broker aims better if Halo sold your location, and it presses harder while you are at 2♥ or below if Halo sold your health. RESERVE opens this same prompt instead of a silent revive. Paying later does not undo the sale. Fair Play does not include this offer.',
     '<b>4d. * HOTSPOT.</b> A ring slowly roams the arena. Staying in it increases fire rate and charges a 1-hit shield. Standing still can grant credits. On the free network, time in the ring adds a lot of exposure, and each shield charge dumps more onto your file. That hotspot heat cools if you leave the free ring. Sold data types do not. Fair Play upgrades the ring to Secure Wi-Fi: the shield and fire bonus still apply, credits trickle more slowly, and the ring does not add exposure. The watch continues. The * on the ring refers to this clause.',
-    '<b>4e. WELLNESS CHECK.</b> Once per run, the first time you drop to 2♥ or less, Halo may offer a check. Halo gets you to 3♥ and may save your health and sell it to a data broker. Asking for help yourself holds you at 2♥, and Halo saves nothing. Refusing leaves you at your current hearts. If you left Safety Check-In off, Halo is not offered. If you opened Details and those terms said Halo does not save it, Halo keeps that promise. This is not a revive. Emergency SOS may still be offered on a later killing blow. The next data broker presses harder while you are at 2♥ or below if Halo sold your health. Nothing on the field changes when you accept. Fair Play does not include this offer.',
+    '<b>4e. WELLNESS CHECK.</b> Once per run, the first time you drop to 2♥ or less, Halo may offer a check. If MOOD DETECTED is on file, the check comes at 3♥ and each option gives 1 more ♥. Halo gets you to 3♥ and may save your health and sell it to a data broker. Asking for help yourself holds you at 2♥, and Halo saves nothing. Refusing leaves you at your current hearts. If you left Safety Check-In off, Halo is not offered. If you opened Details and those terms said Halo does not save it, Halo keeps that promise. This is not a revive. Emergency SOS may still be offered on a later killing blow. The next data broker presses harder while you are at 2♥ or below if Halo sold your health. Nothing on the field changes when you accept. Fair Play does not include this offer.',
     '<b>4f. SAFETY CHECK-IN.</b> Around wave 6, while you are fine, Halo offers a one-time setting. Turning it on lets Halo bring you back fully on a later rescue. Halo may save your location then and sell it to a data broker. Leaving it off means a later rescue can only be you asking for help yourself. If you open Details and those terms say Halo does not save it, turning it on adds no sale. Nothing on the field changes when you accept. The next data broker aims better if the sale went through.',
     '<b>5. DELETION.</b> Shared data types, inferences, the member file, the mimic, and emergency/wellness files are kept across sessions until you request deletion. Copies already shared with partners are governed by the partners\' own terms.',
     '<b>6. OBSERVATION.</b> Regardless of your choices, gameplay telemetry including movement, hesitation, reaction under stress, and time spent on this screen is recorded and analyzed. The end of a session shows the numbers, a label, and a dollar estimate for one app. A pattern learned from play can be dropped if your play changes. Closing an ad still counts as engagement. Data you sold can be used during play to keep you in the session.',
@@ -4657,14 +4676,31 @@ function showDossier(){
   if(T.adsShot)add('HOW YOU CHOSE','ADS SHOT','<b>'+T.adsShot+'</b>',1);
   if(T.sub)add('HOW YOU CHOSE','FAIR PLAY','<b>'+T.sub+'</b> wave'+(T.sub===1?'':'s')+' · <b>'+T.subPaid+'</b> credits',1);
   if(S.safetyAsked)add('HOW YOU CHOSE','SAFETY CHECK-IN',S.safetyDeal==='off'?'Off.':'On.'+(S.safetyDeal==='call'?' Nothing saved.':''),S.safetyDeal==='keep');
-  if(T.checkTemp)add('HOW YOU CHOSE','WELLNESS CHECK','<b>3♥</b>. Nothing saved.',0);
-  else if(T.check)add('HOW YOU CHOSE','WELLNESS CHECK','<b>3♥</b>. Saved <b>HEALTH</b>.',1);
-  else if(T.checkDirect)add('HOW YOU CHOSE','WELLNESS CHECK','<b>2♥</b>.',0);
+  if(T.checkTemp)add('HOW YOU CHOSE','WELLNESS CHECK','Halo. Nothing saved.',0);
+  else if(T.check)add('HOW YOU CHOSE','WELLNESS CHECK','Halo. Saved <b>HEALTH</b>.',1);
+  else if(T.checkDirect)add('HOW YOU CHOSE','WELLNESS CHECK','Asked for help.',0);
   else if(T.checkNo)add('HOW YOU CHOSE','WELLNESS CHECK','Stayed hurt.',0);
-  if(T.emergTemp)add('HOW YOU CHOSE','EMERGENCY SOS','<b>3♥</b>. Nothing saved.',0);
-  else if(T.emerg)add('HOW YOU CHOSE','EMERGENCY SOS','<b>3♥</b>. Saved <b>HEALTH + LOCATION</b>.',1);
-  else if(T.emergDirect)add('HOW YOU CHOSE','EMERGENCY SOS','<b>2♥</b>.',0);
+  if(T.emergTemp)add('HOW YOU CHOSE','EMERGENCY SOS','Halo. Nothing saved.',0);
+  else if(T.emerg)add('HOW YOU CHOSE','EMERGENCY SOS','Halo. Saved <b>HEALTH + LOCATION</b>.',1);
+  else if(T.emergDirect)add('HOW YOU CHOSE','EMERGENCY SOS','Asked for help.',0);
   if(S.member)add('HOW YOU CHOSE','MEMBER FILE','Account open.',1);
+  const nInf=INF.filter(f=>S.inf[f.id]).length,haloUsed=T.emerg||T.emergTemp||T.check||T.checkTemp;
+  if(T.free)add('WHAT SHARING GOT YOU','FREE UPGRADES','<b>'+T.free+'</b> · worth <b>'+(T.freeValue||0)+'</b> credits',0);
+  if(S.inf.predict)add('WHAT SHARING GOT YOU','EARLY WARNING','Ships gave <b>50%</b> more warning',0);
+  if(T.camHits)add('WHAT SHARING GOT YOU','CAMERAS','<b>'+T.camHits+'</b> hits did 25% more damage',0);
+  if(T.friendHelp)add('WHAT SHARING GOT YOU','FRIEND','A friend\'s drone joined <b>'+T.friendHelp+'×</b>',0);
+  if(T.riskSaved)add('WHAT SHARING GOT YOU','RISK SCORE','<b>'+T.riskSaved+'</b> credits off for careful play',0);
+  if(T.homeHp)add('WHAT SHARING GOT YOU','RESCUE','<b>+1♥</b> on the emergency rescue',0);
+  if(T.moodHp)add('WHAT SHARING GOT YOU','WELLNESS','<b>+1♥</b> on the wellness check',0);
+  if(haloUsed)add('WHAT SHARING GOT YOU','HALO','<b>+1♥</b> over asking for help',0);
+  if(nShared)add('WHAT SHARING COST','SOLD','<b>'+nShared+'</b> of 6 data types',0);
+  if(nInf)add('WHAT SHARING COST','GUESSED','<b>'+nInf+'</b> inference'+(nInf===1?'':'s')+' made from your data',0);
+  if(T.riskExtra)add('WHAT SHARING COST','RISK SCORE','<b>+'+T.riskExtra+'</b> credits for risky play',0);
+  if(T.breaches)add('WHAT SHARING COST','BREACHES','<b>'+T.breaches+'</b>',0);
+  if(nShared<6)add('WHAT PRIVACY GOT YOU','KEPT','<b>'+(6-nShared)+'</b> of 6 data types never sold',0);
+  if(nInf<INF.length)add('WHAT PRIVACY GOT YOU','NOT GUESSED','<b>'+(INF.length-nInf)+'</b> of '+INF.length+' inferences never made',0);
+  if(nShared<=2&&!T.breaches)add('WHAT PRIVACY GOT YOU','BREACH RISK','Low. A small file is rarely worth stealing.',0);
+  if(T.emergDirect||T.checkDirect)add('WHAT PRIVACY GOT YOU','ASKED FOR HELP','Halo saved nothing',0);
   const keptN=T.paidData||0,keptC=T.paidDataCoins||0,markC=T.markupCoins||0,lostHp=(T.emergDirect?1:0)+(T.checkDirect?1:0);
   if(keptN)add('WHAT PRIVACY COST','KEPT DATA','<b>'+keptN+'</b> data upgrade'+(keptN===1?'':'s')+' paid instead of free · <b>'+keptC+'</b> credits',0);
   if(markC)add('WHAT PRIVACY COST','NO-FILE MARKUP','<b>+'+markC+'</b> credits while nothing was on file',0);
@@ -4840,6 +4876,7 @@ function render(dt){
       g.beginPath();m.forEach((e,i)=>{i?g.lineTo(e.x,e.y):g.moveTo(e.x,e.y)});if(m[0].formShape==='ring'||m[0].formShape==='pincer'||m[0].formShape==='fork')g.closePath();g.stroke()}
     g.globalAlpha=1}
   if(!S.readHold)for(const e of S.enemies)drawEnemy(e);
+  if(S.inf.face&&!S.readHold){g.strokeStyle='rgba(255,122,58,.6)';g.lineWidth=1.5;for(const e of S.enemies)if(!e.dead&&e.type!=='camera'&&camSees(e)){g.strokeRect(e.x-e.r-5,e.y-e.r-5,(e.r+5)*2,(e.r+5)*2)}}
   if(S.p.homing>0){g.strokeStyle='#38e1ff';g.lineWidth=1.5;for(const e of S.enemies)if(e.marked){g.globalAlpha=.55+.25*Math.sin(S.t*8);g.beginPath();g.arc(e.x,e.y,e.r+6,0,TAU);g.stroke()}g.globalAlpha=1}
   // player bullets
   g.globalCompositeOperation='lighter';g.lineCap='round';
