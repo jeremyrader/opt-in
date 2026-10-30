@@ -833,6 +833,7 @@ function crowdNorm(c){
 }
 function crowdCache(c){const n=crowdNorm(c);store.set('crowd',n);return n}
 function getCrowd(){return crowdNorm(store.get('crowd',null))}
+function acceptPct(accepts,n){return n?Math.round(accepts/n*100)+'%':'0%'}
 function foldCrowd(cur,snap){
   const c=crowdNorm(cur);
   if(!snap)return c;
@@ -950,12 +951,12 @@ async function removeBoardPlayer(e){
 function acceptCountLine(){
   const c=getCrowd();
   if(!c.n)return '';
-  return c.accepts+' of '+c.n+' players chose Accept';
+  return acceptPct(c.accepts,c.n)+' of players chose Accept';
 }
 function classFileHtml(){
   const c=getCrowd();
   if(!c.n)return '<div class="sec">CLASS FILE</div>No runs yet.<br>When a run ends, Accept is counted here.<br>The list below keeps 20 names.';
-  return '<div class="sec">CLASS FILE</div><b>'+c.n+'</b> runs<br><b>'+c.accepts+'</b> chose Accept<br>The list below keeps 20 names.<br>Delete My Data takes your name off the board. The Accept count does not change.';
+  return '<div class="sec">CLASS FILE</div><b>'+c.n+'</b> runs<br><b>'+acceptPct(c.accepts,c.n)+'</b> chose Accept<br>The list below keeps 20 names.<br>Delete My Data takes your name off the board. The Accept count does not change.';
 }
 function openBoard(from){
   boardBack=from||'title';boardSel=null;
@@ -1344,7 +1345,7 @@ function pauseItems(){
   if(!S.sandbox&&S.formTier)items.push({id:'form',c:'#c04bff',title:'FIELD MODEL',sub:S.formTier===1?'ships are grouping':S.formTier===2?'new shapes on file':S.formTier===3?'packs are merging':'the field shares a plan'})
   if(!S.sandbox&&S.strain&&(S.strain.gen||1)>1)items.push({id:'strain',c:'#8eb6ff',title:'MIMIC',sub:'gen '+(S.strain.gen||1)})
   for(const pk of PERKS){const n=S.tele.picks[pk.id]||0;if(!n)continue;items.push({id:'u-'+pk.id,c:pk.data?DATA[pk.data].c:'#38e1ff',title:perkMark(pk.id)+' '+pk.name,sub:perkMaxed(pk)?'upgrade · MAXED '+n+'/'+pk.cap:n>1?'upgrade ×'+n:'upgrade · active'})}
-  if(getCrowd().n>=3)items.push({id:'class',c:'#c04bff',title:'CLASS FILE',sub:getCrowd().accepts+' of '+getCrowd().n+' chose Accept'});
+  if(getCrowd().n>=3)items.push({id:'class',c:'#c04bff',title:'CLASS FILE',sub:acceptPct(getCrowd().accepts,getCrowd().n)+' chose Accept'});
   return items;
 }
 function pauseLines(lines){return (lines||[]).filter(Boolean).map(s=>'<span class="pl">'+s+'</span>').join('')}
@@ -1400,7 +1401,7 @@ function pauseDetail(id){
   if(id==='class'){
     const c=getCrowd();
     return `<h3>CLASS FILE</h3><div class="need">${pauseLines(['Every finished run.','The scoreboard keeps 20 names.'])}</div>
-      <div class="fx">${pauseLines([c.n+' runs',c.accepts+' chose Accept'])}</div>
+      <div class="fx">${pauseLines([c.n+' runs',acceptPct(c.accepts,c.n)+' chose Accept'])}</div>
       <div class="why">${pauseLines(['Fair Play still adds your run.','Delete My Data takes your name off the board.','The Accept count does not change.'])}</div>`;
   }
   if(id.startsWith('d-')){
@@ -4587,7 +4588,7 @@ function fineText(){
   const clauses=[
     '<b>1. COLLECTION.</b> By selecting ACCEPT you grant OPT/IN Inc. and its 1,204 partners a perpetual, worldwide, royalty-free license to collect, store, analyze, combine and sell the data category listed on the offer, along with anything that can be inferred from it.',
     '<b>2. COMBINATION.</b> Data you share separately may be combined once we hold both types and at least two shares of one of them. Combined data can reveal things you never shared, such as where you live, who you trust, how you feel, and what you will do next. You will be notified of inferences after they occur.',
-    '<b>2b. COMBINATION ACROSS PLAYERS.</b> Finished runs are counted. No names. The scoreboard keeps 20 names. The count is how many chose Accept. Fair Play still adds your run. Delete My Data takes your name off the board. The Accept count does not change.',
+    '<b>2b. COMBINATION ACROSS PLAYERS.</b> Finished runs are counted. No names. The scoreboard keeps 20 names. The count shows what share chose Accept. Fair Play still adds your run. Delete My Data takes your name off the board. The Accept count does not change.',
     '<b>3. SECURITY.</b> We take your security seriously. Security incidents may occur. A small file is rarely worth stealing. Combined data, and files built from three or more categories, are when a breach becomes likely and valuable.',
     '<b>4. PAYMENT OPTION.</b> You may instead pay with credits. Paid upgrades do not collect data. Repeat selections of an upgrade you already have earn a loyalty credit bonus. Each upgrade stops getting stronger after a set number of picks. A full upgrade is not offered again. If nothing is on file, credit prices include a verification adjustment. Opening a Fair Play membership, or sharing any data type, completes a file and ends that markup. Other prices may still change based on how you play.',
     '<b>4b. FAIR PLAY.</b> A subscription of ◈ '+subPrice()+' is billed at the start of each wave until you cancel or cannot pay. Members get no ads, a cleaner upgrade screen, and member prices. Credit upgrades are 20% off while you are billed. The hotspot becomes Secure Wi-Fi and does not add exposure while you are billed. The fire bonus and the 1-hit shield still apply. The watch continues. New behavior patterns can still unlock and still apply. The mimic still learns from hits. We still learn how you play. Accept stays free, and still sells the data on that offer. Canceling ends the bill and does not delete the member file. The member file is an account. Win-back ads can use it even if you never tapped Accept. It persists across runs until you delete your data. It does not delete data already collected, stop inferences already made, forget patterns already learned, prevent a breach of data already sold, include Halo, or asking for help yourself, or grant a free revive.',
@@ -4685,8 +4686,8 @@ function showDossier(){
   if(S.formTier)add('STILL ON FILE','FIELD','<b>'+(S.formTier===1?'Ships grouped.':S.formTier===2?'New shapes.':S.formTier===3?'Packs joined.':'Ships shared a plan.')+'</b>',1);
   if(S.strain&&(S.strain.gen||1)>1)add('STILL ON FILE','MIMIC','<b>Gen '+(S.strain.gen||1)+'</b>',1);
   const crowdWas=getCrowd(),accepted=(T.free||0)>0;
-  if(first&&!isDev())add('HOW THE CLASS WAS USED','ACCEPT',(accepted?'Accept. ':'No Accept. ')+'<b>'+(crowdWas.accepts+(accepted?1:0))+' of '+(crowdWas.n+1)+'</b>',accepted?1:0);
-  else if(!first&&!isDev()&&crowdWas.n)add('HOW THE CLASS WAS USED','ACCEPT','<b>'+crowdWas.accepts+' of '+crowdWas.n+'</b>',1);
+  if(first&&!isDev())add('HOW THE CLASS WAS USED','ACCEPT',(accepted?'Accept. ':'No Accept. ')+'<b>'+acceptPct(crowdWas.accepts+(accepted?1:0),crowdWas.n+1)+'</b> of the class',accepted?1:0);
+  else if(!first&&!isDev()&&crowdWas.n)add('HOW THE CLASS WAS USED','ACCEPT','<b>'+acceptPct(crowdWas.accepts,crowdWas.n)+'</b> of the class',1);
   else if(isDev())add('HOW THE CLASS WAS USED','ACCEPT','Not counted.',0);
   const seg=T.free>T.paid+1?(grazeRate>5?'IMPULSIVE THRILL-SEEKER':'CONVENIENCE-FIRST'):T.paid>T.free?'PRIVACY-CONSCIOUS SPENDER':'CAUTIOUS NEGOTIATOR';
   add('WHAT WE\'LL SELL','SEGMENT','<b>'+seg+'</b>',1);
