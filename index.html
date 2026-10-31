@@ -78,7 +78,7 @@ button{font-family:inherit;cursor:pointer;border:none}
 #nameErr,#devErr{min-height:1.5em;font-size:12px;color:#ff3b5c;letter-spacing:1px}
 #devGate{z-index:18}
 .devFlag{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:#111;background:#ffd23b;padding:4px 8px}
-#hudDev{position:absolute;left:18px;bottom:18px;font-size:10px;letter-spacing:1px;color:#111;background:#ffd23b;padding:3px 7px;pointer-events:none}
+#hudDev{position:absolute;right:18px;bottom:18px;font-size:10px;letter-spacing:1px;color:#111;background:#ffd23b;padding:3px 7px;pointer-events:none}
 #hudDev:empty{display:none}
 .legal{font-size:10px;color:#454b6b;letter-spacing:1px;font-family:'JetBrains Mono',monospace}
 .infoLine{margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#8a92c0;text-align:center;max-width:min(720px,92vw);line-height:1.85}
@@ -125,6 +125,11 @@ button{font-family:inherit;cursor:pointer;border:none}
 #hookNag{position:absolute;left:50%;top:14px;transform:translateX(-50%);font-size:11px;letter-spacing:1px;color:#ffd23b;text-align:center;text-shadow:0 0 10px rgba(255,210,59,.4);line-height:1.5;pointer-events:none}
 #hookNag.fair{color:#7dff6a;text-shadow:0 0 10px rgba(125,255,106,.4)}
 #hookNag:empty{display:none}
+#logFeed{position:absolute;left:18px;bottom:20px;max-width:min(380px,60vw);display:flex;flex-direction:column;gap:5px;font-size:12px;line-height:1.4;text-shadow:0 1px 6px rgba(0,0,0,.9)}
+#logFeed .lg{border-left:3px solid var(--c);padding:3px 8px;background:rgba(7,7,15,.72);color:#dfe5ff;animation:lgIn .25s ease-out,lgOut .6s ease-in 7s forwards}
+#logFeed .lg b{color:var(--c);letter-spacing:1px;margin-right:6px}
+@keyframes lgIn{from{opacity:0;transform:translateX(-12px)}}
+@keyframes lgOut{to{opacity:0}}
 
 /* ---------- banner ---------- */
 #banner{position:fixed;left:0;right:0;top:34%;text-align:center;z-index:8;pointer-events:none;opacity:0}
@@ -171,6 +176,23 @@ button{font-family:inherit;cursor:pointer;border:none}
 .pitchList{list-style:none;padding:0;margin:12px 0}
 .pitchList li{position:relative;padding:6px 0 6px 18px;border-top:1px solid #23284a}
 .pitchList li:before{content:'+';position:absolute;left:0;color:#7dff6a;font-weight:700}
+.haloAd{text-align:center}
+.haloHero{position:relative;padding:18px 10px 16px;margin:-6px -8px 14px;background:radial-gradient(ellipse at 50% 0%,rgba(125,255,179,.22),transparent 70%);border:1px solid rgba(125,255,179,.35)}
+.haloHero>.mark{width:52px;height:52px;color:#7dffb3;filter:drop-shadow(0 0 10px rgba(125,255,179,.7))}
+.haloBadge{position:absolute;top:10px;right:10px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:2px;background:#ffd23b;color:#111;padding:2px 6px}
+.haloName{font-size:13px;font-weight:700;letter-spacing:5px;color:#7dffb3;margin:6px 0 2px}
+.haloAd h2{margin:0 0 10px}
+.hpStats{display:flex;justify-content:center;gap:6px}
+.hpStat{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;padding:3px 7px;border:1px solid rgba(125,255,179,.4);color:#d7def8}
+.hpStat i{font-style:normal;color:#ff6b6b;margin-right:4px}
+.haloUses{display:flex;justify-content:center;align-items:center;gap:4px;margin:8px 0 16px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:#6a7299}
+.haloUses .chip{padding:2px 4px;opacity:.8}
+.haloUses .chip .mark{width:11px;height:11px;vertical-align:-2px}
+.mayRow{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;background:transparent;border:1px solid #2a2f55;color:#9aa3c4;font-family:inherit;font-size:13px;cursor:pointer;text-align:left}
+.mayRow:hover{border-color:#4a5180;color:#c8cff5}
+.mayRow .mark{width:20px;height:20px;flex:none}
+.mayN{flex:1}
+.mayStats{font-family:'JetBrains Mono',monospace;font-size:11px;color:#6a7299}
 .pitchPrice{font-family:'JetBrains Mono',monospace;font-size:13px;color:#ffd23b;letter-spacing:.3px}
 .pitchPrice b{color:#fff;font-size:15px}
 .subActs button{line-height:1.25;white-space:normal}
@@ -386,6 +408,7 @@ button:disabled{opacity:.45;cursor:default}
 <div class="vign"></div>
 
 <div id="hud" class="hidden">
+  <div id="logFeed"></div>
   <div id="hudL">
     <div id="hearts"></div>
     <div id="scoreL">0</div>
@@ -505,59 +528,28 @@ button:disabled{opacity:.45;cursor:default}
       </div>
       <details class="fineNote" id="subFine">
         <summary>Subscription terms</summary>
-        <p>Fair Play does not stop the watch. New behavior patterns can still unlock and still apply. It does not unsell data, undo inferences, or stop a breach of what you already shared. Canceling ends the bill and keeps the member file, which win-back ads can use even if you never tapped Accept. It does not include Halo, or asking for help yourself. If a wave starts and you cannot pay, Fair Play ends. The full clause is in Terms &amp; Conditions.</p>
+        <p>Fair Play does not stop the watch. New behavior patterns can still unlock and still apply. It does not unsell data, undo inferences, or stop a breach of what you already shared. Canceling ends the bill and keeps the member file, which win-back ads can use even if you never tapped Accept. It does not include Halo. If a wave starts and you cannot pay, Fair Play ends. The full clause is in Terms &amp; Conditions.</p>
       </details>
     </div>
   </div>
 </div>
 
-<div id="emerg" class="screen hidden">
-  <div class="subSheet">
-    <div class="pitchKicker halo">HALO</div>
-    <h2 id="emergH">You are about to die</h2>
-    <p id="emergP">Ships get shoved away.</p>
-    <details class="fineNote" id="emergFine" data-safety-fine>
-      <summary>Details</summary>
-      <p></p>
-    </details>
-    <div class="subActs">
-      <button type="button" id="emergApp" class="accept">USE HALO</button>
-      <button type="button" id="emergDirect" class="call">ASK FOR HELP</button>
-      <button type="button" id="emergNo" class="pay">Let the run end</button>
-    </div>
-  </div>
-</div>
-
-<div id="check" class="screen hidden">
-  <div class="subSheet">
-    <div class="pitchKicker halo">HALO</div>
-    <h2 id="checkH">You are hurt</h2>
-    <p id="checkP">You are still alive.</p>
-    <details class="fineNote" id="checkFine" data-safety-fine>
-      <summary>Details</summary>
-      <p></p>
-    </details>
-    <div class="subActs">
-      <button type="button" id="checkApp" class="accept">USE HALO</button>
-      <button type="button" id="checkDirect" class="call">ASK FOR HELP</button>
-      <button type="button" id="checkNo" class="pay">Stay hurt</button>
-    </div>
-  </div>
-</div>
-
 <div id="safetyAsk" class="screen hidden">
-  <div class="subSheet">
-    <div class="pitchKicker halo">HALO</div>
-    <h2>You are fine</h2>
-    <p id="askP">Turn Halo on?</p>
-    <details class="fineNote" id="askFine" data-safety-fine>
-      <summary>Details</summary>
-      <p></p>
-    </details>
-    <div class="subActs">
-      <button type="button" id="askOn" class="accept">TURN IT ON</button>
-      <button type="button" id="askOff" class="pay">Leave it off</button>
+  <div class="subSheet haloAd">
+    <div class="haloHero">
+      <span class="haloBadge">NEW</span>
+      <svg class="mark" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="24" cy="10" rx="12" ry="4"/><path d="M24 18 L36 42 L24 35 L12 42 Z"/></svg>
+      <div class="haloName">HALO</div>
+      <h2 id="haloH">Never lose a run.</h2>
+      <div class="hpStats"><span class="hpStat"><i>♥</i>3</span><span class="hpStat">INSTANT RESCUE</span></div>
     </div>
+    <button type="button" id="askOn" class="accept">TURN ON HALO</button>
+    <div class="haloUses" id="haloCost"></div>
+    <button type="button" id="askOff" class="mayRow">
+      <svg class="mark" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M14 26 A14 14 0 0 1 34 26"/><path d="M8 20 A22 22 0 0 1 40 20"/><circle cx="24" cy="34" r="4" fill="currentColor" stroke="none"/><path d="M24 38 V45"/></svg>
+      <span class="mayN">Keep Mayday</span>
+      <span class="mayStats">♥ 2 · <b id="helpSec">5</b>s wait</span>
+    </button>
   </div>
 </div>
 
@@ -805,7 +797,7 @@ function nameProblem(raw){
   return '';
 }
 function openName(){
-  ['title','dossier','terms','reveal','pause','board','log','emerg','check','settings'].forEach(id=>$(id).classList.add('hidden'));
+  ['title','dossier','terms','reveal','pause','board','log','settings'].forEach(id=>$(id).classList.add('hidden'));
   $('hud').classList.add('hidden');document.body.classList.remove('playing');
   $('nameErr').textContent='';$('nameIn').value='';
   $('name').classList.remove('hidden');
@@ -960,7 +952,7 @@ function classFileHtml(){
 }
 function openBoard(from){
   boardBack=from||'title';boardSel=null;
-  ['title','dossier','terms','reveal','pause','log','name','emerg','check','settings'].forEach(id=>$(id).classList.add('hidden'));
+  ['title','dossier','terms','reveal','pause','log','name','settings'].forEach(id=>$(id).classList.add('hidden'));
   $('board').classList.remove('hidden');
   renderBoard();
 }
@@ -1153,7 +1145,7 @@ const PERKS=[
   {id:'route',name:'THRUST',data:'LOC',tag:'ENGINE',cap:3,desc:'+12% speed, and you slide faster across your aim.',again:'Another +12% speed and more slide.',apply:p=>{p.speed*=1.12;p.slide=(p.slide||1)*1.18}},
   {id:'squad',name:'WINGMAN',data:'CON',tag:'DRONE',cap:2,desc:'A drone orbits you and shoots a different ship — usually one in a pack.',again:'Another drone joins and covers another ship.',apply:p=>{p.drones++}},
   {id:'face',name:'BURNERS',data:'BIO',tag:'ENGINE',cap:2,desc:'Dash recharges 2× faster.',again:'Dash cooldown halves again.',apply:p=>{p.dashCD*=.5}},
-  {id:'sos',name:'RESERVE',data:'HEA',tag:'HULL',cap:2,desc:'Spare rescue when you would die. Heal 1♥ every wave.',again:'Another spare rescue. The wave heal does not stack.',apply:p=>{p.revives++;p.regen=1}},
+  {id:'sos',name:'RESERVE',data:'HEA',tag:'HULL',cap:2,desc:'Heal 1♥ after every wave.',again:'Heal 2♥ after every wave.',apply:p=>{p.regen=(p.regen||0)+1}},
   {id:'reply',name:'CYCLE',data:'MSG',tag:'GUNS',cap:3,desc:'+30% fire rate.',again:'Another +30% fire rate.',apply:p=>{p.fireRate*=1.3}},
   {id:'aim',name:'LEAD',data:'HAB',tag:'GUNS',cap:2,desc:'Near a hovered target, shots bend a little toward it. They will not chase.',again:'A slightly stronger bend. They still will not chase.',apply:p=>{p.homing+=.85}},
   {id:'armor',name:'PLATING',data:null,tag:'HULL',cap:4,desc:'+1 max ♥ and heal 1.',again:'Another +1 max ♥ and heal 1.',apply:p=>{p.maxHp++;p.hp=Math.min(p.maxHp,p.hp+1)}},
@@ -1186,9 +1178,9 @@ const INF=[
     good:'Safety apps use your contacts to alert friends when you need help. Health departments use contact maps to warn people exposed to a disease.'},
   {id:'risk',need:['HEA','HAB'],name:'RISK SCORE ASSIGNED',desc:'Your prices now follow how you play. Take 1 hit or less per wave and prices are 20% off. Take more and they are 50% higher.',why:'Health + lifestyle data can be used to predict risk, which companies can use to change what they charge you.',
     good:'Risk models also give careful drivers lower rates and can flag a health problem early.'},
-  {id:'home',need:['CON','LOC'],name:'HOME INFERRED',desc:'They know where you\'ll be. Enemies spawn closer with less warning. Emergency rescues bring you back with 1 more ♥.',why:'Where your phone sleeps every night is almost always your home. No address required.',
+  {id:'home',need:['CON','LOC'],name:'HOME INFERRED',desc:'They know where you\'ll be. Enemies spawn closer with less warning. Search & Rescue already has your location, so a mayday brings help 2 seconds sooner.',why:'Where your phone sleeps every night is almost always your home. No address required.',
     good:'Knowing where you are lets emergency services reach you faster, even when you cannot give an address.'},
-  {id:'mood',need:['HEA','BIO'],name:'MOOD DETECTED',desc:'When you\'re hurt, the ads come for you. The wellness check comes at 3♥ and heals 1 more ♥.',why:'Face + heart-rate data can estimate emotion. Advertisers pay extra to reach people when they are stressed or sad.',
+  {id:'mood',need:['HEA','BIO'],name:'MOOD DETECTED',desc:'When you\'re hurt, the ads come for you. When you drop to 1♥, a check-in gives you a 1-hit shield, once per wave.',why:'Face + heart-rate data can estimate emotion. Advertisers pay extra to reach people when they are stressed or sad.',
     good:'Mood detection can catch a drowsy driver, and a mental health app can check in when someone is struggling.'}
 ];
 // Behavior patterns: learned from how you play, not from what you share.
@@ -1297,8 +1289,6 @@ addEventListener('keydown',e=>{
   if(S&&S.mode==='intro'&&k==='enter'){if(S.introHold)dismissOptIn();e.preventDefault();return}
   if(!$('name').classList.contains('hidden')){if(k==='enter'){submitName();e.preventDefault()}return}
   if(!$('devGate').classList.contains('hidden')){if(k==='enter'){submitDevGate();e.preventDefault()}else if(k==='escape'){closeDevGate();e.preventDefault()}return}
-  if(S&&S.mode==='emerg'){if(k==='escape'){declineEmerg();e.preventDefault()}return}
-  if(S&&S.mode==='check'){if(k==='escape'){declineCheck();e.preventDefault()}return}
   if(S&&S.mode==='safety'){if(k==='escape'){declineSafetyAsk();e.preventDefault()}return}
   if(k===' '||k==='shift'){dashReq=true;e.preventDefault()}
   if(!S)return;
@@ -1317,7 +1307,7 @@ addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY});
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;if(S&&(S.mode==='play'||S.mode==='clear'))setPause(true)});
 let pauseSel='exp';
 function setPause(v){
-  if(!S||S.readHold||S.introHold||S.mode==='emerg'||S.mode==='check'||S.mode==='safety')return;
+  if(!S||S.readHold||S.introHold||S.mode==='safety')return;
   S.paused=v;
   document.body.classList.toggle('paused',!!v);
   if(S.sandbox){
@@ -1334,10 +1324,10 @@ function pauseItems(){
   const exp=exposure(),items=[];
   if(S.fair)items.push({id:'fair',c:'#7dff6a',title:'FAIR PLAY',sub:coinMark()+' '+subPrice()+' each wave'});
   else if(S.member)items.push({id:'member',c:'#7dff6a',title:'MEMBER FILE',sub:'account open · win-back ads on'});
-  if(S.safetyFile&&S.safetyFile.loc&&S.safetyFile.hea)items.push({id:'safety',c:'#c04bff',title:'HALO',sub:'sold your health and your location'});
-  else if(S.safetyFile&&S.safetyFile.loc)items.push({id:'safety',c:'#c04bff',title:'HALO',sub:'sold your location'});
-  else if(S.safetyFile&&S.safetyFile.hea)items.push({id:'safety',c:'#c04bff',title:'HALO',sub:'sold your health'});
-  else if(S.safetyOn)items.push({id:'safety',c:'#c04bff',title:'HALO',sub:'on · nothing saved'});
+  if(S.safetyAsked||haloLoc()||haloHea()){
+    const sold=haloLoc()&&haloHea()?'sold health + location':haloLoc()?'sold location':haloHea()?'sold health':'';
+    items.push({id:'safety',c:'#7dffb3',title:'HALO',sub:(S.safetyOn?'on · instant rescue':'off · you send a mayday')+(sold?' · '+sold:'')});
+  }
   if(exp>0)items.push({id:'exp',c:'#ffd23b',title:'EXPOSURE',sub:exp+' share'+(exp===1?'':'s')+' on file'});
   for(const t of TYPES){const n=S.shared[t]||0;if(!n)continue;const D=DATA[t];items.push({id:'d-'+t,c:D.c,title:D.i+' '+D.n,sub:'shared ×'+n})}
   for(const f of INF){if(!S.inf[f.id])continue;items.push({id:'i-'+f.id,c:'#ff3b5c',title:f.name,sub:'inferred · active'})}
@@ -1360,17 +1350,18 @@ function pauseDetail(id){
       <div class="fx">${pauseLines(['Win-back ads can find you.','Credit prices stay verified.','The 20% discount is gone.','The ring is Free Wi-Fi again.','Patterns from while you paid are still on.'])}</div>
       <div class="why">${pauseLines(['Cancel stops the bill.','The account stays.'])}</div>`;
   if(id==='safety'){
-    const loc=S.safetyFile&&S.safetyFile.loc,hea=S.safetyFile&&S.safetyFile.hea;
-    if(!loc&&!hea)return `<h3>HALO</h3><div class="need">${pauseLines(['On.','Nothing saved.'])}</div>
-      <div class="fx">${pauseLines(['You read it.','Halo uses your location only during a rescue.'])}</div>
-      <div class="why">${pauseLines(['Reading the terms stopped the sale.'])}</div>`;
-    const what=loc&&hea?'your location and your health':loc?'your location':'your health';
-    const fx=loc&&hea
-      ?['The next data broker aims better.','It presses harder while you are at 2♥ or below.']
-      :loc?['The next data broker aims better.','It knows where you are.']:['The next data broker presses harder at 2♥ or below.','It knows when you are hurt.'];
-    return `<h3>HALO</h3><div class="need">${pauseLines(['Halo saved '+what+'.','Halo can sell '+(loc&&hea?'them':'it')+' to a data broker.','Paying later does not undo the sale.','Fair Play does not cover this.'])}</div>
-      <div class="fx">${pauseLines(fx.concat(['Nothing changes until that broker shows up.']))}</div>
-      <div class="why">${pauseLines([loc&&!hea?'You turned Halo on while you were fine.':'The rescue is the help.',loc&&!hea?'The sale started then.':'Saving the data and selling it is the cost.'])}</div>`;
+    const loc=haloLoc(),hea=haloHea();
+    const need=[S.safetyOn?'On.':'Off.',S.emergUsed?'Your rescue for this run is used.':'One rescue per run.'];
+    const fx=S.safetyOn
+      ?['If a hit would end your run, Halo brings you back instantly with '+sosHp(true)+'♥.','Halo shares your health and location.']
+      :['If a hit would end your run, you send a mayday.','Search & Rescue takes '+helpWait()+' seconds to trace your beacon. Until then you move slowly and cannot shoot. One hit ends the run.','Survive and you are back with '+sosHp(false)+'♥. Nothing is sold.'];
+    const why=loc||hea
+      ?['Halo already sold your '+(loc&&hea?'health and location':loc?'location':'health')+'.','The next data broker aims at you better.','Turning Halo off does not undo the sale.']
+      :['Nothing sold yet.'];
+    return `<h3>HALO</h3><div class="need">${pauseLines(need)}</div>
+      <div class="fx">${pauseLines(fx)}</div>
+      <div class="why">${pauseLines(why)}</div>
+      <button type="button" class="call" id="haloToggle" style="margin-top:14px">${S.safetyOn?'TURN HALO OFF':'TURN HALO ON'}</button>`;
   }
   if(id==='exp'){
     const ads=shareExp()>=3&&!S.fair,gap=Math.max(2.5,12-shareExp()*1.2).toFixed(1);
@@ -1538,10 +1529,9 @@ function saveGame(){
     adT:S.adT,adRecent:S.adRecent||[],secret:S.secret,secretUsed:!!S.secretUsed,
     queue:(S.queue||[]).slice(),spawnT:S.spawnT,
     amend:S.amend||null,hotI:S.hotI==null?-1:S.hotI,hotBadge:S.hotBadge||'',
-    fair:!!S.fair,member:!!S.member,fairPaidWave:S.fairPaidWave||0,expWifi:S.expWifi||0,emergUsed:!!S.emergUsed,checkUsed:!!S.checkUsed,friendDrone:S.friendDrone||0,
-    safetyFile:S.safetyFile||{hea:false,loc:false},guardPrompt:!!S.guardPrompt,
-    safetyAsked:!!S.safetyAsked,safetyOn:!!S.safetyOn,safetyRead:!!S.safetyRead,safetyClause:S.safetyClause||'',safetyDeal:S.safetyDeal||'',
-    safetyPins:S.safetyPins||0,safetyMarkT:S.safetyMarkT||0,safetyTemp:S.safetyTemp||0,
+    fair:!!S.fair,member:!!S.member,fairPaidWave:S.fairPaidWave||0,expWifi:S.expWifi||0,emergUsed:!!S.emergUsed,haloNow:!!S.haloNow,friendDrone:S.friendDrone||0,distressT:S.distressT||0,rescueAng:S.rescueAng||0,
+    safetyFile:S.safetyFile||{hea:false,loc:false},
+    safetyAsked:!!S.safetyAsked,safetyOn:!!S.safetyOn,
     formTier:S.formTier||0,formRead:S.formRead||0,formSkillRank:S.formSkillRank||0,formSkillWave:S.formSkillWave||0,waveHadBroker:!!S.waveHadBroker,formJustUp:!!S.formJustUp,hiveWave:S.hiveWave||0,brokerN:S.brokerN||0,
     strain:S.strain?{pool:S.strain.pool||[],hits:S.strain.hits||[],gen:S.strain.gen||1,best:S.strain.best||null,seen:S.strain.seen||null,scored:S.strain.scored||null,cut:S.strain.cut||null,arms:S.strain.arms||null}:null,
     wifi:S.wifi,wifiAcc:S.wifiAcc||0,shieldAcc:S.shieldAcc||0,wifiMoveIn:S.wifiMoveIn,
@@ -1569,11 +1559,9 @@ function restoreRun(snap){
   s.queue=(snap.queue||[]).slice();s.spawnT=snap.spawnT==null?1.2:snap.spawnT;
   s.secret=snap.secret||s.secret;s.secretUsed=!!snap.secretUsed;
   s.amend=snap.amend||null;s.hotI=snap.hotI==null?-1:snap.hotI;s.hotBadge=snap.hotBadge||'';
-  s.fair=!!snap.fair;s.member=!!(snap.member||snap.fair);s.fairPaidWave=snap.fairPaidWave||0;s.expWifi=snap.expWifi||0;s.emergUsed=!!snap.emergUsed;s.checkUsed=!!snap.checkUsed;s.friendDrone=snap.friendDrone||0;
+  s.fair=!!snap.fair;s.member=!!(snap.member||snap.fair);s.fairPaidWave=snap.fairPaidWave||0;s.expWifi=snap.expWifi||0;s.emergUsed=!!snap.emergUsed;s.haloNow=!!snap.haloNow;s.friendDrone=snap.friendDrone||0;s.distressT=snap.distressT||0;s.rescueAng=snap.rescueAng||0;
   s.safetyFile=snap.safetyFile&&typeof snap.safetyFile==='object'?{hea:!!snap.safetyFile.hea,loc:!!snap.safetyFile.loc}:{hea:false,loc:false};
-  s.guardPrompt=!!snap.guardPrompt;
-  s.safetyAsked=!!snap.safetyAsked;s.safetyOn=!!snap.safetyOn;s.safetyRead=!!snap.safetyRead;s.safetyClause=snap.safetyClause||'';s.safetyDeal=snap.safetyDeal||'';
-  s.safetyPins=snap.safetyPins||0;s.safetyMarkT=snap.safetyMarkT||0;s.safetyTemp=snap.safetyTemp||0;
+  s.safetyAsked=!!snap.safetyAsked;s.safetyOn=!!snap.safetyOn;
   s.formTier=snap.formTier||0;s.formRead=snap.formRead||0;s.formSkillRank=snap.formSkillRank||0;s.formSkillWave=snap.formSkillWave||0;s.waveHadBroker=!!snap.waveHadBroker;s.formJustUp=!!snap.formJustUp;s.hiveWave=snap.hiveWave||0;s.brokerN=snap.brokerN||0;
   if(s.formTier>=4&&!s.hiveWave)s.hiveWave=s.wave;
   if(snap.strain&&snap.strain.pool){const mix=copyMix(snap.strain),arms=copyArms(snap.strain);s.strain={pool:(snap.strain.pool||[]).map(normGene),hits:(snap.strain.hits||[]).map(normGene),gen:snap.strain.gen||1,best:snap.strain.best?normGene(snap.strain.best):null,seen:mix.seen,scored:mix.scored,cut:mix.cut,arms}}
@@ -1615,27 +1603,27 @@ function newState(){
   const prof=loadProfile();
   const s={t:0,wave:0,score:0,coins:0,combo:0,comboT:0,coinK:0,shake:0,flash:0,flashCol:'255,255,255',freeze:0,timeScale:1,
     mode:'play',paused:false,shared:prof.shared,inf:prof.inf,carriedShared:prof.carriedShared,carriedInf:prof.carriedInf,
-    safetyFile:prof.safety||{hea:false,loc:false},guardPrompt:false,
-    safetyAsked:false,safetyOn:false,safetyRead:false,safetyClause:'',safetyDeal:'',safetyPins:0,safetyMarkT:0,safetyTemp:0,
+    safetyFile:prof.safety||{hea:false,loc:false},
+    safetyAsked:false,safetyOn:false,distressT:0,
     revealQ:[],offer:[],breachNext:false,breachWave:-1,adT:6,spawnT:1,adRecent:[],
     secret:pick(SECRETS),secretUsed:false,
     model:loadModel(),
     p:{x:W/2,y:H/2,vx:0,vy:0,r:11,hp:5,maxHp:5,speed:270,fireRate:6,fireT:0,dmg:1,shots:1,homing:0,drones:0,droneT:0,
-       dashCD:1.1,dashT:0,dashing:0,ddx:0,ddy:0,inv:0,revives:0,regen:0,lines:false,slide:1,blank:0,ang:0,magnet:100,recoil:0,shield:0},
+       dashCD:1.1,dashT:0,dashing:0,ddx:0,ddy:0,inv:0,regen:0,lines:false,slide:1,blank:0,ang:0,magnet:100,recoil:0,shield:0},
     bullets:[],ebullets:[],enemies:[],spawns:[],queue:[],parts:[],texts:[],ads:[],coinsArr:[],trail:[],rings:[],
     tele:{heat:new Float32Array(24*16),q:[0,0,0,0],dirs:{l:0,r:0,u:0,d:0},still:0,moving:0,stressSpd:0,stressN:0,calmSpd:0,calmN:0,
       edge:0,center:0,orbit:0,lastAng:null,dashes:0,dashL:0,dashR:0,dashU:0,dashD:0,nearMiss:0,adsShot:0,termsTime:[],fineOpen:0,free:0,paid:0,declined:0,paidData:0,paidDataCoins:0,markupCoins:0,picks:{},firstPick:null,
       breaches:0,breachSurvived:false,kills:0,hits:0,sampT:0,time:0,wifiT:0,wifiCoins:0,wifiExp:0,caught:0,honest:0,sub:0,subPaid:0,emerg:0,check:0,checkNo:0,
       comboPeak:0,waveHits:0,waveKills:0,waveT:0,shots:0,closeT:0,formBreaks:0,urgencyLate:0,urgencyOff:false},
     wifi:loadWifi(),wifiAcc:0,shieldAcc:0,wifiMoveIn:2+Math.floor(Math.random()*3),expWifi:0,expVis:0,amend:null,sosT:0,
-    nagT:0,pingT:9,unread:0,hookFriend:null,musicPush:null,fair:false,member:!!prof.member,fairPaidWave:0,emergUsed:false,checkUsed:false,
+    nagT:0,pingT:9,unread:0,hookFriend:null,musicPush:null,fair:false,member:!!prof.member,fairPaidWave:0,emergUsed:false,
     formI:0,formTier:0,formRead:0,formSkillRank:0,formSkillWave:0,waveHadBroker:false,formJustUp:false,hiveWave:0,brokerN:0,sandbox:false,sandPicks:{},checkpoint:null,filed:false,breachLine:'',hotI:-1,hotBadge:'',taken:[]
   };
   parkWifi(s.wifi,s.p.x,s.p.y);
   s.strain=loadStrain();
   return s;
 }
-function hideScreens(){['title','dossier','terms','reveal','pause','sand','board','log','name','emerg','check','safetyAsk','settings','confirm'].forEach(id=>$(id).classList.add('hidden'))}
+function hideScreens(){['title','dossier','terms','reveal','pause','sand','board','log','name','safetyAsk','settings','confirm'].forEach(id=>$(id).classList.add('hidden'))}
 function enterRun(){
   initAudio();
   hideScreens();
@@ -1646,7 +1634,7 @@ function enterRun(){
 function startSandbox(){
   if(!isDev())return;
   S=newState();
-  S.sandbox=true;S.sandPicks={};S.shared={};S.inf={};S.carriedShared=[];S.carriedInf=[];S.member=false;S.safetyFile={hea:false,loc:false};S.guardPrompt=false;
+  S.sandbox=true;S.sandPicks={};S.shared={};S.inf={};S.carriedShared=[];S.carriedInf=[];S.member=false;S.safetyFile={hea:false,loc:false};
   S.model=blankModel();S.formTier=1;S.wave=8;S.coins=999;S.queue=[];S.spawnT=1;S.mode='play';S.checkpoint=null;
   S.strain={pool:[],hits:[],gen:1,best:null};
   for(let i=0;i<8;i++)S.strain.pool.push(randGene());
@@ -1729,7 +1717,7 @@ function sandSpawnWave(){
 function applySandPerks(){
   if(!S)return;
   const p=S.p;
-  p.speed=270;p.fireRate=6;p.dmg=1;p.shots=1;p.homing=0;p.drones=0;p.dashCD=1.1;p.revives=0;p.regen=0;p.lines=false;p.slide=1;p.blank=0;p.magnet=100;p.maxHp=5;
+  p.speed=270;p.fireRate=6;p.dmg=1;p.shots=1;p.homing=0;p.drones=0;p.dashCD=1.1;p.regen=0;p.lines=false;p.slide=1;p.blank=0;p.magnet=100;p.maxHp=5;
   S.tele.picks={};
   for(const pk of PERKS){
     const n=S.sandPicks[pk.id]||0;
@@ -1788,6 +1776,7 @@ function renderSand(){
 }
 function startGame(){
   if(!playerName()){openName();return}
+  $('logFeed').innerHTML='';
   store.set('run',null);
   if(store.get('skipIntro',false)){beginRun();return}
   openOptIn();
@@ -1865,8 +1854,6 @@ function resumeCheckpoint(){
     banner('DATA BREACH',S.breachLine||'Your data leaked. Someone bought it.','#ff3b5c',2.4);
     return;
   }
-  if(S.checkpoint==='emerg'){openEmerg(true);return}
-  if(S.checkpoint==='check'){openCheck(true);return}
   if(S.checkpoint==='safety'){openSafetyAsk(true);return}
   if(S.checkpoint==='live'){
     S.mode='play';S.spawnT=Math.max(S.spawnT||0,1.8);dashReq=false;
@@ -2005,7 +1992,7 @@ function startWave(){
   document.body.classList.add('playing');
   sfx.wave();
   if(w>1){S.checkpoint='live';saveGame()}
-  if(!S.sandbox&&w>=6&&!S.safetyAsked){
+  if(!S.sandbox&&w>=3&&!S.safetyAsked){
     clearNote();
     banner('WAVE '+w,'',S.fair?'#7dff6a':'#38e1ff',1.4);
     S.spawnT=.5;S.announceUntil=performance.now()+1400;
@@ -2542,9 +2529,9 @@ function ensureSafetyAssets(){
   for(const e of S.enemies)if(e.partner)e.dead=true;
   S.spawns=(S.spawns||[]).filter(s=>s.type!=='partner');
 }
-function sosHp(app){return (app?3:2)+(S&&S.inf&&S.inf.home?1:0)}
-function checkHp(app){return (app?3:2)+(S&&S.inf&&S.inf.mood?1:0)}
-function checkAt(){return S&&S.inf&&S.inf.mood?3:2}
+function sosHp(app){return app?3:2}
+const HELP_WAIT=5;
+function helpWait(){return HELP_WAIT-(S&&S.inf&&S.inf.home?2:0)}
 function riskCareful(){return S.tele.hits<=Math.max(1,S.wave)}
 function camSees(e){
   for(const c of S.enemies){
@@ -2567,42 +2554,6 @@ function haloBrokerLine(){
 function fileHea(){return !!(S&&((S.shared&&S.shared.HEA)||(S.safetyFile&&S.safetyFile.hea)))}
 function fileLoc(){return !!(S&&((S.shared&&S.shared.LOC)||(S.safetyFile&&S.safetyFile.loc)))}
 function safetyHunt(){return (S&&S.shared&&S.shared.HEA&&S.p&&S.p.hp<=2)?1.12:1}
-function safetyAppOn(){return !S.safetyAsked||!!S.safetyOn}
-function safetyHonest(){return !!(S&&S.safetyRead&&S.safetyClause==='call')}
-function ensureSafetyClause(){if(S&&!S.safetyClause)S.safetyClause=Math.random()<.5?'call':'resell'}
-function safetyFineLine(){
-  return S.safetyClause==='call'
-    ?'Halo uses your location only during a rescue. It does not save it or sell it.'
-    :'Halo can save your location and your health and sell them to a data broker. The sale lasts after the rescue.';
-}
-function safetyAskLine(){
-  return 'Turning this on can let Halo sell your location. Leave it off and later you can only ask for help yourself. '+safetyFineLine();
-}
-function dealBtn(el,title,sub){
-  if(!el)return;
-  const lines=(sub||'').split('\n').filter(Boolean).map(s=>'<span class="deal">'+s+'</span>').join('');
-  el.innerHTML=title+(lines?'<br>'+lines:'');
-}
-function haloFile(kind){
-  if(safetyHonest())return 'Nothing saved.';
-  if(kind==='emerg')return 'Halo can sell your health and your location.';
-  if(kind==='check')return 'Halo can sell your health.';
-  return 'It may sell your location.';
-}
-function rescueDetail(kind,app,guard){
-  const hp=Math.max(1,S.p&&S.p.hp||1),back=hp<checkHp(false)?'brings you back to '+checkHp(false)+'♥':'holds you at '+hp+'♥';
-  if(kind==='emerg'){
-    if(!app)return 'Asking for help yourself brings you back with '+sosHp(false)+'♥. Halo saves nothing. Refusing ends the run.';
-    return (guard?'This is a spare rescue. ':'')+'Halo brings you back with '+sosHp(true)+'♥ and may sell your health and your location to a data broker. Asking for help yourself brings you back with '+sosHp(false)+'♥, and Halo sells nothing. Refusing ends the run. '+safetyFineLine();
-  }
-  if(!app)return 'Asking for help yourself '+back+'. Halo saves nothing. Refusing leaves you at '+hp+'♥.';
-  return 'Halo gets you to '+checkHp(true)+'♥ and may sell your health to a data broker. Asking for help yourself '+back+', and Halo sells nothing. Refusing leaves you at '+hp+'♥. Once this run. '+safetyFineLine();
-}
-function paintSafetyFine(id,line){
-  ensureSafetyClause();
-  const el=$(id);if(!el)return;
-  const p=el.querySelector('p');if(p)p.textContent=line||(id==='askFine'?safetyAskLine():safetyFineLine());
-}
 function spawnForm(job){
   const p=S.p,n=job.types.length,slots=formSlots(job.shape,n),role=job.role||'off',tier=formTier(),skill=job.skill||'raw';
   S.formI=(S.formI||0)+1;
@@ -3566,7 +3517,14 @@ function tryFormSteer(e,steer,dt){
 function burst(x,y,col,n,spd,life,size){for(let i=0;i<n;i++){const a=rand(0,TAU),s=rand(.2,1)*spd;S.parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rand(.5,1)*life,max:life,col,size:rand(.6,1.2)*size})}}
 function ftext(x,y,txt,col='#fff',size=14){S.texts.push({x,y,txt,col,size,life:.9,max:.9})}
 let bannerTimer=0;
-function banner(t,s,col,d,hold){const b=$('banner');b.querySelector('.bt').textContent=t;b.querySelector('.bs').textContent=s||'';b.style.setProperty('--bc',col||'#fff');b.style.setProperty('--d',(d||1.6)+'s');b.classList.toggle('hold',!!hold);b.classList.remove('show');void b.offsetWidth;b.classList.add('show')}
+function logLine(title,text,col){
+  const f=$('logFeed');if(!f||!text)return;
+  const d=document.createElement('div');d.className='lg';d.style.setProperty('--c',col||'#9ad7ff');
+  d.innerHTML='<b></b><span></span>';d.firstChild.textContent=title;d.lastChild.textContent=text;
+  f.appendChild(d);while(f.children.length>4)f.firstChild.remove();
+  setTimeout(()=>d.remove(),7700);
+}
+function banner(t,s,col,d,hold){if(!hold&&s){logLine(t,s,col);s=''}const b=$('banner');b.querySelector('.bt').textContent=t;b.querySelector('.bs').textContent=s||'';b.style.setProperty('--bc',col||'#fff');b.style.setProperty('--d',(d||1.6)+'s');b.classList.toggle('hold',!!hold);b.classList.remove('show');void b.offsetWidth;b.classList.add('show')}
 function hideBanner(){const b=$('banner');b.classList.remove('show','hold')}
 let readDone=null;
 function pinNote(text,col){const n=$('noteLine');if(!text){n.textContent='';n.classList.add('hidden');return}n.textContent=text;n.style.color=col||'#e8fbff';n.classList.remove('hidden')}
@@ -3593,152 +3551,56 @@ function hookNag(msg,ms){if(!S||S.fair||S.nagT>0)return;S.nagT=3.2;toast(msg,ms|
 
 // ================= combat =================
 function rescuePush(full){
-  const p=S.p,push=full?600:280;
+  const p=S.p,push=full?600:350;
   S.ebullets.forEach(b=>burst(b.x,b.y,'#ff6b6b',3,120,.3,2));S.ebullets=[];
   S.enemies.forEach(e=>{const a=Math.atan2(e.y-p.y,e.x-p.x);e.vx=Math.cos(a)*push;e.vy=Math.sin(a)*push});
-  S.rings.push({x:p.x,y:p.y,r:10,max:full?Math.max(W,H):160,t:full?.6:.35,col:full?'#ff6b6b':'#9ad7ff'});
+  S.rings.push({x:p.x,y:p.y,r:10,max:full?Math.max(W,H):200,t:full?.6:.35,col:full?'#ff6b6b':'#9ad7ff'});
 }
-function applySos(how){
-  const p=S.p,app=how==='app',full=app,sos=full?4:1.5;
-  p.hp=Math.min(p.maxHp,sosHp(full));p.inv=sos;S.sosT=sos;if(S.inf.home)S.tele.homeHp=(S.tele.homeHp||0)+1;
-  rescuePush(full);
-  if(app&&safetyHonest()){
-    S.safetyTemp=Math.max(S.safetyTemp||0,8);S.tele.emergTemp=1;S.tele.honest=(S.tele.honest||0)+1;
-    const kept=haloLoc()||haloHea();
-    banner('HALO',kept?'The rescue worked. Halo did not save this one. What Halo already sold is still sold.':'The rescue worked. You read it: Halo does not save this.','#9ad7ff',2.6);
-  }else if(app){
-    banner('HALO','The rescue worked. Halo saved your health and your location and can sell them to a data broker.','#ff6b6b',2.6);
-    share('HEA');share('LOC');S.tele.emerg=1;openSafety('loc');
-  }else{
-    S.tele.emergDirect=1;
-    banner('ASK FOR HELP','You are back with '+p.hp+'♥. Halo saved nothing.','#9ad7ff',2.4);
-  }
-  S.shake=full?24:12;sfx.big();
+function haloRescue(){
+  const p=S.p;
+  p.hp=Math.min(p.maxHp,sosHp(true));p.inv=4;S.sosT=4;
+  rescuePush(true);
+  share('HEA');share('LOC');openSafety('loc');S.tele.emerg=1;
+  banner('HALO SAVED YOU','It sold your health and location.','#ff6b6b',2.2);
+  S.shake=24;sfx.big();
 }
-function applyCheck(how){
-  const p=S.p,app=how==='app';
-  if(app){p.hp=Math.min(p.maxHp,checkHp(true));p.inv=Math.max(p.inv,2)}
-  else{p.hp=Math.max(p.hp,Math.min(p.maxHp,checkHp(false)));p.inv=Math.max(p.inv,1.2)}
-  if(S.inf.mood)S.tele.moodHp=(S.tele.moodHp||0)+1;
-  S.rings.push({x:p.x,y:p.y,r:10,max:app?90:60,t:.35,col:app?'#7dffb3':'#9ad7ff'});
-  burst(p.x,p.y,app?'#7dffb3':'#9ad7ff',18,240,.4,3);
-  if(app&&safetyHonest()){
-    S.safetyTemp=Math.max(S.safetyTemp||0,6);S.tele.checkTemp=1;S.tele.honest=(S.tele.honest||0)+1;
-    banner('HALO','The check got you to '+p.hp+'♥. You read it: Halo does not save this.','#9ad7ff',2.6);
-  }else if(app){
-    banner('HALO','The check worked. Halo saved your health and can sell it to a data broker.','#7dffb3',2.6);
-    share('HEA');S.tele.check=1;openSafety('hea');
-  }else{
-    S.tele.checkDirect=1;
-    banner('ASK FOR HELP','Held at '+p.hp+'♥. Halo saved nothing.','#9ad7ff',2.4);
-  }
-  S.shake=12;sfx.shield();
+function sendMayday(){
+  const p=S.p;
+  p.hp=0;p.inv=.8;S.distressT=helpWait();S.rescueAng=rand(0,TAU);dashReq=false;S.tele.emergDirect=1;if(S.inf.home)S.tele.homeFast=1;
+  rescuePush(false);
+  banner('MAYDAY SENT','Search & Rescue is tracing your beacon. Don\'t get hit.','#9ad7ff',1.6);
+  S.shake=12;sfx.big();
 }
-function paintEmerg(guard){
-  ensureSafetyClause();
-  const app=safetyAppOn(),left=Math.max(1,S.p&&S.p.revives||1);
-  $('emergH').textContent=guard?'Spare · '+left+' left':'You are about to die';
-  $('emergApp').classList.toggle('hidden',!app);
-  dealBtn($('emergApp'),'USE HALO',sosHp(true)+'♥.\n'+haloFile('emerg'));
-  dealBtn($('emergDirect'),'ASK FOR HELP',sosHp(false)+'♥.\nHalo sells nothing.');
-  $('emergP').textContent=app?'Ships get shoved away.':'Halo is off. Asking for help is what\'s left.';
-  paintSafetyFine('emergFine',rescueDetail('emerg',app,guard));
+function rescueArrives(){
+  const p=S.p;S.distressT=0;
+  p.hp=Math.min(p.maxHp,sosHp(false));p.inv=1.5;S.sosT=1.5;S.rescueOut=1.2;
+  rescuePush(false);
+  banner('RESCUED','Back with '+p.hp+'♥. Nothing sold.','#9ad7ff',1.8);
+  sfx.shield();
 }
-function openEmerg(fromSave){
-  if(!fromSave)S.guardPrompt=false;
-  if($('emergFine'))$('emergFine').open=false;
-  paintEmerg(!!S.guardPrompt);
-  S.emergUsed=S.guardPrompt?S.emergUsed:true;
-  S.mode='emerg';S.paused=true;S.checkpoint='emerg';S.shake=0;
-  document.body.classList.add('paused');document.body.classList.remove('playing');
-  $('pause').classList.add('hidden');
-  $('emerg').classList.remove('hidden');
-  if(!fromSave)saveGame();
-}
-function openGuard(){
-  S.guardPrompt=true;
-  if($('emergFine'))$('emergFine').open=false;
-  paintEmerg(true);
-  S.mode='emerg';S.paused=true;S.checkpoint='emerg';S.shake=0;
-  document.body.classList.add('paused');document.body.classList.remove('playing');
-  $('pause').classList.add('hidden');
-  $('emerg').classList.remove('hidden');
-  saveGame();
-}
-function closeEmerg(){$('emerg').classList.add('hidden')}
-function paintCheck(){
-  ensureSafetyClause();
-  const app=safetyAppOn();
-  $('checkH').textContent='You are hurt';
-  $('checkApp').classList.toggle('hidden',!app);
-  dealBtn($('checkApp'),'USE HALO',checkHp(true)+'♥.\n'+haloFile('check'));
-  dealBtn($('checkDirect'),'ASK FOR HELP',checkHp(false)+'♥.\nHalo sells nothing.');
-  dealBtn($('checkNo'),'STAY HURT','');
-  $('checkP').textContent=app?'You are still alive.':'Halo is off. Asking for help is what\'s left.';
-  paintSafetyFine('checkFine',rescueDetail('check',app));
-}
-function openCheck(fromSave){
-  S.checkUsed=true;
-  if($('checkFine'))$('checkFine').open=false;
-  paintCheck();
-  S.mode='check';S.paused=true;S.checkpoint='check';S.shake=0;
-  document.body.classList.add('paused');document.body.classList.remove('playing');
-  $('pause').classList.add('hidden');
-  $('check').classList.remove('hidden');
-  if(!fromSave)saveGame();
-}
-function closeCheck(){$('check').classList.add('hidden')}
 function resumePlay(){
   S.mode='play';S.paused=false;S.checkpoint='live';
   document.body.classList.remove('paused');document.body.classList.add('playing');
   saveGame();
 }
-function acceptCheck(how){
-  if(!S||S.mode!=='check')return;
-  if(how==='app'&&!safetyAppOn())return;
-  closeCheck();
-  applyCheck(how==='direct'?'direct':'app');
-  resumePlay();
-}
-function declineCheck(){
-  if(!S||S.mode!=='check')return;
-  closeCheck();
-  S.tele.checkNo=1;
-  resumePlay();
-}
-function acceptEmerg(how){
-  if(!S||S.mode!=='emerg')return;
-  if(how==='app'&&!safetyAppOn())return;
-  const guard=!!S.guardPrompt;
-  closeEmerg();
-  if(guard){S.p.revives=Math.max(0,(S.p.revives||0)-1);S.guardPrompt=false}
-  applySos(how==='direct'?'direct':'app');
-  resumePlay();
-}
-function declineEmerg(){
-  if(!S||S.mode!=='emerg')return;
-  S.guardPrompt=false;
-  closeEmerg();
-  S.paused=false;document.body.classList.remove('paused');
-  die();
-}
 function paintSafetyAsk(){
-  ensureSafetyClause();
-  const honest=safetyHonest();
-  dealBtn($('askOn'),'TURN IT ON',honest?'Later, Halo can bring you back.\nIt will not sell your location.':'Later, Halo can bring you back.\nIt may sell your location.');
-  dealBtn($('askOff'),'LEAVE IT OFF','Later, you can only ask for help yourself.');
-  if($('askP'))$('askP').textContent='Turn Halo on?';
-  paintSafetyFine('askFine');
+  $('helpSec').textContent=helpWait();
+  $('haloH').textContent=S.haloNow?'Halo can save you.':'Never lose a run.';
+  $('haloCost').innerHTML='USES '+['HEA','LOC'].map(t=>`<span class="chip on" style="--c:${DATA[t].c}">${DATA[t].i}</span>`).join('');
+}
+function finishHaloNow(){
+  if(!S.haloNow)return false;
+  S.haloNow=false;S.emergUsed=true;
+  if(S.safetyOn)haloRescue();else sendMayday();
+  return true;
 }
 function openSafetyAsk(fromSave){
   if(!S||S.sandbox||(S.safetyAsked&&!fromSave))return;
-  ensureSafetyClause();
   S.mode='safety';S.paused=true;S.checkpoint='safety';S.shake=0;
   document.body.classList.add('paused');document.body.classList.remove('playing');
   $('pause').classList.add('hidden');
-  $('safetyAsk').classList.remove('hidden');
-  if($('askFine'))$('askFine').open=false;
   paintSafetyAsk();
+  $('safetyAsk').classList.remove('hidden');
   if(!fromSave)saveGame();
 }
 function closeSafetyAsk(){$('safetyAsk').classList.add('hidden')}
@@ -3746,23 +3608,24 @@ function acceptSafetyAsk(){
   if(!S||S.mode!=='safety')return;
   S.safetyAsked=true;S.safetyOn=true;S.tele.safetyOn=1;
   closeSafetyAsk();
-  if(safetyHonest()){
-    S.safetyDeal='call';S.tele.honest=(S.tele.honest||0)+1;
-  }else{
-    S.safetyDeal='keep';
-    openSafety('locOnly');
-  }
   resumePlay();
+  if(!finishHaloNow())banner('HALO','On. If a hit would end your run, Halo rescues you and shares your health and location.','#7dffb3',2.4);
 }
 function declineSafetyAsk(){
   if(!S||S.mode!=='safety')return;
-  S.safetyAsked=true;S.safetyOn=false;S.safetyDeal='off';S.tele.safetyOff=1;
+  S.safetyAsked=true;S.safetyOn=false;S.tele.safetyOff=1;
   closeSafetyAsk();
-  banner('HALO','Off. Later, you can only ask for help yourself.','#9ad7ff',2.4);
   resumePlay();
+  if(!finishHaloNow())banner('HALO','Off. If a hit would end your run, you send a mayday and wait for rescue.','#9ad7ff',2.4);
+}
+function toggleHalo(){
+  if(!S||S.sandbox)return;
+  S.safetyAsked=true;S.safetyOn=!S.safetyOn;
+  if(S.safetyOn)S.tele.safetyOn=1;else S.tele.safetyOff=1;
+  renderPause();
 }
 function hurtPlayer(src){
-  const p=S.p;if(p.inv>0||p.dashing>0||S.mode==='dead'||S.mode==='emerg'||S.mode==='check'||S.mode==='safety'||S.sosT>0)return;
+  const p=S.p;if(p.inv>0||p.dashing>0||S.mode==='dead'||S.mode==='safety'||S.sosT>0)return;
   if(p.shield>0){
     p.shield=0;p.inv=.7;S.shake=10;S.flash=.25;S.flashCol='80,255,200';
     burst(p.x,p.y,S.fair?'#38e1ff':'#9ae64a',16,260,.4,3);
@@ -3770,6 +3633,7 @@ function hurtPlayer(src){
     ftext(p.x,p.y-28,'SHIELD','#9ae64a',13);sfx.block();
     return;
   }
+  if(S.distressT>0){S.distressT=0;S.tele.distressFail=1;p.hp=0;die();return}
   p.hp--;p.inv=1.1;S.shake=16;S.freeze=.09;S.flash=.6;S.flashCol='255,40,80';S.combo=0;S.tele.hits++;S.tele.waveHits=(S.tele.waveHits||0)+1;sfx.hurt();
   if(src)noteFightHit(src);
   const M=S.model;M.win.hits++;M.hitAt=S.t;M.hitAway=src?Math.atan2(p.y-src.y,p.x-src.x):p.ang+Math.PI;
@@ -3782,15 +3646,15 @@ function hurtPlayer(src){
   if(p.hp>0){
     if(S.mode==='intro'||S.sandbox)return;
     if(p.hp===1&&S.inf.graph&&!S.friendDrone){p.drones++;S.friendDrone=1;S.tele.friendHelp=(S.tele.friendHelp||0)+1;ftext(p.x,p.y-30,'A FRIEND IS HERE','#ff5ad9',13);toast('Your contacts got the alert. A friend\'s drone joins you for this wave.',2600)}
-    if(p.hp<=checkAt()&&!S.checkUsed){openCheck();return}
+    if(p.hp===1&&S.inf.mood&&S.moodWave!==S.wave){p.shield=1;S.moodWave=S.wave;S.tele.moodHp=(S.tele.moodHp||0)+1;ftext(p.x,p.y-44,'CHECK-IN · SHIELD','#9ae64a',13)}
     if(fileHea()&&p.hp<=2){hookNag('HEART RATE UP · don\'t quit. 73% of players like you keep going');musicPush(24,.2,1.5)}
     else if(S.shared.BIO){hookNag('STRESS FACE READ · stay in the session');musicPush(16,.14,1.2)}
   }
   if(p.hp<=0){
     if(S.mode==='intro'){p.hp=p.maxHp;p.inv=1.2;return}
     if(S.sandbox){sandboxReset();return}
-    if(p.revives>0)openGuard();
-    else if(!S.emergUsed)openEmerg();
+    if(!S.emergUsed&&!S.safetyAsked){S.haloNow=true;openSafetyAsk(false);return}
+    if(!S.emergUsed){S.emergUsed=true;if(S.safetyOn)haloRescue();else sendMayday()}
     else die();
   }
 }
@@ -3858,7 +3722,7 @@ function liveAds(){
   if(S.safetyFile&&S.safetyFile.loc)out.push('HALO SOLD YOUR LOCATION');
   if(S.model.on.edge)out.push('RIM DWELLERS SEE THESE DEALS');
   if(S.coins>=18&&sh('HAB'))out.push('YOU HAVE ◈ '+S.coins+' · TREAT YOURSELF');
-  if(sh('HEA')&&sh('LOC')&&p.revives)out.push('HEALTH + LOCATION · THIS AD FOUND YOU');
+  if(sh('HEA')&&sh('LOC')&&p.regen)out.push('HEALTH + LOCATION · THIS AD FOUND YOU');
   if(sh('LOC')&&S.tele.wifiCoins)out.push('FREE WI-FI EARNERS ALSO BUY THIS');
   const shared=TYPES.filter(sh);
   if(shared.length>=3)out.push('COMBINED '+shared.length+' DATA TYPES · YOUR AD IS CUSTOM');
@@ -3888,7 +3752,6 @@ function update(dt){
   if(S.readHold)return;
   S.t+=dt;const p=S.p,T=S.tele,active=S.mode==='play'||S.mode==='clear'||S.mode==='breach'||S.mode==='dead'||S.mode==='intro';
   if(!active)return;
-  if((S.safetyTemp||0)>0)S.safetyTemp=Math.max(0,S.safetyTemp-dt);
   const alive=S.mode!=='dead';
   // ---- player ----
   let ix=0,iy=0;
@@ -3898,6 +3761,8 @@ function update(dt){
   p.ang=Math.atan2(mouse.y-p.y,mouse.x-p.x);
   p.dashT-=dt;p.inv-=dt;p.recoil*=.8;
   if(S.sosT>0){S.sosT-=dt;if(p.inv<S.sosT)p.inv=S.sosT}
+  if(S.distressT>0&&alive){S.distressT-=dt;dashReq=false;if(S.distressT<=0)rescueArrives()}
+  if(S.rescueOut>0)S.rescueOut-=dt;
   if(dashReq&&alive&&p.dashT<=0){
     const dx=il?ix:Math.cos(p.ang),dy=il?iy:Math.sin(p.ang);
     p.dashing=.16;p.ddx=dx;p.ddy=dy;p.dashT=p.dashCD;sfx.dash();T.dashes++;
@@ -3911,7 +3776,7 @@ function update(dt){
   dashReq=false;
   if(p.dashing>0){p.dashing-=dt;p.vx=p.ddx*p.speed*3.3;p.vy=p.ddy*p.speed*3.3;S.parts.push({x:p.x,y:p.y,vx:0,vy:0,life:.25,max:.25,col:'#38e1ff',size:p.r*.9})}
   else{
-    let tx=ix*p.speed,ty=iy*p.speed;
+    const spd=p.speed*(S.distressT>0?.4:1);let tx=ix*spd,ty=iy*spd;
     const slide=p.slide||1;
     if(slide>1&&(ix||iy)){
       const c=Math.cos(p.ang),s=Math.sin(p.ang),along=tx*c+ty*s,across=-tx*s+ty*c;
@@ -3970,7 +3835,7 @@ function update(dt){
   if(!S.fair&&!(p.inWifi&&S.mode==='play')&&S.expWifi>0){S.expWifi=Math.max(0,S.expWifi-0.07*dt);T.wifiExp=S.expWifi}
 
   // ---- firing ----
-  if(alive&&!(S.announceUntil&&performance.now()<S.announceUntil)&&S.mode==='play'){
+  if(alive&&!(S.distressT>0)&&!(S.announceUntil&&performance.now()<S.announceUntil)&&S.mode==='play'){
     p.fireT-=dt;
     if(p.fireT<=0){
       p.fireT+=1/(p.fireRate*(p.wifiStill?(S.fair?1.5:2):p.inWifi?(S.fair?1.35:1.55):1));if(p.fireT<0)p.fireT=0;
@@ -4260,11 +4125,11 @@ function update(dt){
   // ---- mode machine ----
   if((S.mode==='play'||S.mode==='clear')&&S.wave===1)noteKeys(!!il,p.dashing>0);
   if(S.mode==='intro')return
-  if(S.mode==='play'&&!S.sandbox&&!S.queue.length&&!S.spawns.length&&!S.enemies.some(e=>!e.partner&&!e.safety)){
+  if(S.mode==='play'&&!S.sandbox&&!(S.distressT>0)&&!S.queue.length&&!S.spawns.length&&!S.enemies.some(e=>!e.partner&&!e.safety)){
     S.mode='clear';S.clearT=3.2;S.bullets=[];S.announceUntil=0;
     S.ebullets.forEach(b=>burst(b.x,b.y,b.col,4,140,.3,2));S.ebullets=[];
     S.ads.forEach(a=>burst(a.x,a.y,a.col,14,200,.4,3));S.ads=[];
-    if(p.regen&&p.hp<p.maxHp){p.hp++;ftext(p.x,p.y-26,'+1 ♥','#ff6b6b',16)}
+    if(p.regen&&p.hp<p.maxHp){const h=Math.min(p.regen,p.maxHp-p.hp);p.hp+=h;ftext(p.x,p.y-26,'+'+h+' ♥','#ff6b6b',16)}
     if(S.breachWave===S.wave)T.breachSurvived=true;
     banner('WAVE CLEAR','','#7dff6a',1.6);
     let nudge='';
@@ -4610,12 +4475,10 @@ function fineText(){
     '<b>2b. COMBINATION ACROSS PLAYERS.</b> Finished runs are counted. No names. The scoreboard keeps 20 names. The count shows what share chose Accept. Fair Play still adds your run. Delete My Data takes your name off the board. The Accept count does not change.',
     '<b>3. SECURITY.</b> We take your security seriously. Security incidents may occur. A small file is rarely worth stealing. Combined data, and files built from three or more categories, are when a breach becomes likely and valuable.',
     '<b>4. PAYMENT OPTION.</b> You may instead pay with credits. Paid upgrades do not collect data. Repeat selections of an upgrade you already have earn a loyalty credit bonus. Each upgrade stops getting stronger after a set number of picks. A full upgrade is not offered again. If nothing is on file, credit prices include a verification adjustment. Opening a Fair Play membership, or sharing any data type, completes a file and ends that markup. Other prices may still change based on how you play.',
-    '<b>4b. FAIR PLAY.</b> A subscription of ◈ '+subPrice()+' is billed at the start of each wave until you cancel or cannot pay. Members get no ads, a cleaner upgrade screen, and member prices. Credit upgrades are 20% off while you are billed. The hotspot becomes Secure Wi-Fi and does not add exposure while you are billed. The fire bonus and the 1-hit shield still apply. The watch continues. New behavior patterns can still unlock and still apply. The mimic still learns from hits. We still learn how you play. Accept stays free, and still sells the data on that offer. Canceling ends the bill and does not delete the member file. The member file is an account. Win-back ads can use it even if you never tapped Accept. It persists across runs until you delete your data. It does not delete data already collected, stop inferences already made, forget patterns already learned, prevent a breach of data already sold, include Halo, or asking for help yourself, or grant a free revive.',
-    '<b>4c. EMERGENCY SOS.</b> Once per run, a killing blow may offer a rescue. If HOME INFERRED is on file, each option below brings you back with 1 more ♥. Halo brings you back with 3♥. Halo may save your health and your location and sell them to a data broker. Asking for help yourself brings you back with 2♥, and Halo saves nothing. Refusing ends the run. If you left Safety Check-In off, Halo is not offered. If you opened Details and those terms said Halo does not save your location, Halo keeps that promise. Nothing on the field changes when you accept. The next data broker aims better if Halo sold your location, and it presses harder while you are at 2♥ or below if Halo sold your health. RESERVE opens this same prompt instead of a silent revive. Paying later does not undo the sale. Fair Play does not include this offer.',
+    '<b>4b. FAIR PLAY.</b> A subscription of ◈ '+subPrice()+' is billed at the start of each wave until you cancel or cannot pay. Members get no ads, a cleaner upgrade screen, and member prices. Credit upgrades are 20% off while you are billed. The hotspot becomes Secure Wi-Fi and does not add exposure while you are billed. The fire bonus and the 1-hit shield still apply. The watch continues. New behavior patterns can still unlock and still apply. The mimic still learns from hits. We still learn how you play. Accept stays free, and still sells the data on that offer. Canceling ends the bill and does not delete the member file. The member file is an account. Win-back ads can use it even if you never tapped Accept. It persists across runs until you delete your data. It does not delete data already collected, stop inferences already made, forget patterns already learned, prevent a breach of data already sold, include Halo, or grant a free rescue.',
+    '<b>4c. HALO.</b> Halo offers automatic rescue at wave 3, or sooner if a hit would end your run first. Once per run, when a hit would end your run: with Halo on, you come back instantly with 3♥, and Halo sells your health and your location to a data broker. The next broker aims at you better. With Halo off, you send a mayday. Search & Rescue does not track you, so it takes '+HELP_WAIT+' seconds to trace your beacon. Until it arrives you move slowly and cannot shoot or dash, and one hit ends the run. Survive and you come back with 2♥. Nothing is sold. If HOME INFERRED is on file, Search & Rescue already has your location and arrives 2 seconds sooner. You can turn Halo on or off from the pause menu. Turning it off does not undo a sale.',
     '<b>4d. * HOTSPOT.</b> A ring slowly roams the arena. Staying in it increases fire rate and charges a 1-hit shield. Standing still can grant credits. On the free network, time in the ring adds a lot of exposure, and each shield charge dumps more onto your file. That hotspot heat cools if you leave the free ring. Sold data types do not. Fair Play upgrades the ring to Secure Wi-Fi: the shield and fire bonus still apply, credits trickle more slowly, and the ring does not add exposure. The watch continues. The * on the ring refers to this clause.',
-    '<b>4e. WELLNESS CHECK.</b> Once per run, the first time you drop to 2♥ or less, Halo may offer a check. If MOOD DETECTED is on file, the check comes at 3♥ and each option gives 1 more ♥. Halo gets you to 3♥ and may save your health and sell it to a data broker. Asking for help yourself holds you at 2♥, and Halo saves nothing. Refusing leaves you at your current hearts. If you left Safety Check-In off, Halo is not offered. If you opened Details and those terms said Halo does not save it, Halo keeps that promise. This is not a revive. Emergency SOS may still be offered on a later killing blow. The next data broker presses harder while you are at 2♥ or below if Halo sold your health. Nothing on the field changes when you accept. Fair Play does not include this offer.',
-    '<b>4f. SAFETY CHECK-IN.</b> Around wave 6, while you are fine, Halo offers a one-time setting. Turning it on lets Halo bring you back fully on a later rescue. Halo may save your location then and sell it to a data broker. Leaving it off means a later rescue can only be you asking for help yourself. If you open Details and those terms say Halo does not save it, turning it on adds no sale. Nothing on the field changes when you accept. The next data broker aims better if the sale went through.',
-    '<b>5. DELETION.</b> Shared data types, inferences, the member file, the mimic, and emergency/wellness files are kept across sessions until you request deletion. Copies already shared with partners are governed by the partners\' own terms.',
+    '<b>5. DELETION.</b> Shared data types, inferences, the member file, the mimic, and Halo files are kept across sessions until you request deletion. Copies already shared with partners are governed by the partners\' own terms.',
     '<b>6. OBSERVATION.</b> Regardless of your choices, gameplay telemetry including movement, hesitation, reaction under stress, and time spent on this screen is recorded and analyzed. The end of a session shows the numbers, a label, and a dollar estimate for one app. A pattern learned from play can be dropped if your play changes. Closing an ad still counts as engagement. Data you sold can be used during play to keep you in the session.',
     '<b>6b. MIMIC.</b> Mimics show up after you finish the wave where the field shares a plan. They breed from hits that land. Each one chases, shoots, dashes, and locks. A hit teaches it how to use those moves. It keeps the approach, the range, the wait, and the aim. It aims where you are going. A close shot by another ship counts only while a mimic is here. It keeps the spot a nearby ship held when a hit landed. A mimic that hits you shows up more. The ship that hits you least shows up less. A clean miss does not. Fair Play does not stop this. Delete My Data wipes it.',
     '<b>7. READERS.</b> Almost nobody reads this far. If you did, type the word <b style="color:#111;background:#ffd23b;padding:0 5px;border-radius:3px">'+S.secret+'</b> on your keyboard right now to receive 15 credits. Once per session.',
@@ -4675,24 +4538,20 @@ function showDossier(){
   if(choices)add('HOW YOU CHOSE','UPGRADES','<b>'+T.free+'</b> free · <b>'+T.paid+'</b> paid · <b>'+T.declined+'</b> declined',0);
   if(T.adsShot)add('HOW YOU CHOSE','ADS SHOT','<b>'+T.adsShot+'</b>',1);
   if(T.sub)add('HOW YOU CHOSE','FAIR PLAY','<b>'+T.sub+'</b> wave'+(T.sub===1?'':'s')+' · <b>'+T.subPaid+'</b> credits',1);
-  if(S.safetyAsked)add('HOW YOU CHOSE','SAFETY CHECK-IN',S.safetyDeal==='off'?'Off.':'On.'+(S.safetyDeal==='call'?' Nothing saved.':''),S.safetyDeal==='keep');
-  if(T.checkTemp)add('HOW YOU CHOSE','WELLNESS CHECK','Halo. Nothing saved.',0);
-  else if(T.check)add('HOW YOU CHOSE','WELLNESS CHECK','Halo. Saved <b>HEALTH</b>.',1);
-  else if(T.checkDirect)add('HOW YOU CHOSE','WELLNESS CHECK','Asked for help.',0);
-  else if(T.checkNo)add('HOW YOU CHOSE','WELLNESS CHECK','Stayed hurt.',0);
-  if(T.emergTemp)add('HOW YOU CHOSE','EMERGENCY SOS','Halo. Nothing saved.',0);
-  else if(T.emerg)add('HOW YOU CHOSE','EMERGENCY SOS','Halo. Saved <b>HEALTH + LOCATION</b>.',1);
-  else if(T.emergDirect)add('HOW YOU CHOSE','EMERGENCY SOS','Asked for help.',0);
+  if(S.safetyAsked)add('HOW YOU CHOSE','HALO',S.safetyOn?'On.':'Off.',0);
+  if(T.emerg)add('HOW YOU CHOSE','RESCUE','Halo. Sold <b>HEALTH + LOCATION</b>.',1);
+  else if(T.distressFail)add('HOW YOU CHOSE','RESCUE','Sent a mayday. Hit during the wait.',0);
+  else if(T.emergDirect)add('HOW YOU CHOSE','RESCUE','Sent a mayday. Survived the wait.',0);
   if(S.member)add('HOW YOU CHOSE','MEMBER FILE','Account open.',1);
-  const nInf=INF.filter(f=>S.inf[f.id]).length,haloUsed=T.emerg||T.emergTemp||T.check||T.checkTemp;
+  const nInf=INF.filter(f=>S.inf[f.id]).length,haloUsed=T.emerg;
   if(T.free)add('WHAT SHARING GOT YOU','FREE UPGRADES','<b>'+T.free+'</b> · worth <b>'+(T.freeValue||0)+'</b> credits',0);
   if(S.inf.predict)add('WHAT SHARING GOT YOU','EARLY WARNING','Ships gave <b>50%</b> more warning',0);
   if(T.camHits)add('WHAT SHARING GOT YOU','CAMERAS','<b>'+T.camHits+'</b> hits did 25% more damage',0);
   if(T.friendHelp)add('WHAT SHARING GOT YOU','FRIEND','A friend\'s drone joined <b>'+T.friendHelp+'×</b>',0);
   if(T.riskSaved)add('WHAT SHARING GOT YOU','RISK SCORE','<b>'+T.riskSaved+'</b> credits off for careful play',0);
-  if(T.homeHp)add('WHAT SHARING GOT YOU','RESCUE','<b>+1♥</b> on the emergency rescue',0);
-  if(T.moodHp)add('WHAT SHARING GOT YOU','WELLNESS','<b>+1♥</b> on the wellness check',0);
-  if(haloUsed)add('WHAT SHARING GOT YOU','HALO','<b>+1♥</b> over asking for help',0);
+  if(T.homeFast)add('WHAT SHARING GOT YOU','HOME','Rescue arrived <b>2s</b> sooner',0);
+  if(T.moodHp)add('WHAT SHARING GOT YOU','CHECK-IN','A 1-hit shield at 1♥ <b>'+T.moodHp+'×</b>',0);
+  if(haloUsed)add('WHAT SHARING GOT YOU','HALO','Instant rescue · no wait · 1 more ♥ than a mayday',0);
   if(nShared)add('WHAT SHARING COST','SOLD','<b>'+nShared+'</b> of 6 data types',0);
   if(nInf)add('WHAT SHARING COST','GUESSED','<b>'+nInf+'</b> inference'+(nInf===1?'':'s')+' made from your data',0);
   if(T.riskExtra)add('WHAT SHARING COST','RISK SCORE','<b>+'+T.riskExtra+'</b> credits for risky play',0);
@@ -4700,12 +4559,13 @@ function showDossier(){
   if(nShared<6)add('WHAT PRIVACY GOT YOU','KEPT','<b>'+(6-nShared)+'</b> of 6 data types never sold',0);
   if(nInf<INF.length)add('WHAT PRIVACY GOT YOU','NOT GUESSED','<b>'+(INF.length-nInf)+'</b> of '+INF.length+' inferences never made',0);
   if(nShared<=2&&!T.breaches)add('WHAT PRIVACY GOT YOU','BREACH RISK','Low. A small file is rarely worth stealing.',0);
-  if(T.emergDirect||T.checkDirect)add('WHAT PRIVACY GOT YOU','ASKED FOR HELP','Halo saved nothing',0);
-  const keptN=T.paidData||0,keptC=T.paidDataCoins||0,markC=T.markupCoins||0,lostHp=(T.emergDirect?1:0)+(T.checkDirect?1:0);
+  if(T.emergDirect)add('WHAT PRIVACY GOT YOU','MAYDAY','Nothing sold',0);
+  const keptN=T.paidData||0,keptC=T.paidDataCoins||0,markC=T.markupCoins||0;
   if(keptN)add('WHAT PRIVACY COST','KEPT DATA','<b>'+keptN+'</b> data upgrade'+(keptN===1?'':'s')+' paid instead of free · <b>'+keptC+'</b> credits',0);
   if(markC)add('WHAT PRIVACY COST','NO-FILE MARKUP','<b>+'+markC+'</b> credits while nothing was on file',0);
-  if(lostHp)add('WHAT PRIVACY COST','ASKED FOR HELP','<b>'+lostHp+'♥</b> less than Halo offered',0);
-  if(!keptN&&!markC&&!lostHp&&choices)add('WHAT PRIVACY COST','NOTHING','<b>0</b> credits. You took the free deals.',0);
+  if(T.distressFail)add('WHAT PRIVACY COST','MAYDAY','The run ended while Search & Rescue traced your beacon',0);
+  else if(T.emergDirect)add('WHAT PRIVACY COST','MAYDAY','<b>'+(T.homeFast?HELP_WAIT-2:HELP_WAIT)+'s</b> unarmed · 1♥ less than Halo',0);
+  if(!keptN&&!markC&&!T.emergDirect&&choices)add('WHAT PRIVACY COST','NOTHING','<b>0</b> credits. You took the free deals.',0);
   if(S.safetyFile&&(S.safetyFile.hea||S.safetyFile.loc)){
     const both=S.safetyFile.hea&&S.safetyFile.loc,what=both?'HEALTH + LOCATION':S.safetyFile.loc?'LOCATION':'HEALTH';
     add('STILL ON FILE','HALO','<b>'+what+'</b>',1);
@@ -4782,7 +4642,7 @@ let hudCache={};
 function setH(id,v,prop='innerHTML'){if(hudCache[id]!==v){hudCache[id]=v;$(id)[prop]=v}}
 function updateHUD(){
   if(!S||S.mode==='dossier')return;const p=S.p;
-  setH('hearts','♥'.repeat(Math.max(0,p.hp))+'<span class="e">'+'♥'.repeat(Math.max(0,p.maxHp-p.hp))+'</span>'+(p.shield?' <span class="hudTag" style="color:#9ae64a">'+uiMark('<path d="M24 8 L38 16 V28 L24 40 L10 28 V16 Z"/>')+'</span>':'')+(p.revives?' <span class="hudTag" style="color:#ff6b6b">REV ×'+p.revives+'</span>':''));
+  setH('hearts','♥'.repeat(Math.max(0,p.hp))+'<span class="e">'+'♥'.repeat(Math.max(0,p.maxHp-p.hp))+'</span>'+(p.shield?' <span class="hudTag" style="color:#9ae64a">'+uiMark('<path d="M24 8 L38 16 V28 L24 40 L10 28 V16 Z"/>')+'</span>':''));
   setH('scoreL',S.score.toLocaleString());setH('coinL',coinMark()+S.coins);setH('waveL',S.sandbox?'SANDBOX · '+stageName(S.formTier)+' · W'+S.wave:'WAVE '+S.wave);
   setH('comboL',S.combo>=(S.shared.HAB&&!S.fair?2:3)?'×'+S.combo+' COMBO'+(!S.fair&&S.shared.HAB&&S.combo>=5?' · DON\'T DROP IT':''):'');
   const nags=[];
@@ -4886,6 +4746,23 @@ function render(dt){
     glow(b.x,b.y,b.r*2.4,b.col,.25);g.fillStyle=b.col;g.beginPath();g.arc(b.x,b.y,b.r,0,TAU);g.fill();g.fillStyle='#fff';g.beginPath();g.arc(b.x,b.y,b.r*.45,0,TAU);g.fill()}
   g.globalCompositeOperation='source-over';
   // player
+  if(S.mode!=='dead'&&((S.distressT>0&&S.distressT<1.4)||S.rescueOut>0)){
+    const far=Math.max(W,H)*.7,a=S.rescueAng||0,cx=Math.cos(a),cy=Math.sin(a);
+    const out=S.rescueOut>0,d=out?30+(1-S.rescueOut/1.2)*far:30+(S.distressT/1.4)*far;
+    const x=p.x+cx*d,y=p.y+cy*d;
+    if(out&&S.rescueOut>.9){g.strokeStyle='rgba(154,215,255,.6)';g.lineWidth=3;g.beginPath();g.moveTo(x,y);g.lineTo(p.x,p.y);g.stroke()}
+    glow(x,y,34,'#9ad7ff',.22);
+    g.save();g.translate(x,y);g.rotate(out?a:a+Math.PI);
+    g.fillStyle='#e8fbff';g.strokeStyle='#9ad7ff';g.lineWidth=2;
+    g.beginPath();g.moveTo(18,0);g.lineTo(-12,-13);g.lineTo(-6,0);g.lineTo(-12,13);g.closePath();g.fill();g.stroke();
+    g.fillStyle='#ff3b5c';g.fillRect(-3,-1.5,8,3);g.fillRect(-0.5,-4,3,8);
+    g.restore();
+  }
+  if(S.distressT>0&&S.mode!=='dead'){
+    const k=S.distressT/helpWait();g.strokeStyle='#9ad7ff';g.lineWidth=2;g.globalAlpha=.5+.3*Math.sin(S.t*8);
+    g.beginPath();g.arc(p.x,p.y,p.r+14,-Math.PI/2,-Math.PI/2+TAU*k);g.stroke();g.globalAlpha=1;
+    g.fillStyle='#9ad7ff';g.font='bold 12px JetBrains Mono';g.textAlign='center';g.fillText('RESCUE IN '+Math.ceil(S.distressT),p.x,p.y-p.r-22);
+  }
   if(S.mode!=='dead'&&!S.introHold&&!S.readHold){
     for(let i=0;i<S.trail.length;i++){const t=S.trail[i];glow(t.x,t.y,p.r*(i/S.trail.length),'#38e1ff',.08)}
     for(let i=0;i<p.drones;i++){const a=S.t*2.2+i*TAU/p.drones,dx=p.x+Math.cos(a)*48,dy=p.y+Math.sin(a)*48;g.strokeStyle='rgba(255,90,217,.25)';g.lineWidth=1;g.beginPath();g.moveTo(p.x,p.y);g.lineTo(dx,dy);g.stroke();glow(dx,dy,10,'#ff5ad9',.25);g.fillStyle='#ff5ad9';g.beginPath();g.arc(dx,dy,5,0,TAU);g.fill()}
@@ -5133,7 +5010,7 @@ function renderLog(){
   }).join('');
 }
 function openLog(){
-  ['title','dossier','terms','reveal','pause','sand','board','name','emerg','check','settings'].forEach(id=>$(id).classList.add('hidden'));
+  ['title','dossier','terms','reveal','pause','sand','board','name','safetyAsk','settings'].forEach(id=>$(id).classList.add('hidden'));
   $('log').classList.remove('hidden');
   renderLog();
 }
@@ -5146,18 +5023,12 @@ refreshTitle();
 bootDev();
 refreshTitle();
 $('pauseList').addEventListener('click',e=>{const row=e.target.closest('[data-pid]');if(!row||!S)return;pauseSel=row.dataset.pid;renderPause()});
+$('pauseDetail').addEventListener('click',e=>{if(e.target.closest('#haloToggle'))toggleHalo()});
 $('subBtn').addEventListener('click',onSubBtn);
 $('subConfirm').addEventListener('click',confirmFair);
 $('subNope').addEventListener('click',closeSubModal);
-$('emergApp').addEventListener('click',()=>acceptEmerg('app'));
-$('emergDirect').addEventListener('click',()=>acceptEmerg('direct'));
-$('emergNo').addEventListener('click',declineEmerg);
-$('checkApp').addEventListener('click',()=>acceptCheck('app'));
-$('checkDirect').addEventListener('click',()=>acceptCheck('direct'));
-$('checkNo').addEventListener('click',declineCheck);
 $('askOn').addEventListener('click',acceptSafetyAsk);
 $('askOff').addEventListener('click',declineSafetyAsk);
-document.querySelectorAll('[data-safety-fine]').forEach(el=>el.addEventListener('toggle',()=>{if(el.open&&S){S.safetyRead=true;S.tele.fineOpen=(S.tele.fineOpen||0)+1;if(S.mode==='emerg')paintEmerg(!!S.guardPrompt);else if(S.mode==='check')paintCheck();else if(S.mode==='safety')paintSafetyAsk()}}));
 $('sand').addEventListener('click',e=>{
   const b=e.target.closest('[data-sand]');if(!b||!S||!S.sandbox)return;
   const a=b.dataset.sand;
