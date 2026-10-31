@@ -77,6 +77,8 @@ button{font-family:inherit;cursor:pointer;border:none}
 .nameBox input:focus{border-color:#38e1ff;box-shadow:0 0 12px rgba(56,225,255,.2)}
 #nameErr,#devErr{min-height:1.5em;font-size:12px;color:#ff3b5c;letter-spacing:1px}
 #devGate{z-index:18}
+.whoBar{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;color:#ffd23b;display:flex;align-items:center;gap:8px}
+.whoBar select{font-family:inherit;font-size:12px;background:#0b0c18;color:#e8ecff;border:1px solid #ffd23b;padding:4px 6px}
 .devFlag{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:#111;background:#ffd23b;padding:4px 8px}
 #hudDev{position:absolute;right:18px;bottom:18px;font-size:10px;letter-spacing:1px;color:#111;background:#ffd23b;padding:3px 7px;pointer-events:none}
 #hudDev:empty{display:none}
@@ -218,6 +220,7 @@ button{font-family:inherit;cursor:pointer;border:none}
 @keyframes cardIn{from{transform:translateY(18px);opacity:0}}
 .card:hover{transform:translateY(-3px);border-color:#4a5288}
 .ctag{position:absolute;top:10px;left:10px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:2px;color:#a8b0d4}
+.cpick{position:absolute;top:-9px;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px;background:#8a9bff;color:#0b0c18;padding:2px 7px;white-space:nowrap}
 .chot{position:absolute;top:10px;right:10px;font-size:10px;font-weight:700;background:var(--yl);color:#1a1400;padding:1px 6px}
 .cicon{height:52px;margin:14px 0 2px;display:flex;align-items:center;justify-content:center}
 .cicon .mark{width:44px;height:44px}
@@ -376,7 +379,10 @@ button:disabled{opacity:.45;cursor:default}
 .brow:hover{border-color:#3a4270;background:#181c36}
 .brow.you{border-left-color:#38e1ff;box-shadow:0 0 12px rgba(56,225,255,.12)}
 .brow.sel{border-color:#fff}
-.browTop{display:grid;grid-template-columns:36px minmax(0,1fr) 92px 52px;gap:10px;align-items:center}
+.bcls{display:flex;gap:2px;justify-content:center}
+.bcls i{width:4px;height:10px;background:#23284a}
+.bcls i.on{background:#8a9bff}
+.browTop{display:grid;grid-template-columns:36px minmax(0,1fr) 34px 92px 52px;gap:10px;align-items:center}
 .bn{color:#6a7299}
 .bw{color:#8a92c0;text-align:right;letter-spacing:1px}
 .bscore{color:#ffd23b;font-weight:700;text-align:right}
@@ -458,6 +464,7 @@ button:disabled{opacity:.45;cursor:default}
   <div class="titleFoot">
     <div class="best" id="bestLine"></div>
     <div id="devFlag" class="devFlag hidden">DEV MODE · SCORES STAY OFF THE BOARD</div>
+    <label class="whoBar hidden" id="whoBar">PLAYER <select id="whoSel"></select></label>
     <button type="button" id="titleVer" class="titleVer">v1.2.3</button>
   </div>
 </div>
@@ -687,7 +694,12 @@ const pick=a=>a[Math.floor(Math.random()*a.length)];
 const pickW=pairs=>{let t=0;for(const p of pairs)t+=p[1];let r=Math.random()*t;for(const p of pairs){r-=p[1];if(r<=0)return p[0]}return pairs[0][0]};
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const TAU=Math.PI*2;
-const store={get(k,d){try{const v=localStorage.getItem('optin_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('optin_'+k,JSON.stringify(v))}catch(e){}},clear(){try{Object.keys(localStorage).filter(k=>k.startsWith('optin_')).forEach(k=>localStorage.removeItem(k))}catch(e){}}};
+// Dev mode can switch between players on one device. Each player keeps its own keys; these stay shared by the device.
+const STORE_SHARED=new Set(['board','crowd','dev','devKey','muted','seen','who','players']);
+function storeWho(){try{return JSON.parse(localStorage.getItem('optin_who')||'""')||''}catch(e){return ''}}
+function storePre(k){const w=STORE_SHARED.has(k)?'':storeWho();return w?'optin@'+w+'_':'optin_'}
+const store={get(k,d){try{const v=localStorage.getItem(storePre(k)+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(storePre(k)+k,JSON.stringify(v))}catch(e){}},
+  clear(){try{const pre=storePre('');Object.keys(localStorage).filter(k=>k.startsWith(pre)&&!(pre==='optin_'&&STORE_SHARED.has(k.slice(6)))).forEach(k=>localStorage.removeItem(k))}catch(e){}}};
 try{localStorage.removeItem('optin_ach')}catch(e){}
 
 // Version only when the user asks. Do not bump VERSION or add CHANGELOG entries on your own.
@@ -818,10 +830,25 @@ function submitName(){
 function boardHdr(){return {'Content-Type':'application/json','X-Mantle-Key':BOARD.key}}
 function boardSort(a){return a.sort((x,y)=>(y.score-x.score)||(y.wave-x.wave)||((y.at||0)-(x.at||0)))}
 function boardCache(list){store.set('board',list);return list}
-function blankCrowd(){return {n:0,accepts:0,at:0}}
+const CM_W=12,CM_H=8,HP_LV=10;
+// Class models: one pool per data type, fed only by runs that shared that type, applied to every player.
+// LOC: where runs spent time and got hit. HAB: which way runs dodge, and what the longest runs picked first. HEA: hits per second at each heart count.
+const CLASS_TYPES=['LOC','HAB','HEA'];
+function blankModelPool(t){
+  if(t==='LOC')return {k:0,hit:new Array(CM_W*CM_H).fill(0),time:new Array(CM_W*CM_H).fill(0)};
+  if(t==='HAB')return {k:0,dl:0,dr:0,ds:0,pick:{}};
+  return {k:0,t:new Array(HP_LV).fill(0),h:new Array(HP_LV).fill(0)};
+}
+function blankCrowd(){return {n:0,accepts:0,at:0,models:{LOC:blankModelPool('LOC'),HAB:blankModelPool('HAB'),HEA:blankModelPool('HEA')}}}
 function crowdNorm(c){
   if(!c||typeof c!=='object'||c.accepts==null)return blankCrowd();
-  return {n:Math.max(0,+c.n||0),accepts:Math.max(0,Math.min(+c.accepts||0,+c.n||0)),at:+c.at||0};
+  const f=x=>Math.max(0,+x||0),arr=(a,n)=>Array.from({length:n},(_,i)=>f(Array.isArray(a)?a[i]:0)),m=c.models&&typeof c.models==='object'?c.models:{};
+  const L=m.LOC||{},B=m.HAB||{},E=m.HEA||{},pick={};
+  if(B.pick&&typeof B.pick==='object')for(const id in B.pick)if(PERKS.some(q=>q.id===id))pick[id]=f(B.pick[id]);
+  return {n:Math.max(0,+c.n||0),accepts:Math.max(0,Math.min(+c.accepts||0,+c.n||0)),at:+c.at||0,models:{
+    LOC:{k:f(L.k),hit:arr(L.hit,CM_W*CM_H),time:arr(L.time,CM_W*CM_H)},
+    HAB:{k:f(B.k),dl:f(B.dl),dr:f(B.dr),ds:f(B.ds),pick},
+    HEA:{k:f(E.k),t:arr(E.t,HP_LV),h:arr(E.h,HP_LV)}}};
 }
 function crowdCache(c){const n=crowdNorm(c);store.set('crowd',n);return n}
 function getCrowd(){return crowdNorm(store.get('crowd',null))}
@@ -829,10 +856,56 @@ function acceptPct(accepts,n){return n?Math.round(accepts/n*100)+'%':'0%'}
 function foldCrowd(cur,snap){
   const c=crowdNorm(cur);
   if(!snap)return c;
-  c.n+=1;
-  if(snap.accepted)c.accepts+=1;
+  if(!snap.devOnly){c.n+=1;if(snap.accepted)c.accepts+=1}
+  const add=snap.models||{},f=CLASS_FADE,mix=(a,b,d)=>a.map((v,i)=>+(v*f+(b&&b[i]||0)).toFixed(d));
+  if(add.LOC){const q=c.models.LOC;q.k+=1;q.hit=mix(q.hit,add.LOC.hit,3);q.time=mix(q.time,add.LOC.time,1)}
+  if(add.HAB){const q=c.models.HAB,a=add.HAB;q.k+=1;for(const k of ['dl','dr','ds'])q[k]=+(q[k]*f+(a[k]||0)).toFixed(3);
+    for(const id in q.pick)q.pick[id]=+(q.pick[id]*f).toFixed(2);if(a.pick)q.pick[a.pick.id]=(q.pick[a.pick.id]||0)+a.pick.w}
+  if(add.HEA){const q=c.models.HEA;q.k+=1;q.t=mix(q.t,add.HEA.t,1);q.h=mix(q.h,add.HEA.h,2)}
   c.at=Date.now();return c;
 }
+// Each model reaches full strength at CLASS_RAMP runs that shared its type.
+// Each new run shrinks that model's older runs by CLASS_FADE, so it mostly reflects about the last 10.
+const CLASS_RAMP=5,CLASS_FADE=.9;
+function classRead(){
+  const M=getCrowd().models,ramp=k=>+clamp(k/CLASS_RAMP,0,1).toFixed(2),cm={};
+  {const q=M.LOC,hits=q.hit.reduce((a,b)=>a+b,0),secs=q.time.reduce((a,b)=>a+b,0);let map=null,risk=0,lit=0,spawn=null;
+    if(hits>0&&secs>0){const avg=hits/secs,k0=10,rel=q.hit.map((h,i)=>(h+avg*k0)/(q.time[i]+k0)/avg);
+      risk=Math.max(...rel);map=rel.map(x=>+clamp((x-1)/1.5,0,1).toFixed(3));lit=map.filter(v=>v>.3).length}
+    if(secs>0)spawn=q.time.map(v=>+(v/secs).toFixed(4));
+    cm.LOC={s:q.k?ramp(q.k):0,k:q.k,map,risk:+risk.toFixed(2),lit,spawn}}
+  {const q=M.HAB,dt=q.dl+q.dr+q.ds,top=Math.max(q.dl,q.dr,q.ds),ids=Object.keys(q.pick).sort((a,b)=>q.pick[b]-q.pick[a]);
+    cm.HAB={s:ramp(q.k),k:q.k,dodge:dt>0&&top!==q.ds?(q.dl>=q.dr?1:-1):0,pick:ids[0]||null}}
+  {const q=M.HEA,secs=q.t.reduce((a,b)=>a+b,0),hits=q.h.reduce((a,b)=>a+b,0);let danger=0,rel=0;
+    if(secs>0&&hits>0){const avg=hits/secs,k0=15;for(let l=1;l<HP_LV;l++){if(q.t[l]<15)continue;const r=(q.h[l]+avg*k0)/(q.t[l]+k0)/avg;if(r>rel){rel=r;danger=l}}if(rel<1.2)danger=0}
+    cm.HEA={s:ramp(q.k),k:q.k,danger,rel:+rel.toFixed(2)}}
+  return cm;
+}
+function cmOn(t){return !!(S&&!S.sandbox&&S.cm&&S.cm[t]&&S.cm[t].s>0)}
+function classLevel(cm){return cm?+((CLASS_TYPES.reduce((a,t)=>a+(cm[t]&&cm[t].s||0),0))/CLASS_TYPES.length).toFixed(2):0}
+// What one run adds: only to the models for the data types it shared.
+function classSample(T){
+  const secs=T.heat?Array.from(T.heat).reduce((a,b)=>a+b,0)*.1:0;
+  if(secs<20)return null;
+  const out={};
+  if(S.shared.LOC){const time=new Array(CM_W*CM_H).fill(0);
+    for(let i=0;i<T.heat.length;i++){const cx=(i%24)>>1,cy=Math.floor(i/24)>>1;time[cy*CM_W+cx]+=T.heat[i]*.1}
+    out.LOC={hit:(T.hitGrid||new Array(CM_W*CM_H).fill(0)).slice(),time:time.map(v=>+v.toFixed(1))}}
+  if(S.shared.HAB){const dg=T.dodge||{l:0,r:0,s:0},dn=dg.l+dg.r+dg.s;
+    out.HAB={dl:dn>=3?dg.l/dn:0,dr:dn>=3?dg.r/dn:0,ds:dn>=3?dg.s/dn:0,pick:T.firstPick?{id:T.firstPick,w:S.wave}:null}}
+  if(S.shared.HEA)out.HEA={t:(T.hpTime||new Array(HP_LV).fill(0)).map(v=>+v.toFixed(1)),h:(T.hpHits||new Array(HP_LV).fill(0)).slice()};
+  return Object.keys(out).length?out:null;
+}
+function classCell(x,y){return clamp(Math.floor(y/H*CM_H),0,CM_H-1)*CM_W+clamp(Math.floor(x/W*CM_W),0,CM_W-1)}
+function noteClassHit(p,before){
+  const T=S.tele,c=classCell(p.x,p.y);if(!T.hitGrid)T.hitGrid=new Array(CM_W*CM_H).fill(0);
+  T.hitGrid[c]++;
+  if(!T.hpHits)T.hpHits=new Array(HP_LV).fill(0);T.hpHits[clamp(before,0,HP_LV-1)]++;
+  const L=S.cm&&S.cm.LOC;if(L&&L.map){if(L.map[c]>.3)T.hotHits=(T.hotHits||0)+1;else T.coldHits=(T.coldHits||0)+1}
+  const E=S.cm&&S.cm.HEA;if(E&&E.danger){if(before===E.danger)T.dangerHits=(T.dangerHits||0)+1;else T.safeHits=(T.safeHits||0)+1}
+  const b=S.hitBy;if(b){if(b.cls)T.clsHit=(T.clsHit||0)+1;else if(b.aimed)T.aimHit=(T.aimHit||0)+1}
+}
+function classDots(v){const n=Math.round(clamp(+v||0,0,1)*5);return '<i class="on"></i>'.repeat(n)+'<i></i>'.repeat(5-n)}
 async function boardPull(){
   try{
     const r=await fetch(BOARD.url,{headers:{'X-Mantle-Key':BOARD.key}});
@@ -884,6 +957,7 @@ async function devKeyOk(key){
 }
 function setDev(on,key){
   devOn=!!on;
+  if(!on&&storeWho())store.set('who','');
   if(on)store.set('devKey',key);else store.set('devKey',null);
   refreshTitle();
 }
@@ -975,7 +1049,7 @@ async function renderBoard(){
   if(!list.length){$('boardList').innerHTML='<div id="boardEmpty">No scores yet. Die once and you will be on the leaderboard.</div>';return}
   $('boardList').innerHTML=list.map((e,i)=>{
     const you=me&&e.pid===me;
-    return `<button type="button" class="brow${you?' you':''}" data-bi="${i}"><div class="browTop"><span class="bn">${i+1}</span><span class="btag">${esc(boardName(e))}${you?'<span class="byou">YOU</span>':''}</span><span class="bscore">${(e.score||0).toLocaleString()}</span><span class="bw">W${e.wave||0}</span></div></button>`;
+    return `<button type="button" class="brow${you?' you':''}" data-bi="${i}"><div class="browTop"><span class="bn">${i+1}</span><span class="btag">${esc(boardName(e))}${you?'<span class="byou">YOU</span>':''}</span><span class="bcls" title="Class data when played">${classDots(e.cls)}</span><span class="bscore">${(e.score||0).toLocaleString()}</span><span class="bw">W${e.wave||0}</span></div></button>`;
   }).join('');
   $('boardList').onclick=ev=>{
     const btn=ev.target.closest('[data-bi]');if(!btn)return;
@@ -988,6 +1062,7 @@ async function renderBoard(){
     const pats=(e.pats||[]).join(', ')||'none observed';
     $('boardDetail').className='on';
     $('boardDetail').innerHTML=`<h3>${esc(boardName(e))}${me2&&e.pid===me2?' · YOU':''}</h3>
+      <div class="stat"><span>Class data</span><b class="bcls">${classDots(e.cls)}</b></div>
       <div class="stat"><span>Wave / score</span><b>${e.wave||0} / ${(e.score||0).toLocaleString()}</b></div>
       <div class="stat"><span>File size</span><b style="color:${esc(e.rankC||'#38e1ff')}">${esc(e.rank||'UNKNOWN')}</b></div>
       <div class="stat"><span>Sold as</span><b>${esc(e.seg||'UNSEGMENTED')}</b></div>
@@ -1529,7 +1604,7 @@ function saveGame(){
     adT:S.adT,adRecent:S.adRecent||[],secret:S.secret,secretUsed:!!S.secretUsed,
     queue:(S.queue||[]).slice(),spawnT:S.spawnT,
     amend:S.amend||null,hotI:S.hotI==null?-1:S.hotI,hotBadge:S.hotBadge||'',
-    fair:!!S.fair,member:!!S.member,fairPaidWave:S.fairPaidWave||0,expWifi:S.expWifi||0,emergUsed:!!S.emergUsed,haloNow:!!S.haloNow,friendDrone:S.friendDrone||0,distressT:S.distressT||0,rescueAng:S.rescueAng||0,
+    fair:!!S.fair,member:!!S.member,fairPaidWave:S.fairPaidWave||0,expWifi:S.expWifi||0,emergUsed:!!S.emergUsed,haloNow:!!S.haloNow,cm:S.cm||null,classTold:!!S.classTold,friendDrone:S.friendDrone||0,distressT:S.distressT||0,rescueAng:S.rescueAng||0,
     safetyFile:S.safetyFile||{hea:false,loc:false},
     safetyAsked:!!S.safetyAsked,safetyOn:!!S.safetyOn,
     formTier:S.formTier||0,formRead:S.formRead||0,formSkillRank:S.formSkillRank||0,formSkillWave:S.formSkillWave||0,waveHadBroker:!!S.waveHadBroker,formJustUp:!!S.formJustUp,hiveWave:S.hiveWave||0,brokerN:S.brokerN||0,
@@ -1559,7 +1634,7 @@ function restoreRun(snap){
   s.queue=(snap.queue||[]).slice();s.spawnT=snap.spawnT==null?1.2:snap.spawnT;
   s.secret=snap.secret||s.secret;s.secretUsed=!!snap.secretUsed;
   s.amend=snap.amend||null;s.hotI=snap.hotI==null?-1:snap.hotI;s.hotBadge=snap.hotBadge||'';
-  s.fair=!!snap.fair;s.member=!!(snap.member||snap.fair);s.fairPaidWave=snap.fairPaidWave||0;s.expWifi=snap.expWifi||0;s.emergUsed=!!snap.emergUsed;s.haloNow=!!snap.haloNow;s.friendDrone=snap.friendDrone||0;s.distressT=snap.distressT||0;s.rescueAng=snap.rescueAng||0;
+  s.fair=!!snap.fair;s.member=!!(snap.member||snap.fair);s.fairPaidWave=snap.fairPaidWave||0;s.expWifi=snap.expWifi||0;s.emergUsed=!!snap.emergUsed;s.haloNow=!!snap.haloNow;s.cm=snap.cm||null;s.classTold=!!snap.classTold;s.friendDrone=snap.friendDrone||0;s.distressT=snap.distressT||0;s.rescueAng=snap.rescueAng||0;
   s.safetyFile=snap.safetyFile&&typeof snap.safetyFile==='object'?{hea:!!snap.safetyFile.hea,loc:!!snap.safetyFile.loc}:{hea:false,loc:false};
   s.safetyAsked=!!snap.safetyAsked;s.safetyOn=!!snap.safetyOn;
   s.formTier=snap.formTier||0;s.formRead=snap.formRead||0;s.formSkillRank=snap.formSkillRank||0;s.formSkillWave=snap.formSkillWave||0;s.waveHadBroker=!!snap.waveHadBroker;s.formJustUp=!!snap.formJustUp;s.hiveWave=snap.hiveWave||0;s.brokerN=snap.brokerN||0;
@@ -1616,7 +1691,7 @@ function newState(){
       breaches:0,breachSurvived:false,kills:0,hits:0,sampT:0,time:0,wifiT:0,wifiCoins:0,wifiExp:0,caught:0,honest:0,sub:0,subPaid:0,emerg:0,check:0,checkNo:0,
       comboPeak:0,waveHits:0,waveKills:0,waveT:0,shots:0,closeT:0,formBreaks:0,urgencyLate:0,urgencyOff:false},
     wifi:loadWifi(),wifiAcc:0,shieldAcc:0,wifiMoveIn:2+Math.floor(Math.random()*3),expWifi:0,expVis:0,amend:null,sosT:0,
-    nagT:0,pingT:9,unread:0,hookFriend:null,musicPush:null,fair:false,member:!!prof.member,fairPaidWave:0,emergUsed:false,
+    nagT:0,pingT:9,unread:0,hookFriend:null,musicPush:null,fair:false,member:!!prof.member,fairPaidWave:0,emergUsed:false,cm:classRead(),classTold:false,
     formI:0,formTier:0,formRead:0,formSkillRank:0,formSkillWave:0,waveHadBroker:false,formJustUp:false,hiveWave:0,brokerN:0,sandbox:false,sandPicks:{},checkpoint:null,filed:false,breachLine:'',hotI:-1,hotBadge:'',taken:[]
   };
   parkWifi(s.wifi,s.p.x,s.p.y);
@@ -2489,6 +2564,14 @@ function edgeFrom(){
   const p=S.p,left=p.x,right=W-p.x,top=p.y,bot=H-p.y,m=Math.min(left,right,top,bot);
   if(m===left)return 0;if(m===right)return Math.PI;if(m===top)return Math.PI/2;return -Math.PI/2;
 }
+// HUD panels drawn over the arena. Static ships (cameras) must not sit under them.
+function underHud(x,y,pad){
+  for(const id of ['hudL','hudR','logFeed','hudDev']){
+    const el=$(id);if(!el)continue;const r=el.getBoundingClientRect();
+    if(r.width&&r.height&&x>r.left-pad&&x<r.right+pad&&y>r.top-pad&&y<r.bottom+pad)return true;
+  }
+  return false;
+}
 function spawnWarn(type,form,skill,gene){
   if(type==='strain'){
     const g=normGene(gene||randGene());
@@ -2500,6 +2583,7 @@ function spawnWarn(type,form,skill,gene){
   const loose=type!=='camera'&&type!=='broker'&&type!=='partner'&&!form;
   const p=S.p,pin=loose&&S.inf.home;
   const hot=S.model.hot;let x,y,tries=0;
+  const lingerSpawn=loose&&cmOn('LOC')&&S.cm.LOC.spawn&&Math.random()<S.cm.LOC.s*.4?S.cm.LOC.spawn.map((v,i)=>[i,v]):null;if(lingerSpawn)S.tele.lingerSpawns=(S.tele.lingerSpawns||0)+1;
   const zone=!pin&&!form&&hot&&type!=='camera'&&type!=='broker'&&type!=='partner'&&Math.random()<.5;
   const rim=!pin&&!zone&&!form&&S.model.on.edge&&type!=='camera'&&type!=='broker'&&type!=='partner';
   do{
@@ -2507,9 +2591,10 @@ function spawnWarn(type,form,skill,gene){
     else if(pin){const a=rand(0,TAU),d=rand(110,180);x=p.x+Math.cos(a)*d;y=p.y+Math.sin(a)*d}
     else if(zone){const a=rand(0,TAU),d=rand(40,190);x=hot.x+Math.cos(a)*d;y=hot.y+Math.sin(a)*d}
     else if(rim){const a=edgeFrom(),d=rand(190,280);x=p.x+Math.cos(a)*d;y=p.y+Math.sin(a)*d}
+    else if(lingerSpawn&&tries<12){const c=pickW(lingerSpawn),cw=W/CM_W,ch=H/CM_H;x=(c%CM_W+Math.random())*cw;y=(Math.floor(c/CM_W)+Math.random())*ch}
     else{x=rand(40,W-40);y=rand(40,H-40)}
     tries++;
-  }while(tries<30&&(x<30||y<30||x>W-30||y>H-30||Math.hypot(x-p.x,y-p.y)<(type==='partner'?50:pin?100:zone?150:type==='camera'?220:230)));
+  }while(tries<30&&(x<30||y<30||x>W-30||y>H-30||(type==='camera'&&underHud(x,y,30))||Math.hypot(x-p.x,y-p.y)<(type==='partner'?50:pin?100:zone?150:type==='camera'?220:230)));
   x=clamp(x,30,W-30);y=clamp(y,30,H-30);
   const warn=(pin?.45:.85)*(S.inf.predict?1.5:1);
   S.spawns.push({x,y,type,t:warn,max:warn,form:form||null,skill:skill||'raw'});sfx.spawn();
@@ -3634,7 +3719,7 @@ function hurtPlayer(src){
     return;
   }
   if(S.distressT>0){S.distressT=0;S.tele.distressFail=1;p.hp=0;die();return}
-  p.hp--;p.inv=1.1;S.shake=16;S.freeze=.09;S.flash=.6;S.flashCol='255,40,80';S.combo=0;S.tele.hits++;S.tele.waveHits=(S.tele.waveHits||0)+1;sfx.hurt();
+  p.hp--;p.inv=1.1;S.shake=16;S.freeze=.09;S.flash=.6;S.flashCol='255,40,80';S.combo=0;S.tele.hits++;noteClassHit(p,p.hp+1);S.tele.waveHits=(S.tele.waveHits||0)+1;sfx.hurt();
   if(src)noteFightHit(src);
   const M=S.model;M.win.hits++;M.hitAt=S.t;M.hitAway=src?Math.atan2(p.y-src.y,p.x-src.x):p.ang+Math.PI;
   if(M.on.panic){
@@ -3646,6 +3731,7 @@ function hurtPlayer(src){
   if(p.hp>0){
     if(S.mode==='intro'||S.sandbox)return;
     if(p.hp===1&&S.inf.graph&&!S.friendDrone){p.drones++;S.friendDrone=1;S.tele.friendHelp=(S.tele.friendHelp||0)+1;ftext(p.x,p.y-30,'A FRIEND IS HERE','#ff5ad9',13);toast('Your contacts got the alert. A friend\'s drone joins you for this wave.',2600)}
+    if(cmOn('HEA')&&p.hp===S.cm.HEA.danger&&S.dangerWave!==S.wave){p.shield=1;S.dangerWave=S.wave;S.tele.dangerShield=(S.tele.dangerShield||0)+1;ftext(p.x,p.y-58,'CLASS CHECK-IN · SHIELD','#8a9bff',12)}
     if(p.hp===1&&S.inf.mood&&S.moodWave!==S.wave){p.shield=1;S.moodWave=S.wave;S.tele.moodHp=(S.tele.moodHp||0)+1;ftext(p.x,p.y-44,'CHECK-IN · SHIELD','#9ae64a',13)}
     if(fileHea()&&p.hp<=2){hookNag('HEART RATE UP · don\'t quit. 73% of players like you keep going');musicPush(24,.2,1.5)}
     else if(S.shared.BIO){hookNag('STRESS FACE READ · stay in the session');musicPush(16,.14,1.2)}
@@ -3692,14 +3778,26 @@ function brokerAim(e,spd){
   const p=S.p,t=Math.min(.45,Math.hypot(p.x-e.x,p.y-e.y)/spd);
   return Math.atan2(p.y+p.vy*t-e.y,p.x+p.vx*t-e.x);
 }
+let aimNext=null;
 function aimAngle(e,spd){
-  const p=S.p;let tx=p.x,ty=p.y;
+  const p=S.p;let tx=p.x,ty=p.y;aimNext={e,cls:false};
   if(S.inf.predict){const t=Math.min(1.1,Math.hypot(p.x-e.x,p.y-e.y)/spd);tx+=p.vx*t;ty+=p.vy*t}
+  // Class model: a second shot covers the side the class usually dodges toward. The first shot still aims at you.
+  if(cmOn('HAB')&&S.cm.HAB.dodge&&Math.random()<S.cm.HAB.s*.35){
+    const dx=p.x-e.x,dy=p.y-e.y,d=Math.hypot(dx,dy)||1,off=clamp(p.speed*Math.min(d/spd,.55)*.75,50,110)*S.cm.HAB.dodge;
+    aimNext={e,cls:true,tx:p.x+(-dy/d)*off,ty:p.y+(dx/d)*off};
+  }
   const pp=S.model.panicPt;
-  if(pp&&S.t<pp.until&&Math.random()<.6){tx=pp.x;ty=pp.y}
+  if(pp&&S.t<pp.until&&Math.random()<.6){tx=pp.x;ty=pp.y;aimNext={e,cls:false}}
   return Math.atan2(ty-e.y,tx-e.x);
 }
-function eshoot(e,a,spd,col,r=5){S.ebullets.push({x:e.x+Math.cos(a)*e.r,y:e.y+Math.sin(a)*e.r,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,r,col:col||e.col,life:5,gz:false,from:e})}
+function eshoot(e,a,spd,col,r=5){const am=aimNext&&aimNext.e===e?aimNext:null;aimNext=null;
+  S.ebullets.push({x:e.x+Math.cos(a)*e.r,y:e.y+Math.sin(a)*e.r,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,r,col:col||e.col,life:5,gz:false,from:e,aimed:!!am});
+  if(!am||S.sandbox)return;
+  S.tele.aimShots=(S.tele.aimShots||0)+1;
+  if(am.cls){const c=Math.atan2(am.ty-e.y,am.tx-e.x);S.tele.classShots=(S.tele.classShots||0)+1;
+    S.ebullets.push({x:e.x+Math.cos(c)*e.r,y:e.y+Math.sin(c)*e.r,vx:Math.cos(c)*spd,vy:Math.sin(c)*spd,r,col:'#8a9bff',life:5,gz:false,from:e,cls:true,tx:am.tx,ty:am.ty})}
+}
 function liveAds(){
   const p=S.p,out=[],sh=t=>S.shared[t],n=t=>DATA[t].n;
   if(fileHea()&&p.hp<=2)out.push('HEART RATE '+(88+Math.round((3-p.hp)*14))+' · CALM TEA 15% OFF','LOW ♥ · FIRST-AID KIT IN YOUR AREA');
@@ -3794,6 +3892,9 @@ function update(dt){
     if(ix<0){T.dirs.l+=dt;M.mL+=dt}if(ix>0){T.dirs.r+=dt;M.mR+=dt}if(iy<0){T.dirs.u+=dt;M.mU+=dt}if(iy>0){T.dirs.d+=dt;M.mD+=dt}
     if(T.sampT<=0){
       T.sampT=.1;const cx=clamp(Math.floor(p.x/W*24),0,23),cy=clamp(Math.floor(p.y/H*16),0,15);T.heat[cy*24+cx]+=1;M.heat[cy*24+cx]+=1;
+      if(!T.hpTime)T.hpTime=new Array(HP_LV).fill(0);T.hpTime[clamp(p.hp,0,HP_LV-1)]+=.1;
+      const L=S.cm&&S.cm.LOC;if(L&&L.map){if(L.map[classCell(p.x,p.y)]>.3)T.hotT=(T.hotT||0)+.1;else T.coldT=(T.coldT||0)+.1}
+      const E=S.cm&&S.cm.HEA;if(E&&E.danger){if(p.hp===E.danger)T.dangerT=(T.dangerT||0)+.1;else T.safeT=(T.safeT||0)+.1}
       const qi=(p.x>W/2?1:0)+(p.y>H/2?2:0);T.q[qi]++;M.q[qi]++;
       const sp=Math.hypot(p.vx,p.vy);if(sp<20){T.still++;M.still++}else{T.moving++;M.moving++}
       M.trail.push({x:p.x,y:p.y});if(M.trail.length>25)M.trail.shift();
@@ -3870,7 +3971,8 @@ function update(dt){
   // ---- enemies ----
   const still=S.model.on.still;
   S.kit=kitFlags();
-  const kit=S.kit,weak=!!(S.shared&&S.shared.HEA)&&p.hp<=2,hunt=safetyHunt(),fireMul=weak?1.55:1;
+  const press=cmOn('HEA')&&p.hp===S.cm.HEA.danger?1+.25*S.cm.HEA.s:1;
+  const kit=S.kit,weak=!!(S.shared&&S.shared.HEA)&&p.hp<=2,hunt=safetyHunt()*press,fireMul=(weak?1.55:1)*press;
   for(const e of S.enemies){
     e.t+=dt;e.flash-=dt;if(e.locTag>0)e.locTag-=dt;
     const dx=p.x-e.x,dy=p.y-e.y,d=Math.hypot(dx,dy)||1,nx=dx/d,ny=dy/d;
@@ -4080,7 +4182,10 @@ function update(dt){
     if(b.life<=0||b.x<-30||b.y<-30||b.x>W+30||b.y>H+30){b.dead=true;continue}
     if(!alive)continue;
     const d=Math.hypot(b.x-p.x,b.y-p.y);
-    if(d<p.r+b.r-3){if(p.inv<=0&&p.dashing<=0&&S.sosT<=0){b.dead=true;hurtPlayer(b.from||b)}}
+    if(!b.dg&&d<150){const sp=Math.hypot(b.vx,b.vy)||1;if((b.vx*(p.x-b.x)+b.vy*(p.y-b.y))/(sp*(d||1))>.7){b.dg=1;
+      const T2=S.tele.dodge||(S.tele.dodge={l:0,r:0,s:0}),side=p.vx*(-b.vy/sp)+p.vy*(b.vx/sp);
+      if(Math.hypot(p.vx,p.vy)<60)T2.s++;else if(side>0)T2.l++;else T2.r++}}
+    if(d<p.r+b.r-3){if(p.inv<=0&&p.dashing<=0&&S.sosT<=0){b.dead=true;S.hitBy=b;hurtPlayer(b.from||b);S.hitBy=null}}
     else if(d<p.r+b.r+16&&!b.gz){b.gz=true;T.nearMiss++;const gp=fileHea()?12:5;S.score+=gp;ftext(p.x,p.y-22,fileHea()?'ADRENALINE +'+gp:'GRAZE','#38e1ff',11);sfx.graze();if(b.from&&b.from.type==='strain')noteStrainNear(b.from,1);else noteOtherNear(b.from)}
     else if(d<p.r+b.r+52&&!b.near&&b.from){b.near=true;if(b.from.type==='strain')noteStrainNear(b.from,.7);else noteOtherNear(b.from)}
   }
@@ -4127,6 +4232,7 @@ function update(dt){
   if(S.mode==='intro')return
   if(S.mode==='play'&&!S.sandbox&&!(S.distressT>0)&&!S.queue.length&&!S.spawns.length&&!S.enemies.some(e=>!e.partner&&!e.safety)){
     S.mode='clear';S.clearT=3.2;S.bullets=[];S.announceUntil=0;
+    scoopCoins();
     S.ebullets.forEach(b=>burst(b.x,b.y,b.col,4,140,.3,2));S.ebullets=[];
     S.ads.forEach(a=>burst(a.x,a.y,a.col,14,200,.4,3));S.ads=[];
     if(p.regen&&p.hp<p.maxHp){const h=Math.min(p.regen,p.maxHp-p.hp);p.hp+=h;ftext(p.x,p.y-26,'+'+h+' ♥','#ff6b6b',16)}
@@ -4154,6 +4260,12 @@ function updateFX(dt){
 }
 
 // ================= between-wave flow =================
+function scoopCoins(){
+  if(!S.coinsArr.length)return;
+  let n=0;
+  for(const c of S.coinsArr){n+=c.jack||1;burst(c.x,c.y,c.jack?'#ff5ad9':'#ffd23b',4,100,.25,2)}
+  S.coins+=n;S.coinsArr=[];sfx.coin(8);ftext(S.p.x,S.p.y-30,'+'+n+' ◈','#ffd23b',15);
+}
 function hotSpot(heat){
   let best=-1,bx=0,by=0;
   for(let cy=0;cy<16;cy++)for(let cx=0;cx<24;cx++){
@@ -4371,7 +4483,8 @@ function renderCards(){
     const hot=maxed?`<div class="chot" style="background:#ff3b5c;color:#fff">MAXED</div>`:!S.fair&&S.hotI===i?`<div class="chot">${S.hotBadge||'POPULAR'}</div>`:S.fair?`<div class="chot" style="background:#7dff6a">MEMBER</div>`:'';
     const buySub=[deal,maxed?`<span class="sink">${sink}</span>`:''].filter(Boolean).join('');
     const buyTxt=`<span class="buyMain">BUY ${gem} ${pr}</span>${buySub?`<span class="buySub">${buySub}</span>`:''}`;
-    const head=(desc)=>`<div class="ctag">${pk.tag}</div>${hot}<div class="cbody"><div class="ctop"><div class="cicon" style="color:${pk.data?DATA[pk.data].c:'#7fdfff'}">${perkMark(pk.id)}</div><div class="cname">${pk.name}</div><div class="cdesc">${desc}</div>${owned}</div></div>`;
+    const cpick=cmOn('HAB')&&S.cm.HAB.pick===pk.id?'<div class="cpick">CLASS PICK</div>':'';
+    const head=(desc)=>`${cpick}<div class="ctag">${pk.tag}</div>${hot}<div class="cbody"><div class="ctop"><div class="cicon" style="color:${pk.data?DATA[pk.data].c:'#7fdfff'}">${perkMark(pk.id)}</div><div class="cname">${pk.name}</div><div class="cdesc">${desc}</div>${owned}</div></div>`;
     if(!pk.data)return `<div class="card${S.fair?' fairBuy':''}">${head(maxed?'Already at its cap. Buying will not add power.':pk.desc)}<div class="cacts">
       <button class="buy" data-i="${i}" data-a="pay" ${afford?'':'disabled'}>${buyTxt}</button><div class="req">${maxed?'Spend credits to '+ (S.p.hp<S.p.maxHp?'repair 1♥':'add score')+'. No extra upgrade.':'No data required.'}</div>${S.fair?'<div class="fairSkip" aria-hidden="true"></div>':'<div class="payHold" aria-hidden="true"></div>'}</div></div>`;
     const D=DATA[pk.data];
@@ -4472,7 +4585,7 @@ function fineText(){
   const clauses=[
     '<b>1. COLLECTION.</b> By selecting ACCEPT you grant OPT/IN Inc. and its 1,204 partners a perpetual, worldwide, royalty-free license to collect, store, analyze, combine and sell the data category listed on the offer, along with anything that can be inferred from it.',
     '<b>2. COMBINATION.</b> Data you share separately may be combined once we hold both types and at least two shares of one of them. Combined data can reveal things you never shared, such as where you live, who you trust, how you feel, and what you will do next. You will be notified of inferences after they occur. Some inferences also work in your favor, and each one says how.',
-    '<b>2b. COMBINATION ACROSS PLAYERS.</b> Finished runs are counted. No names. The scoreboard keeps 20 names. The count shows what share chose Accept. Fair Play still adds your run. Delete My Data takes your name off the board. The Accept count does not change.',
+    '<b>2b. COMBINATION ACROSS PLAYERS.</b> Finished runs are counted. No names. The scoreboard keeps 20 names. The count shows what share chose Accept. Each data type you share also joins a class model for that type. LOCATION: a map of where getting hit is most likely, and ships sent where the class lingers. HABITS: a class pick in the shop, and extra shots where the class dodges. HEALTH: a shield at the heart count where the class gets hit most, and harder pressure there. Every model applies to every player, whether or not they shared. Both apply to every player, whether or not they shared. Fair Play still adds your run. Delete My Data takes your name off the board. The Accept count does not change.',
     '<b>3. SECURITY.</b> We take your security seriously. Security incidents may occur. A small file is rarely worth stealing. Combined data, and files built from three or more categories, are when a breach becomes likely and valuable.',
     '<b>4. PAYMENT OPTION.</b> You may instead pay with credits. Paid upgrades do not collect data. Repeat selections of an upgrade you already have earn a loyalty credit bonus. Each upgrade stops getting stronger after a set number of picks. A full upgrade is not offered again. If nothing is on file, credit prices include a verification adjustment. Opening a Fair Play membership, or sharing any data type, completes a file and ends that markup. Other prices may still change based on how you play.',
     '<b>4b. FAIR PLAY.</b> A subscription of ◈ '+subPrice()+' is billed at the start of each wave until you cancel or cannot pay. Members get no ads, a cleaner upgrade screen, and member prices. Credit upgrades are 20% off while you are billed. The hotspot becomes Secure Wi-Fi and does not add exposure while you are billed. The fire bonus and the 1-hit shield still apply. The watch continues. New behavior patterns can still unlock and still apply. The mimic still learns from hits. We still learn how you play. Accept stays free, and still sells the data on that offer. Canceling ends the bill and does not delete the member file. The member file is an account. Win-back ads can use it even if you never tapped Accept. It persists across runs until you delete your data. It does not delete data already collected, stop inferences already made, forget patterns already learned, prevent a breach of data already sold, include Halo, or grant a free rescue.',
@@ -4585,6 +4698,20 @@ function showDossier(){
   if(first&&!isDev())add('HOW THE CLASS WAS USED','ACCEPT',(accepted?'Accept. ':'No Accept. ')+'<b>'+acceptPct(crowdWas.accepts+(accepted?1:0),crowdWas.n+1)+'</b> of the class',accepted?1:0);
   else if(!first&&!isDev()&&crowdWas.n)add('HOW THE CLASS WAS USED','ACCEPT','<b>'+acceptPct(crowdWas.accepts,crowdWas.n)+'</b> of the class',1);
   else if(isDev())add('HOW THE CLASS WAS USED','ACCEPT','Not counted.',0);
+  {const cm=S.cm||{},runs=n=>'<b>'+n+'</b> run'+(n===1?'':'s');
+    if(cm.LOC&&cm.LOC.s>0)add('HOW THE CLASS WAS USED','LOCATION MODEL',runs(cm.LOC.k)+' · map'+(T.lingerSpawns?' · <b>'+T.lingerSpawns+'</b> ships sent where the class lingers':''),T.lingerSpawns?1:0);
+    if(cm.HAB&&cm.HAB.s>0)add('HOW THE CLASS WAS USED','HABITS MODEL',runs(cm.HAB.k)+(cm.HAB.pick?' · class pick':'')+(T.classShots?' · <b>'+T.classShots+'</b> blue shots':''),T.classShots?1:0);
+    if(cm.HEA&&cm.HEA.s>0)add('HOW THE CLASS WAS USED','HEALTH MODEL',runs(cm.HEA.k)+(cm.HEA.danger?' · danger at <b>'+cm.HEA.danger+'♥</b>':' · no danger level yet')+(T.dangerShield?' · shielded':''),0);
+    if(!isDev()){const smp=classSample(T),ts=smp?Object.keys(smp).map(t=>DATA[t].n).join(', '):'';add('HOW THE CLASS WAS USED','YOUR DATA',ts?'Joined the class '+ts+' model'+(ts.includes(',')?'s':''):'Not in any class model',0)}
+  }
+  if(isDev()){
+    const pc=(a,b)=>b?Math.round(a/b*100)+'%':'—',pm=(h,t)=>t>=6?(h/(t/60)).toFixed(1):'—';
+    add('CLASS CHECK · DEV','CLASS SHOTS','blue hit <b>'+pc(T.clsHit||0,T.classShots||0)+'</b> of '+(T.classShots||0)+' · aimed hit <b>'+pc(T.aimHit||0,T.aimShots||0)+'</b> of '+(T.aimShots||0),0);
+    add('CLASS CHECK · DEV','MAP CHECK','hits/min in dark areas <b>'+pm(T.hotHits||0,T.hotT||0)+'</b> · elsewhere <b>'+pm(T.coldHits||0,T.coldT||0)+'</b>',0);
+    {const L=(S.cm||{}).LOC||{};add('CLASS CHECK · DEV','MAP SPREAD','<b>'+(L.lit||0)+'</b> of '+(CM_W*CM_H)+' areas lit · riskiest <b>×'+(L.risk||0)+'</b> average',0)}
+    {const E=(S.cm||{}).HEA||{};add('CLASS CHECK · DEV','HEALTH CHECK',E.danger?'hits/min at '+E.danger+'♥ <b>'+pm(T.dangerHits||0,T.dangerT||0)+'</b> · other hearts <b>'+pm(T.safeHits||0,T.safeT||0)+'</b> · class ×'+E.rel:'no danger level yet',0)}
+    const dg=T.dodge||{l:0,r:0,s:0};add('CLASS CHECK · DEV','YOUR DODGES','side A <b>'+dg.l+'</b> · side B <b>'+dg.r+'</b> · still <b>'+dg.s+'</b> · class '+(((S.cm||{}).HAB||{}).dodge>0?'A':((S.cm||{}).HAB||{}).dodge<0?'B':'none'),0);
+  }
   const seg=T.free>T.paid+1?(grazeRate>5?'IMPULSIVE THRILL-SEEKER':'CONVENIENCE-FIRST'):T.paid>T.free?'PRIVACY-CONSCIOUS SPENDER':'CAUTIOUS NEGOTIATOR';
   add('WHAT WE\'LL SELL','SEGMENT','<b>'+seg+'</b>',1);
   if(hist.length>=2){
@@ -4628,13 +4755,14 @@ function showDossier(){
   $('boardBtn').onclick=()=>openBoard('dossier');
   $('delBtn').onclick=deleteMyData;
   $('dossier').classList.remove('hidden');$('hud').classList.add('hidden');$('pause').classList.add('hidden');document.body.classList.remove('paused');
-  if(isDev()){$('dosBoard').textContent='DEV MODE · NOT ADDED TO THE LEADERBOARD';return}
+  const models=nShared?classSample(T):null;
+  if(isDev()){$('dosBoard').textContent='DEV MODE · NOT ADDED TO THE LEADERBOARD';if(first&&models)boardMutate(list=>list,{devOnly:true,models});return}
   if(!first){$('dosBoard').textContent='ALREADY ON THE LEADERBOARD · '+ (playerName()||subjectTag(subjectId()));return}
   const filed={pid:subjectId(),tag:subjectTag(subjectId()),name:playerName(),at:Date.now(),wave,score:S.score,rank:rank[0],rankC:rank[1],seg,
     types:TYPES.filter(t=>S.shared[t]).map(t=>DATA[t].s+(S.shared[t]>1?'×'+S.shared[t]:'')),
     infs:infNames,pats:behOn.map(b=>b.name),free:T.free,paid:T.paid,declined:T.declined,fair:!!S.member,
-    exp:+exposure().toFixed(1),wifi:Math.round(T.wifiT||0),pred:predictability,val:+val.toFixed(2),still:stillPct,terms:+readAvg.toFixed(1)};
-  submitBoard(filed,{accepted:(T.free||0)>0}).then(()=>{const n=$('dosBoard');if(!n)return;n.innerHTML=boardLive?'ON THE LEADERBOARD · <b>'+esc(filed.name||filed.tag)+'</b> · OTHER PLAYERS CAN SEE THIS':'SAVED ON THIS DEVICE · LEADERBOARD UNREACHABLE';paintTitleBoard()});
+    exp:+exposure().toFixed(1),wifi:Math.round(T.wifiT||0),pred:predictability,val:+val.toFixed(2),still:stillPct,terms:+readAvg.toFixed(1),cls:classLevel(S.cm)};
+  submitBoard(filed,{accepted:(T.free||0)>0,models}).then(()=>{const n=$('dosBoard');if(!n)return;n.innerHTML=boardLive?'ON THE LEADERBOARD · <b>'+esc(filed.name||filed.tag)+'</b> · OTHER PLAYERS CAN SEE THIS':'SAVED ON THIS DEVICE · LEADERBOARD UNREACHABLE';paintTitleBoard()});
 }
 
 // ================= HUD =================
@@ -4682,6 +4810,13 @@ function render(dt){
   const p=S.p;
   g.save();if(S.shake>0&&!S.paused)g.translate(rand(-1,1)*S.shake,rand(-1,1)*S.shake);
   drawGrid(p.x*.04,p.y*.04);
+  // class map: where the class got hit, pooled from shared runs
+  if(cmOn('LOC')&&S.cm.LOC.map&&S.mode!=='intro'&&!S.readHold){const L=S.cm.LOC;
+    if(!S.classCv){const cv=document.createElement('canvas');cv.width=CM_W;cv.height=CM_H;const c=cv.getContext('2d');
+      L.map.forEach((v,i)=>{c.fillStyle='rgba(138,155,255,'+Math.pow(v,.8).toFixed(3)+')';c.fillRect(i%CM_W,Math.floor(i/CM_W),1,1)});S.classCv=cv}
+    g.save();g.globalAlpha=.3*L.s;g.imageSmoothingEnabled=true;g.drawImage(S.classCv,0,0,W,H);g.restore();
+    if(!S.classTold&&S.mode==='play'){S.classTold=true;logLine('CLASS DATA','Blue haze: where the class gets hit most.','#8a9bff')}
+  }
   // hotspot: look tells free vs secure. * = terms 4d.
   if(S.mode!=='intro'&&!S.readHold){const wx=S.wifi.x*W,wy=S.wifi.y*H,on=p.inWifi,col=S.fair?'#38e1ff':'#9ae64a';
     if(S.fair){
@@ -4717,6 +4852,10 @@ function render(dt){
   }
   // crawler telegraphs
   for(const e of S.enemies)if(e.type==='crawler'&&e.state==='aim'){g.strokeStyle='#ff4bd8';g.globalAlpha=.3+.5*Math.abs(Math.sin(S.t*30));g.lineWidth=3;g.setLineDash([10,8]);g.beginPath();g.moveTo(e.x,e.y);g.lineTo(e.x+Math.cos(e.da)*320,e.y+Math.sin(e.da)*320);g.stroke();g.setLineDash([]);g.globalAlpha=1}
+  // class model: where an incoming class shot expects you to dodge
+  if(S.mode==='play'){g.strokeStyle='#8a9bff';g.lineWidth=1.5;g.setLineDash([3,4]);
+    for(const b of S.ebullets)if(b.cls&&!b.dead){const d=Math.hypot(b.tx-b.x,b.ty-b.y);if(d>360)continue;g.globalAlpha=.15+.35*(1-d/360);g.beginPath();g.arc(b.tx,b.ty,p.r+4,0,TAU);g.stroke()}
+    g.setLineDash([]);g.globalAlpha=1}
   // predicted-position ghost
   if(S.inf.predict&&S.mode!=='dead'){const gx=p.x+p.vx*.5,gy=p.y+p.vy*.5;g.strokeStyle='rgba(255,59,92,.55)';g.lineWidth=1.5;g.setLineDash([4,4]);g.beginPath();g.arc(gx,gy,p.r+4,0,TAU);g.stroke();g.setLineDash([]);g.fillStyle='rgba(255,59,92,.7)';g.font='9px JetBrains Mono';g.textAlign='center';g.fillText('PREDICTED',gx,gy-p.r-8)}
   // predicted panic dash
@@ -4988,6 +5127,20 @@ function paintDev(){
   const on=isDev(),flag=$('devFlag'),sand=$('sandBtn');
   if(flag)flag.classList.toggle('hidden',!on);
   if(sand)sand.classList.toggle('hidden',!on);
+  paintWho();
+}
+function whoName(id){try{const n=JSON.parse(localStorage.getItem((id?'optin@'+id+'_':'optin_')+'name')||'""');return n&&!nameProblem(n)?n:''}catch(e){return ''}}
+function paintWho(){
+  const bar=$('whoBar'),sel=$('whoSel');if(!bar||!sel)return;
+  bar.classList.toggle('hidden',!isDev());if(!isDev())return;
+  const cur=storeWho(),ids=[''].concat(store.get('players',[])||[]);
+  sel.innerHTML=ids.map(id=>`<option value="${esc(id)}"${id===cur?' selected':''}>${esc(whoName(id)||'NEW PLAYER')}</option>`).join('')+'<option value="__new">+ NEW PLAYER</option>';
+}
+function switchWho(id){
+  if(!isDev())return;
+  if(id==='__new'){id=Date.now().toString(36);store.set('players',(store.get('players',[])||[]).concat(id))}
+  store.set('who',id);S=null;
+  refreshTitle();
 }
 function paintTitleBoard(n){
   const b=$('titleBoard');if(!b)return;
@@ -5022,6 +5175,7 @@ refreshTitle();
 }
 bootDev();
 refreshTitle();
+$('whoSel').addEventListener('change',e=>switchWho(e.target.value));
 $('pauseList').addEventListener('click',e=>{const row=e.target.closest('[data-pid]');if(!row||!S)return;pauseSel=row.dataset.pid;renderPause()});
 $('pauseDetail').addEventListener('click',e=>{if(e.target.closest('#haloToggle'))toggleHalo()});
 $('subBtn').addEventListener('click',onSubBtn);
