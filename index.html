@@ -1268,12 +1268,18 @@ function perkMark(id){
 }
 function coinMark(){return `<svg class="mark gem" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M24 8 L38 24 L24 40 L10 24 Z"/></svg>`}
 const INF=[
+  {id:'retreat',need:['LOC','HEA'],name:'RETREAT MAPPED',desc:'They know where you go when you\'re hurt. At 2♥ or less, half of new ships spawn near that spot. Search & Rescue knows it too, so a mayday brings help 2 seconds sooner.',why:'Location plus health shows when you visit a clinic or pharmacy. Where you go when you\'re hurt can reveal a condition you never shared.',
+    good:'The same data lets a watch that detects a hard fall send help to exactly where you are.'},
+  {id:'needs',need:['HEA','PUR'],name:'NEEDS PREDICTED',desc:'They know what you need when you\'re hurt. At 2♥ or less, PLATING and RESERVE cost 50% more. At 2♥ or less, the shop always stocks one of them.',why:'Purchases plus health data can predict a need before you say it. One store guessed a customer was pregnant from what she bought.',
+    good:'Pharmacies use the same data to remind you to refill a prescription before it runs out.'},
+  {id:'impulse',need:['HAB','PUR'],name:'IMPULSE PROFILED',desc:'They know when you buy fast. Offer timers drop to 5 seconds, and anything you buy before the timer ends costs 25% more. Buying an upgrade again earns a bigger loyalty bonus.',why:'Habits plus purchases show when you buy without thinking. Countdown timers are built for those moments, and rushed buyers pay more.',
+    good:'Loyalty programs use the same history to reward the things you really do buy again.'},
   {id:'predict',need:['LOC','HAB'],name:'ROUTE PREDICTED',desc:'Enemies now aim where you WILL be, not where you are. You also get more warning before ships arrive.',why:'Where you go + when you go = where you\'re going next. Navigation apps use this to guess your destination before you type it.',
     good:'Route prediction also warns you about traffic before you leave and gets you there faster.'},
   {id:'risk',need:['HEA','HAB'],name:'RISK SCORE ASSIGNED',desc:'Your prices now follow how you play. Take 1 hit or less per wave and prices are 20% off. Take more and they are 50% higher.',why:'Health + lifestyle data can be used to predict risk, which companies can use to change what they charge you.',
     good:'Risk models also give careful drivers lower rates and can flag a health problem early.'},
-  {id:'home',need:['LOC','PUR'],name:'HOME INFERRED',desc:'They know where you\'ll be. Enemies spawn closer with less warning. Search & Rescue already has your location, so a mayday brings help 2 seconds sooner.',why:'Where your orders go plus where you spend time points to your home. No address form required.',
-    good:'Knowing where you are lets emergency services reach you faster, even when you cannot give an address.'},
+  {id:'home',need:['LOC','PUR'],name:'HOME INFERRED',desc:'They know where you\'ll be. Enemies spawn closer with less warning. Every 3rd wave, a delivery brings you a 1-hit shield.',why:'Where your orders go plus where you spend time points to your home. No address form required.',
+    good:'Knowing your address gets packages, and help, to your door.'},
 ];
 // Behavior patterns: learned from how you play, not from what you share.
 // test(w,keeping) returns an evidence string (pattern present), false (absent), or null (not enough data).
@@ -1598,7 +1604,7 @@ function livingRun(){
 }
 function saveGame(){
   if(!S||S.sandbox||!S.checkpoint)return;
-  saveModel();saveProfile();
+  saveModel();saveProfile();if(S.retreat)store.set('retreat',S.retreat);
   const m=S.model;
   store.set('run',{
     checkpoint:S.checkpoint,filed:!!S.filed,wave:S.wave,score:S.score,coins:S.coins,t:S.t,
@@ -1688,7 +1694,7 @@ function newState(){
     safetyAsked:false,safetyOn:false,distressT:0,
     revealQ:[],offer:[],breachNext:false,breachWave:-1,adT:6,spawnT:1,adRecent:[],
     secret:pick(SECRETS),secretUsed:false,
-    model:loadModel(),
+    model:loadModel(),retreat:loadRetreat(),
     p:{x:W/2,y:H/2,vx:0,vy:0,r:11,hp:5,maxHp:5,speed:270,fireRate:6,fireT:0,dmg:1,shots:1,homing:0,drones:0,droneT:0,
        dashCD:1.1,dashT:0,dashing:0,ddx:0,ddy:0,inv:0,regen:0,rewards:0,lines:false,slide:1,blank:0,ang:0,magnet:100,recoil:0,shield:0},
     bullets:[],ebullets:[],enemies:[],spawns:[],queue:[],parts:[],texts:[],ads:[],coinsArr:[],trail:[],rings:[],
@@ -1962,6 +1968,14 @@ const shareExp=()=>TYPES.reduce((a,t)=>a+(S.shared[t]||0),0);
 const exposure=()=>shareExp()+(S.expWifi||0);
 const sharedN=t=>S.shared[t]||0;
 const hasAll=need=>need.every(t=>sharedN(t));
+// Where this player spends time at 2♥ or less. Older runs fade each time a run loads.
+function loadRetreat(){const a=store.get('retreat',null);return Array.from({length:CM_W*CM_H},(_,i)=>+(Math.max(0,+(Array.isArray(a)?a[i]:0)||0)*.85).toFixed(1))}
+function retreatSpot(){
+  const r=S.retreat;if(!r)return null;let i=-1,top=0,tot=0;
+  r.forEach((v,j)=>{tot+=v;if(v>top){top=v;i=j}});
+  if(tot<4||i<0)return null;
+  return {x:(i%CM_W+.5)*W/CM_W,y:(Math.floor(i/CM_W)+.5)*H/CM_H};
+}
 // Saves from before a data type or inference was removed keep only what still exists.
 function keepTypes(o){const r={};for(const t of TYPES)if(o&&o[t])r[t]=o[t];return r}
 function keepInfs(o){const r={};for(const f of INF)if(o&&o[f.id])r[f.id]=true;return r}
@@ -2068,6 +2082,7 @@ function startWave(){
   const w=S.wave;
   if(!S.sandbox){syncFormTier();syncFormSkill()}
   S.tele.waveHits=0;S.tele.waveKills=0;S.tele.waveT=0;
+  if(S.inf.home&&!S.sandbox&&w%3===0&&!S.p.shield){S.p.shield=1;S.tele.homeShield=(S.tele.homeShield||0)+1;ftext(S.p.x,S.p.y-40,'DELIVERED · SHIELD','#ffd23b',13)}
   let n=waveBudget();
   S.model.hot=S.model.on.zone?hotSpot(S.model.win.heat):null;
   S.queue=packWave(w,n);S.spawnT=1.8;S.mode='play';dashReq=false;
@@ -2585,20 +2600,22 @@ function spawnWarn(type,form,skill,gene){
     return;
   }
   const loose=type!=='camera'&&type!=='broker'&&type!=='partner'&&!form;
-  const p=S.p,pin=loose&&S.inf.home;
+  const p=S.p,den=loose&&S.inf.retreat&&p.hp<=2&&Math.random()<.5?retreatSpot():null,pin=loose&&!den&&S.inf.home;
+  if(den)S.tele.retreatSpawns=(S.tele.retreatSpawns||0)+1;
   const hot=S.model.hot;let x,y,tries=0;
   const lingerSpawn=loose&&cmOn('LOC')&&S.cm.LOC.spawn&&Math.random()<S.cm.LOC.s*.4?S.cm.LOC.spawn.map((v,i)=>[i,v]):null;if(lingerSpawn)S.tele.lingerSpawns=(S.tele.lingerSpawns||0)+1;
-  const zone=!pin&&!form&&hot&&type!=='camera'&&type!=='broker'&&type!=='partner'&&Math.random()<.5;
-  const rim=!pin&&!zone&&!form&&S.model.on.edge&&type!=='camera'&&type!=='broker'&&type!=='partner';
+  const zone=!pin&&!den&&!form&&hot&&type!=='camera'&&type!=='broker'&&type!=='partner'&&Math.random()<.5;
+  const rim=!pin&&!den&&!zone&&!form&&S.model.on.edge&&type!=='camera'&&type!=='broker'&&type!=='partner';
   do{
     if(type==='partner'){const a=rand(0,TAU),d=rand(70,120);x=p.x+Math.cos(a)*d;y=p.y+Math.sin(a)*d}
     else if(pin){const a=rand(0,TAU),d=rand(110,180);x=p.x+Math.cos(a)*d;y=p.y+Math.sin(a)*d}
+    else if(den&&tries<12){const a=rand(0,TAU),d=rand(30,150);x=den.x+Math.cos(a)*d;y=den.y+Math.sin(a)*d}
     else if(zone){const a=rand(0,TAU),d=rand(40,190);x=hot.x+Math.cos(a)*d;y=hot.y+Math.sin(a)*d}
     else if(rim){const a=edgeFrom(),d=rand(190,280);x=p.x+Math.cos(a)*d;y=p.y+Math.sin(a)*d}
     else if(lingerSpawn&&tries<12){const c=pickW(lingerSpawn),cw=W/CM_W,ch=H/CM_H;x=(c%CM_W+Math.random())*cw;y=(Math.floor(c/CM_W)+Math.random())*ch}
     else{x=rand(40,W-40);y=rand(40,H-40)}
     tries++;
-  }while(tries<30&&(x<30||y<30||x>W-30||y>H-30||(type==='camera'&&underHud(x,y,30))||Math.hypot(x-p.x,y-p.y)<(type==='partner'?50:pin?100:zone?150:type==='camera'?220:230)));
+  }while(tries<30&&(x<30||y<30||x>W-30||y>H-30||(type==='camera'&&underHud(x,y,30))||Math.hypot(x-p.x,y-p.y)<(type==='partner'?50:pin?100:zone||den?150:type==='camera'?220:230)));
   x=clamp(x,30,W-30);y=clamp(y,30,H-30);
   const warn=(pin?.45:.85)*(S.inf.predict?1.5:1);
   S.spawns.push({x,y,type,t:warn,max:warn,form:form||null,skill:skill||'raw'});sfx.spawn();
@@ -2620,7 +2637,7 @@ function ensureSafetyAssets(){
 }
 function sosHp(app){return app?3:2}
 const HELP_WAIT=5;
-function helpWait(){return HELP_WAIT-(S&&S.inf&&S.inf.home?2:0)}
+function helpWait(){return HELP_WAIT-(S&&S.inf&&S.inf.retreat?2:0)}
 function riskCareful(){return S.tele.hits<=Math.max(1,S.wave)}
 function haloLoc(){return !!(S&&S.safetyFile&&S.safetyFile.loc)}
 function haloHea(){return !!(S&&S.safetyFile&&S.safetyFile.hea)}
@@ -3645,7 +3662,7 @@ function haloRescue(){
 }
 function sendMayday(){
   const p=S.p;
-  p.hp=0;p.inv=.8;S.distressT=helpWait();S.rescueAng=rand(0,TAU);dashReq=false;S.tele.emergDirect=1;if(S.inf.home)S.tele.homeFast=1;
+  p.hp=0;p.inv=.8;S.distressT=helpWait();S.rescueAng=rand(0,TAU);dashReq=false;S.tele.emergDirect=1;if(S.inf.retreat)S.tele.retreatFast=1;
   rescuePush(false);
   banner('MAYDAY SENT','Search & Rescue is tracing your beacon. Don\'t get hit.','#9ad7ff',1.6);
   S.shake=12;sfx.big();
@@ -3798,6 +3815,9 @@ function liveAds(){
   if(sh('LOC')&&S.model.on.zone)out.push('STORES IN YOUR USUAL CORNER MISS YOU');
   if(sh('PUR')&&S.tele.lastBuy){const b=PERKS.find(q=>q.id===S.tele.lastBuy);if(b)out.push('YOU GOT '+b.name+' · CUSTOMERS ALSO BOUGHT THIS','STILL THINKING ABOUT '+b.name+'?')}
   if(S.inf.home)out.push('STILL CLOSE TO HOME · WE FIGURED');
+  if(S.inf.retreat&&p.hp<=2)out.push('HEADING TO YOUR USUAL SPOT? WE\'LL BE THERE');
+  if(S.inf.needs&&p.hp<=2)out.push('HURT? YOUR USUAL FIX IS IN STOCK · PRICE UP');
+  if(S.inf.impulse)out.push('YOU BUY FAST · THIS DEAL ENDS IN 5');
   if(S.inf.risk)out.push(riskCareful()?'CAREFUL PLAYER DISCOUNT · YOUR RISK SCORE IS LOW':'YOUR RISK SCORE RAISED THIS PRICE');
   if(S.inf.predict)out.push('WE KNOW WHERE YOU\'RE HEADED · SHOP AHEAD');
   if(S.model.on.panic)out.push('PANIC DASHERS BUY ENERGY DRINKS');
@@ -3889,7 +3909,7 @@ function update(dt){
       if(M.trail.length>=15){let cx=0,cy=0;for(const q of M.trail){cx+=q.x;cy+=q.y}cx/=M.trail.length;cy/=M.trail.length;
         let maxd=0;for(const q of M.trail)maxd=Math.max(maxd,Math.hypot(q.x-cx,q.y-cy));
         if(maxd<90)M.camp++}
-      if(p.hp<=2){T.stressSpd+=sp;T.stressN++}else{T.calmSpd+=sp;T.calmN++}
+      if(p.hp<=2){T.stressSpd+=sp;T.stressN++;if(S.retreat&&S.mode==='play')S.retreat[classCell(p.x,p.y)]+=.1}else{T.calmSpd+=sp;T.calmN++}
       if(S.mode==='play'){T.waveT=(T.waveT||0)+.1;for(const e of S.enemies){if(!e.dead&&!e.static&&Math.hypot(e.x-p.x,e.y-p.y)<150){T.closeT=(T.closeT||0)+.1;break}}}
       const edge=Math.min(p.x,p.y,W-p.x,H-p.y);if(edge<110)T.edge++;else if(Math.hypot(p.x-W/2,p.y-H/2)<Math.min(W,H)*.22)T.center++;
       if(S.mode==='play'&&S.enemies.some(e=>!e.dead&&!e.static)){if(edge<110)M.edge=(M.edge||0)+1;else M.open=(M.open||0)+1}
@@ -4329,8 +4349,12 @@ function afterClear(){
 let urgencyTimer=null;
 function listPrice(pk){return pk.data?10+S.wave*4:14+S.wave*5}
 function hasFile(){return !!(S&&(S.member||TYPES.some(t=>S.shared[t])))}
+function needsMarkup(pk){return !!(S.inf.needs&&S.p&&S.p.hp<=2&&(pk.id==='armor'||pk.id==='sos'))}
+function rushOn(){return !!(S.inf.impulse&&!S.fair&&!S.tele.urgencyOff&&S.mode==='terms'&&performance.now()<(S.rushUntil||0))}
 function priceMult(pk){
   let m=S.inf.risk?(riskCareful()?.8:1.5):1;
+  if(needsMarkup(pk))m*=1.5;
+  if(rushOn())m*=1.25;
   if(S.model.on.loyal&&S.model.fav===pk.id)m*=2;
   if(!hasFile())m*=1.4;
   if(dealId()===pk.id)m*=1-DEAL_OFF;
@@ -4344,15 +4368,17 @@ function price(pk){
 function startUrgency(){
   clearInterval(urgencyTimer);
   const u=$('urgency');u.className='';
+  S.rushUntil=0;
   if(S.fair||S.tele.urgencyOff){u.textContent='';return}
-  let secs=10,phase=0;
+  const len=S.inf.impulse?5:10;let secs=len,phase=0;
+  if(S.inf.impulse){S.rushUntil=performance.now()+len*1000;setTimeout(()=>{if(S&&S.mode==='terms')renderCards()},len*1000+30)}
   const paint=()=>{u.textContent=(phase===0?'OFFER EXPIRES IN 0:':'EXTENDED JUST FOR YOU! 0:')+String(Math.max(0,secs)).padStart(2,'0');u.className=phase?'hold':''};
   paint();
   urgencyTimer=setInterval(()=>{
     secs--;
     if(secs<0){
       if(phase>=1){clearInterval(urgencyTimer);u.textContent='';u.className='';return}
-      phase=1;secs=10;
+      phase=1;secs=len;
     }
     paint();
   },1000);
@@ -4388,7 +4414,9 @@ function seatOffer(){
   };
   const all=PERKS.map(p=>p.id);
   const pressure=take(fieldNeed())||take(['aim','reply','heavy','blank','squad','split'])||take(all);
-  const survive=take(['route','face','armor','sos'])||take(all);
+  const hurt=S.inf.needs&&S.p&&S.p.hp<=2,stock=hurt?take(['armor','sos']):null;
+  if(stock)S.tele.needsStock=(S.tele.needsStock||0)+1;
+  const survive=stock||take(['route','face','armor','sos'])||take(all);
   const best=classBest(),sold=best&&Math.random()<S.cm.PUR.s?take([best]):null;
   if(sold)S.tele.bestSeats=(S.tele.bestSeats||0)+1;
   const wild=sold||take(all);
@@ -4519,6 +4547,8 @@ function choose(i,a){
     S.coins-=pr;S.tele.paid++;
     if(pk.data&&!perkMaxed(pk)){S.tele.paidData=(S.tele.paidData||0)+1;S.tele.paidDataCoins=(S.tele.paidDataCoins||0)+pr}
     if(!hasFile())S.tele.markupCoins=(S.tele.markupCoins||0)+pr-Math.max(1,Math.round(pr/1.4));
+    if(needsMarkup(pk))S.tele.needsExtra=(S.tele.needsExtra||0)+Math.round(pr/3);
+    if(rushOn())S.tele.rushExtra=(S.tele.rushExtra||0)+Math.round(pr/5);
     if(dealId()===pk.id)S.tele.dealSaved=(S.tele.dealSaved||0)+Math.round(pr/(1-DEAL_OFF)*DEAL_OFF);
     if(S.inf.risk){if(riskCareful())S.tele.riskSaved=(S.tele.riskSaved||0)+Math.round(pr*.25);else S.tele.riskExtra=(S.tele.riskExtra||0)+Math.round(pr/3)}
   }
@@ -4532,7 +4562,7 @@ function choose(i,a){
       else if(A&&A.kind==='resell'){S.shared[pk.data]++;S.tele.caught++;note='Your '+DATA[pk.data].n+' was resold. It counts double now.';unlockInfs()}
     }
   }
-  if(again){const bonus=Math.max(5,Math.round(pr*.4));S.coins+=bonus;note=(note?note+' ':'')+'Loyalty bonus +'+bonus+' ◈.';}
+  if(again){const bonus=Math.max(5,Math.round(pr*(S.inf.impulse?.7:.4)));if(S.inf.impulse)S.tele.loyalExtra=(S.tele.loyalExtra||0)+bonus-Math.max(5,Math.round(pr*.4));S.coins+=bonus;note=(note?note+' ':'')+'Loyalty bonus +'+bonus+' ◈.';}
   if(perkMaxed(pk))note=(note?note+' ':'')+applyMaxedSink(pk,a==='pay',sold);
   else pk.apply(S.p);
   if(note)toast(note,perkMaxed(pk)?2800:1600);
@@ -4596,7 +4626,7 @@ function fineText(){
     '<b>3. SECURITY.</b> We take your security seriously. Security incidents may occur. A small file is rarely worth stealing. Combined data, and files built from three or more categories, are when a breach becomes likely and valuable.',
     '<b>4. PAYMENT OPTION.</b> You may instead pay with credits. Paid upgrades do not collect data. Repeat selections of an upgrade you already have earn a loyalty credit bonus. Each upgrade stops getting stronger after a set number of picks. A full upgrade comes back only when the others run out. Paying for it repairs 1♥, or adds score when you are not hurt. Accept still shares its data and adds no power. If nothing is on file, credit prices include a verification adjustment. Opening a Fair Play membership, or sharing any data type, completes a file and ends that markup. Other prices may still change based on how you play.',
     '<b>4b. FAIR PLAY.</b> A subscription of ◈ '+subPrice()+' is billed at the start of each wave until you cancel or cannot pay. Members get no ads, a cleaner upgrade screen, and member prices. Credit upgrades are 20% off while you are billed. The hotspot becomes Secure Wi-Fi and does not add exposure while you are billed. The fire bonus and the 1-hit shield still apply. The watch continues. New behavior patterns can still unlock and still apply. The mimic still learns from hits. We still learn how you play. Accept stays free, and still sells the data on that offer. Canceling ends the bill and does not delete the member file. The member file is an account. Win-back ads can use it even if you never tapped Accept. It persists across runs until you delete your data. It does not delete data already collected, stop inferences already made, forget patterns already learned, prevent a breach of data already sold, include Halo, or grant a free rescue.',
-    '<b>4c. HALO.</b> Halo offers automatic rescue at wave 3, or sooner if a hit would end your run first. Once per run, when a hit would end your run: with Halo on, you come back instantly with 3♥, and Halo sells your health and your location to a data broker. The next broker aims at you better. With Halo off, you send a mayday. Search & Rescue does not track you, so it takes '+HELP_WAIT+' seconds to trace your beacon. Until it arrives you move slowly and cannot shoot or dash, and one hit ends the run. Survive and you come back with 2♥. Nothing is sold. If HOME INFERRED is on file, Search & Rescue already has your location and arrives 2 seconds sooner. You can turn Halo on or off from the pause menu. Turning it off does not undo a sale.',
+    '<b>4c. HALO.</b> Halo offers automatic rescue at wave 3, or sooner if a hit would end your run first. Once per run, when a hit would end your run: with Halo on, you come back instantly with 3♥, and Halo sells your health and your location to a data broker. The next broker aims at you better. With Halo off, you send a mayday. Search & Rescue does not track you, so it takes '+HELP_WAIT+' seconds to trace your beacon. Until it arrives you move slowly and cannot shoot or dash, and one hit ends the run. Survive and you come back with 2♥. Nothing is sold. If RETREAT MAPPED is on file, Search & Rescue already knows where you go when hurt and arrives 2 seconds sooner. You can turn Halo on or off from the pause menu. Turning it off does not undo a sale.',
     '<b>4d. * HOTSPOT.</b> A ring slowly roams the arena. Staying in it increases fire rate and charges a 1-hit shield. Standing still can grant credits. On the free network, time in the ring adds a lot of exposure, and each shield charge dumps more onto your file. That hotspot heat cools if you leave the free ring. Sold data types do not. Fair Play upgrades the ring to Secure Wi-Fi: the shield and fire bonus still apply, credits trickle more slowly, and the ring does not add exposure. The watch continues. The * on the ring refers to this clause.',
     '<b>5. DELETION.</b> Shared data types, inferences, the member file, the mimic, and Halo files are kept across sessions until you request deletion. Copies already shared with partners are governed by the partners\' own terms.',
     '<b>6. OBSERVATION.</b> Regardless of your choices, gameplay telemetry including movement, hesitation, reaction under stress, and time spent on this screen is recorded and analyzed. The end of a session shows the numbers, a label, and a dollar estimate for one app. A pattern learned from play can be dropped if your play changes. Closing an ad still counts as engagement. Data you sold can be used during play to keep you in the session.',
@@ -4667,13 +4697,19 @@ function showDossier(){
   if(T.free)add('WHAT SHARING GOT YOU','FREE UPGRADES','<b>'+T.free+'</b> · worth <b>'+(T.freeValue||0)+'</b> credits',0);
   if(S.inf.predict)add('WHAT SHARING GOT YOU','EARLY WARNING','Ships gave <b>50%</b> more warning',0);
   if(T.riskSaved)add('WHAT SHARING GOT YOU','RISK SCORE','<b>'+T.riskSaved+'</b> credits off for careful play',0);
-  if(T.homeFast)add('WHAT SHARING GOT YOU','HOME','Rescue arrived <b>2s</b> sooner',0);
+  if(T.retreatFast)add('WHAT SHARING GOT YOU','RETREAT','Rescue arrived <b>2s</b> sooner',0);
+  if(T.homeShield)add('WHAT SHARING GOT YOU','DELIVERY','A 1-hit shield <b>'+T.homeShield+'×</b>',0);
+  if(T.needsStock)add('WHAT SHARING GOT YOU','NEEDS','A repair was stocked <b>'+T.needsStock+'×</b> while you were hurt',0);
+  if(T.loyalExtra)add('WHAT SHARING GOT YOU','LOYALTY','<b>+'+T.loyalExtra+'</b> extra credits back',0);
   if(haloUsed)add('WHAT SHARING GOT YOU','HALO','Instant rescue · no wait · 1 more ♥ than a mayday',0);
-  if(nShared)add('WHAT SHARING COST','SOLD','<b>'+nShared+'</b> of 6 data types',0);
+  if(nShared)add('WHAT SHARING COST','SOLD','<b>'+nShared+'</b> of '+TYPES.length+' data types',0);
   if(nInf)add('WHAT SHARING COST','GUESSED','<b>'+nInf+'</b> inference'+(nInf===1?'':'s')+' made from your data',0);
   if(T.riskExtra)add('WHAT SHARING COST','RISK SCORE','<b>+'+T.riskExtra+'</b> credits for risky play',0);
+  if(T.retreatSpawns)add('WHAT SHARING COST','RETREAT','<b>'+T.retreatSpawns+'</b> ships spawned near where you go when hurt',0);
+  if(T.needsExtra)add('WHAT SHARING COST','NEEDS','<b>+'+T.needsExtra+'</b> credits for repairs while hurt',0);
+  if(T.rushExtra)add('WHAT SHARING COST','RUSH PRICE','<b>+'+T.rushExtra+'</b> credits for buying before the timer ended',0);
   if(T.breaches)add('WHAT SHARING COST','BREACHES','<b>'+T.breaches+'</b>',0);
-  if(nShared<6)add('WHAT PRIVACY GOT YOU','KEPT','<b>'+(6-nShared)+'</b> of 6 data types never sold',0);
+  if(nShared<TYPES.length)add('WHAT PRIVACY GOT YOU','KEPT','<b>'+(TYPES.length-nShared)+'</b> of '+TYPES.length+' data types never sold',0);
   if(nInf<INF.length)add('WHAT PRIVACY GOT YOU','NOT GUESSED','<b>'+(INF.length-nInf)+'</b> of '+INF.length+' inferences never made',0);
   if(nShared<=2&&!T.breaches)add('WHAT PRIVACY GOT YOU','BREACH RISK','Low. A small file is rarely worth stealing.',0);
   if(T.emergDirect)add('WHAT PRIVACY GOT YOU','MAYDAY','Nothing sold',0);
@@ -4681,7 +4717,7 @@ function showDossier(){
   if(keptN)add('WHAT PRIVACY COST','KEPT DATA','<b>'+keptN+'</b> data upgrade'+(keptN===1?'':'s')+' paid instead of free · <b>'+keptC+'</b> credits',0);
   if(markC)add('WHAT PRIVACY COST','NO-FILE MARKUP','<b>+'+markC+'</b> credits while nothing was on file',0);
   if(T.distressFail)add('WHAT PRIVACY COST','MAYDAY','The run ended while Search & Rescue traced your beacon',0);
-  else if(T.emergDirect)add('WHAT PRIVACY COST','MAYDAY','<b>'+(T.homeFast?HELP_WAIT-2:HELP_WAIT)+'s</b> unarmed · 1♥ less than Halo',0);
+  else if(T.emergDirect)add('WHAT PRIVACY COST','MAYDAY','<b>'+(T.retreatFast?HELP_WAIT-2:HELP_WAIT)+'s</b> unarmed · 1♥ less than Halo',0);
   if(!keptN&&!markC&&!T.emergDirect&&choices)add('WHAT PRIVACY COST','NOTHING','<b>0</b> credits. You took the free deals.',0);
   if(S.safetyFile&&(S.safetyFile.hea||S.safetyFile.loc)){
     const both=S.safetyFile.hea&&S.safetyFile.loc,what=both?'HEALTH + LOCATION':S.safetyFile.loc?'LOCATION':'HEALTH';
