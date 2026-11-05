@@ -689,7 +689,7 @@ button:disabled{opacity:.45;cursor:default}
   associated with the collection and large-scale analysis of personal information.
 
   Students play a shooter whose upgrades are "free" if they sell a data type
-  (location, contacts, face, health, messages, habits) or paid if they keep that
+  (location, health, habits) or paid if they keep that
   slice. Separate shares get combined into inferences; movement is watched even
   without Accept; the hotspot offers fire, credits, and a 1-hit shield with a
   privacy cost on the free network. Fair Play is a convenience product (ads
@@ -1169,12 +1169,8 @@ function musicMood(){
   const p=S.p,sh=t=>S.shared[t],play=S.mode==='play';
   if(fileHea()&&play&&p.hp<=2){bpm+=20;vol+=.2}
   if(fileHea()&&play&&p.hp===1){bpm+=8;vol+=.08}
-  if(sh('BIO')&&play&&p.hp<=2){bpm+=8;vol+=.05}
-  if(sh('BIO')&&play&&S.combo>=8){bpm+=10;vol+=.1}
   if(sh('HAB')&&play&&S.combo>=5){bpm+=12+Math.min(10,S.combo-5);vol+=.12}
   if(sh('HAB')&&S.mode==='clear'){bpm+=10;vol+=.1}
-  if(sh('CON')&&(play||S.mode==='clear')){bpm+=5;vol+=.04}
-  if(sh('MSG')&&S.unread>=2){bpm+=5;vol+=.06}
   if(sh('LOC')&&p.inWifi&&p.wifiStill){bpm-=8;vol+=.08}
   if((sh('HAB')||fileHea())&&(S.mode==='terms'||S.mode==='reveal')){bpm-=18;vol-=.18}
   if(S.musicPush&&S.t<S.musicPush.until){bpm+=S.musicPush.bpm;vol+=S.musicPush.vol}
@@ -1187,7 +1183,7 @@ function musicTick(){
   musicGain.gain.setTargetAtTime(mood.vol,AC.currentTime,.25);
   if(S.paused)return;
   const inGame=S.mode==='play'||S.mode==='clear'||S.mode==='breach';
-  const spd=60/curBpm/4,panic=!S.fair&&fileHea()&&S.p.hp<=2&&inGame,hype=!S.fair&&S.shared.HAB&&S.combo>=5&&inGame,glow=!S.fair&&S.shared.BIO&&S.combo>=8&&inGame;
+  const spd=60/curBpm/4,panic=!S.fair&&fileHea()&&S.p.hp<=2&&inGame,hype=!S.fair&&S.shared.HAB&&S.combo>=5&&inGame;
   while(nextNote<AC.currentTime+.12){
     const t=nextNote-AC.currentTime,s=step%64;
     if(inGame){
@@ -1196,7 +1192,6 @@ function musicTick(){
       if(s%4===2)noise(.03,hype?.08:.05,7000,'highpass',t,musicGain);
       if((S.wave>=3||hype)&&s%2===1)noise(.02,.025,9000,'highpass',t,musicGain);
       if(s%16===8&&S.wave>=2)noise(.12,.1,2000,'bandpass',t,musicGain);
-      if(glow&&s%8===2)tone(mtof(BASS[Math.floor(s/2)%16]+36),.12,'sine',.022,1,t,musicGain);
     }
     if(s%2===0){const n=BASS[Math.floor(s/2)%16];tone(mtof(n),spd*1.8,'sawtooth',inGame?.05:.025,1,t,musicGain)}
     if(inGame&&(S.wave>=4||hype)&&s%8===4)tone(mtof(BASS[Math.floor(s/2)%16]+24),.2,'triangle',.025,1,t,musicGain);
@@ -1205,29 +1200,17 @@ function musicTick(){
 }
 
 // ================= data model =================
-const TYPES=['LOC','CON','BIO','HEA','MSG','HAB'];
+const TYPES=['LOC','HEA','HAB'];
 function uiMark(inner){return `<svg class="mark" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`}
 const DATA={
   LOC:{n:'LOCATION',s:'LOCATION',i:uiMark('<path d="M24 42 V30"/><circle cx="24" cy="18" r="8"/><circle cx="24" cy="18" r="2.6" fill="currentColor" stroke="none"/>'),c:'#38e1ff',v:.9,
     fx:['Ads talk about places near you.','After wave 1, it says players near you stayed.','Standing still on free Wi-Fi slows the music.','Time in the free ring adds exposure.','Standing still adds it faster.','A 1-hit shield charges in the ring.'],
     why:['Where you spend time can show school and home.','No address form is required.'],
     good:['The same data gives you turn-by-turn directions and finds a lost phone.','It tells 911 where to send help.']},
-  CON:{n:'CONTACTS',s:'CONTACTS',i:uiMark('<circle cx="16" cy="24" r="6"/><circle cx="34" cy="24" r="6"/><path d="M22 24 H26"/>'),c:'#ff5ad9',v:.6,
-    fx:['Ads name your friends.','A friend stays one wave ahead of you.','The music stays a little faster.'],
-    why:['Contacts include people who never tapped Accept.'],
-    good:['Contacts let apps find friends you already know.','They make it easy to share a ride or your location with family.']},
-  BIO:{n:'FACE SCAN',s:'FACE',i:uiMark('<path d="M5 24 C14 15 34 15 43 24 C34 33 14 33 5 24 Z"/><circle cx="24" cy="24" r="3.2" fill="currentColor" stroke="none"/>'),c:'#ffd23b',v:1.3,
-    fx:['Ads comment on your face.','A combo labels you happy.','The music gets brighter.','A hit labels you stressed.','The music tightens.'],
-    why:['A face print can be matched in a camera feed.'],
-    good:['Face unlock keeps a stolen phone locked.','Face matching has helped find missing children.']},
   HEA:{n:'HEALTH',s:'HEALTH',i:uiMark('<path d="M4 28 H12 L18 28 L23 8 L30 40 L36 22 L40 28 H44"/>'),c:'#ff6b6b',v:1.5,
     fx:['Low hearts bring health ads.','The game tells you not to quit.','The music races.','Grazes pay more.'],
     why:['Advertisers pay more when you are stressed.'],
     good:['Watches can spot an irregular heartbeat or a hard fall and call for help.','Health data pooled from many people helps researchers learn which treatments work.']},
-  MSG:{n:'MESSAGES',s:'MESSAGES',i:uiMark('<path d="M8 14 H40 V34 H8 Z"/><path d="M8 14 L24 26 L40 14"/>'),c:'#7dff6a',v:.8,
-    fx:['Ads pretend to know your chats.','Unread badges tick up mid-fight.','Each ping turns the music up.'],
-    why:['Message data shows who you talk to and when.'],
-    good:['Scanning messages catches spam, scams, and phishing links before you tap them.']},
   HAB:{n:'HABITS',s:'HABITS',i:uiMark('<path d="M14 34 V22 M24 34 V12 M34 34 V20"/><path d="M8 38 H40"/>'),c:'#b48cff',v:.7,
     fx:['The model learns your patterns faster.','Combos last longer.','Jackpots and streaks pump the music.','A broken streak pushes one more wave.'],
     why:['How you move and choose can be collected with no prompt.'],
@@ -1235,10 +1218,10 @@ const DATA={
 };
 const PERKS=[
   {id:'route',name:'THRUST',data:'LOC',tag:'ENGINE',cap:3,desc:'+12% speed, and you slide faster across your aim.',again:'Another +12% speed and more slide.',apply:p=>{p.speed*=1.12;p.slide=(p.slide||1)*1.18}},
-  {id:'squad',name:'WINGMAN',data:'CON',tag:'DRONE',cap:2,desc:'A drone orbits you and shoots a different ship — usually one in a pack.',again:'Another drone joins and covers another ship.',apply:p=>{p.drones++}},
-  {id:'face',name:'BURNERS',data:'BIO',tag:'ENGINE',cap:2,desc:'Dash recharges 2× faster.',again:'Dash cooldown halves again.',apply:p=>{p.dashCD*=.5}},
+  {id:'squad',name:'WINGMAN',data:null,tag:'DRONE',cap:2,desc:'A drone orbits you and shoots a different ship — usually one in a pack.',again:'Another drone joins and covers another ship.',apply:p=>{p.drones++}},
+  {id:'face',name:'BURNERS',data:null,tag:'ENGINE',cap:2,desc:'Dash recharges 2× faster.',again:'Dash cooldown halves again.',apply:p=>{p.dashCD*=.5}},
   {id:'sos',name:'RESERVE',data:'HEA',tag:'HULL',cap:2,desc:'Heal 1♥ after every wave.',again:'Heal 2♥ after every wave.',apply:p=>{p.regen=(p.regen||0)+1}},
-  {id:'reply',name:'CYCLE',data:'MSG',tag:'GUNS',cap:3,desc:'+30% fire rate.',again:'Another +30% fire rate.',apply:p=>{p.fireRate*=1.3}},
+  {id:'reply',name:'CYCLE',data:null,tag:'GUNS',cap:3,desc:'+30% fire rate.',again:'Another +30% fire rate.',apply:p=>{p.fireRate*=1.3}},
   {id:'aim',name:'LEAD',data:'HAB',tag:'GUNS',cap:2,desc:'Near a hovered target, shots bend a little toward it. They will not chase.',again:'A slightly stronger bend. They still will not chase.',apply:p=>{p.homing+=.85}},
   {id:'armor',name:'PLATING',data:null,tag:'HULL',cap:4,desc:'+1 max ♥ and heal 1.',again:'Another +1 max ♥ and heal 1.',apply:p=>{p.maxHp++;p.hp=Math.min(p.maxHp,p.hp+1)}},
   {id:'heavy',name:'PAYLOAD',data:null,tag:'GUNS',cap:3,desc:'+1 damage per shot.',again:'Another +1 damage per shot.',apply:p=>{p.dmg++}},
@@ -1264,16 +1247,10 @@ function coinMark(){return `<svg class="mark gem" viewBox="0 0 48 48" fill="none
 const INF=[
   {id:'predict',need:['LOC','HAB'],name:'ROUTE PREDICTED',desc:'Enemies now aim where you WILL be, not where you are. You also get more warning before ships arrive.',why:'Where you go + when you go = where you\'re going next. Navigation apps use this to guess your destination before you type it.',
     good:'Route prediction also warns you about traffic before you leave and gets you there faster.'},
-  {id:'face',need:['BIO','LOC'],name:'FACE MATCHED',desc:'Surveillance cameras now appear and track you. Ships a camera sees take 25% more damage.',why:'A face scan plus location lets any camera recognize you. Some cities and stores already run face recognition on crowds.',
-    good:'The same cameras help security spot a threat sooner. Face matching has helped find missing children.'},
-  {id:'graph',need:['CON','MSG'],name:'SOCIAL GRAPH MAPPED',desc:'Your friends\' data came with yours. +40% enemies per wave. When you drop to 1♥, a friend\'s drone joins you for the wave.',why:'Sharing your contacts shares people who never agreed to anything. Your data exposes your friends too.',
-    good:'Safety apps use your contacts to alert friends when you need help. Health departments use contact maps to warn people exposed to a disease.'},
   {id:'risk',need:['HEA','HAB'],name:'RISK SCORE ASSIGNED',desc:'Your prices now follow how you play. Take 1 hit or less per wave and prices are 20% off. Take more and they are 50% higher.',why:'Health + lifestyle data can be used to predict risk, which companies can use to change what they charge you.',
     good:'Risk models also give careful drivers lower rates and can flag a health problem early.'},
   {id:'home',need:['CON','LOC'],name:'HOME INFERRED',desc:'They know where you\'ll be. Enemies spawn closer with less warning. Search & Rescue already has your location, so a mayday brings help 2 seconds sooner.',why:'Where your phone sleeps every night is almost always your home. No address required.',
     good:'Knowing where you are lets emergency services reach you faster, even when you cannot give an address.'},
-  {id:'mood',need:['HEA','BIO'],name:'MOOD DETECTED',desc:'When you\'re hurt, the ads come for you. When you drop to 1♥, a check-in gives you a 1-hit shield, once per wave.',why:'Face + heart-rate data can estimate emotion. Advertisers pay extra to reach people when they are stressed or sad.',
-    good:'Mood detection can catch a drowsy driver, and a mental health app can check in when someone is struggling.'}
 ];
 // Behavior patterns: learned from how you play, not from what you share.
 // test(w,keeping) returns an evidence string (pattern present), false (absent), or null (not enough data).
@@ -1318,29 +1295,11 @@ const ADS={
     'SOMEONE SEARCHED YOUR BLOCK FOR TUTORS','#1 LATE-NIGHT SPOT IN YOUR CITY','TURN LEFT · WE ALREADY KNOW THE ROUTE',
     'A STORE ON YOUR BLOCK RESTOCKED','THIS ARENA SITS IN A HIGH-SPEND ZONE'
   ],
-  CON:[
-    'YOUR FRIEND JUST BOUGHT THIS','5 OF YOUR FRIENDS LIKED THIS','ALEX FROM YOUR CLASS IS ONLINE',
-    'YOUR MOM\'S FRIENDS SAW THIS TOO','2 FRIENDS ARE LOOKING AT THE SAME ITEM','ADD JORDAN? YOU HAVE 11 MUTUALS',
-    'YOUR GROUP CHAT WOULD LOVE THIS','SOMEONE YOU KNOW IS NEARBY · SAY HI?','YOUR FRIENDS\' KIDS PLAY THIS',
-    'FORWARD THIS DEAL TO YOUR SQUAD','A FRIEND CHANGED SCHOOLS · GIFT?','3 PEOPLE YOU KNOW SKIPPED THE PAYWALL'
-  ],
-  BIO:[
-    'WE NOTICED YOU LOOK TIRED 😴','FILTER THAT FIXES YOUR FACE','SMILE DETECTED · EASY TO SELL TO',
-    'YOUR LAST PHOTO MATCHED 4 STORES','DARK CIRCLES · TRY THIS SERUM','FACE SCAN BRANDS WANT A WORD',
-    'YOU LOOK OLDER THAN LAST WEEK','BLINK RATE SAYS YOU\'RE FOCUSED · BUY','NEW HAIRCUT? WE HAVE PRODUCTS',
-    'CAMERAS LIKE YOURS PREFER THIS ANGLE','THAT EXPRESSION = ADD TO CART','GLASSES DETECTED · LENS CLEANER 2-FOR-1'
-  ],
   HEA:[
     'LOW ENERGY? TRY VOLT DRINK ⚡','YOUR HEART RATE SAYS: BUY NOW','STRESS DETECTED · WEIGHTED BLANKET',
     'SLEEP SCORE IS LOW · MELATONIN 2-FOR-1','ELEVATED PULSE · SPORTS DRINK','HITS TAKEN · BANDAGES ON SALE',
     'INSURERS LIKE PLAYERS WITH YOUR STATS','HYDRATION REMINDER · SPONSORED','YOUR WELLNESS APP SHARED THIS',
     'RISK SCORE: SEE THE PREMIUM TIER','BREATHING IS SHALLOW · CALM APP FREE TRIAL','STEP COUNT IS LOW · NEW SHOES?'
-  ],
-  MSG:[
-    'YOU MENTIONED "HOODIE" · 40% OFF','PLANNING A TRIP? ✈️','YOU TYPED "TIRED" 6× THIS WEEK',
-    'SOMEONE TEXTED "LATER" · SNACKS?','YOUR DRAFT SAID "HOMEWORK" · TUTORS','EMOJI USE SAYS YOU\'RE A NIGHT PERSON',
-    'YOU ALMOST SENT "HELP" · WE CAN HELP','AUTOCOMPLETE KNOWS YOU WANT THIS','YOUR LAST CHAT MENTIONED THE WEEKEND',
-    'SPELLCHECK FIXED "TOMORROW" · BOOK NOW','YOU SEARCHED "CHEAP" · HERE YOU GO','3 UNREAD MESSAGES · SHOP WHILE YOU WAIT'
   ],
   HAB:[
     'STILL UP AT 1AM? SO ARE WE','YOU ALWAYS BUY ON FRIDAYS','YOU PAUSE ON THE SAME 3 ITEMS',
@@ -1351,21 +1310,9 @@ const ADS={
   _:['LIMITED OFFER!!!','YOU WON\'T BELIEVE THIS','CLICK HERE 🔥','ONE WEIRD TRICK','HOT DEAL NEARBY']
 };
 const ADSX={
-  'BIO+CON':['YOUR FRIEND LOOKS TIRED TOO · SHARE THIS','A FRIEND\'S FACE MATCHED A STORE CAM'],
-  'BIO+HAB':['YOU MAKE THIS FACE WHEN YOU SHOP','SAME EXPRESSION AS LAST CHECKOUT'],
-  'BIO+HEA':['FACE + PULSE = FRUSTRATED. SHOP?','YOUR FACE SAYS STRESSED. YOUR HEART AGREES'],
-  'BIO+LOC':['A CAMERA ON YOUR BLOCK JUST TAGGED YOU','THIS STORE ALREADY HAS YOUR FACE'],
-  'BIO+MSG':['YOUR SELFIE + THAT TEXT = WEEKEND PLANS','YOU LOOK LIKE THE PERSON WHO TYPED "UGH"'],
-  'CON+HAB':['YOUR SQUAD ALWAYS ACCEPTS ABOUT NOW','FRIENDS WHO PLAY LIKE YOU BOUGHT THIS'],
-  'CON+HEA':['3 FRIENDS BOUGHT THIS AFTER A SCARE','A FRIEND\'S WATCH SHARED A SIMILAR PULSE'],
-  'CON+LOC':['YOUR FRIENDS HANG OUT 0.4 MI FROM HERE','A FRIEND IS ON THIS BLOCK'],
-  'CON+MSG':['YOUR FRIEND TEXTED ABOUT THIS FIRST','THE GROUP CHAT ALREADY VOTED YES'],
   'HAB+HEA':['LATE NIGHTS + HEART DATA = ENERGY DRINK','YOU BUY SNACKS AFTER YOU GET HURT'],
   'HAB+LOC':['WE SAVED YOUR USUAL ROUTE · PIT STOP?','YOU ALWAYS CAMP THIS SIDE · LOCAL DEAL'],
-  'HAB+MSG':['YOU ALWAYS MENTION FOOD AFTER A HARD WAVE','YOUR TEXTS GET SHORTER WHEN YOU RUSH'],
   'HEA+LOC':['CLINICS NEAR YOU SAW YOUR HEART DATA','PHARMACY 0.2 MI · THEY HAVE YOUR FILE'],
-  'HEA+MSG':['YOU TEXTED "I\'M FINE" · YOUR PULSE DISAGREES','THAT "TIRED" MESSAGE MATCHES YOUR HEART'],
-  'LOC+MSG':['THE TRIP YOU TEXTED ABOUT IS 12 MI AWAY','YOU SAID "NEARBY" · WE PICKED A STORE']
 };
 const SECRETS=['OPTOUT','READER','CONSENT','NOTICE','PRIVACY','FINEPRINT'];
 
@@ -1631,13 +1578,13 @@ function saveGame(){
     adT:S.adT,adRecent:S.adRecent||[],secret:S.secret,secretUsed:!!S.secretUsed,
     queue:(S.queue||[]).slice(),spawnT:S.spawnT,
     amend:S.amend||null,hotI:S.hotI==null?-1:S.hotI,hotBadge:S.hotBadge||'',
-    fair:!!S.fair,member:!!S.member,fairPaidWave:S.fairPaidWave||0,expWifi:S.expWifi||0,emergUsed:!!S.emergUsed,haloNow:!!S.haloNow,cm:S.cm||null,classTold:!!S.classTold,friendDrone:S.friendDrone||0,distressT:S.distressT||0,rescueAng:S.rescueAng||0,
+    fair:!!S.fair,member:!!S.member,fairPaidWave:S.fairPaidWave||0,expWifi:S.expWifi||0,emergUsed:!!S.emergUsed,haloNow:!!S.haloNow,cm:S.cm||null,classTold:!!S.classTold,distressT:S.distressT||0,rescueAng:S.rescueAng||0,
     safetyFile:S.safetyFile||{hea:false,loc:false},
     safetyAsked:!!S.safetyAsked,safetyOn:!!S.safetyOn,
     formTier:S.formTier||0,formRead:S.formRead||0,formSkillRank:S.formSkillRank||0,formSkillWave:S.formSkillWave||0,waveHadBroker:!!S.waveHadBroker,formJustUp:!!S.formJustUp,hiveWave:S.hiveWave||0,brokerN:S.brokerN||0,
     strain:S.strain?{pool:S.strain.pool||[],hits:S.strain.hits||[],gen:S.strain.gen||1,best:S.strain.best||null,seen:S.strain.seen||null,scored:S.strain.scored||null,cut:S.strain.cut||null,arms:S.strain.arms||null}:null,
     wifi:S.wifi,wifiAcc:S.wifiAcc||0,shieldAcc:S.shieldAcc||0,wifiMoveIn:S.wifiMoveIn,
-    unread:S.unread||0,hookFriend:S.hookFriend||null,pingT:S.pingT,
+    
     p:packPlayer(S.p),
     tele:{...S.tele,heat:Array.from(S.tele.heat)},
     model:{on:Object.keys(m.on),ev:m.ev,strikes:m.strikes,lost:m.lost,carried:m.carried,
@@ -1651,7 +1598,7 @@ function restoreRun(snap){
   s.checkpoint=snap.checkpoint;s.filed=!!snap.filed;
   s.wave=snap.wave||0;s.score=snap.score||0;s.coins=snap.coins||0;s.t=snap.t||0;
   s.combo=snap.combo||0;s.comboT=snap.comboT||0;
-  s.shared=snap.shared||{};s.inf=snap.inf||{};
+  s.shared=keepTypes(snap.shared);s.inf=keepInfs(snap.inf);
   s.carriedShared=snap.carriedShared||[];s.carriedInf=snap.carriedInf||[];
   s.revealQ=snap.revealQ||[];
   s.offer=(snap.offerIds||[]).map(id=>PERKS.find(p=>p.id===id)).filter(Boolean);
@@ -1661,7 +1608,7 @@ function restoreRun(snap){
   s.queue=(snap.queue||[]).slice();s.spawnT=snap.spawnT==null?1.2:snap.spawnT;
   s.secret=snap.secret||s.secret;s.secretUsed=!!snap.secretUsed;
   s.amend=snap.amend||null;s.hotI=snap.hotI==null?-1:snap.hotI;s.hotBadge=snap.hotBadge||'';
-  s.fair=!!snap.fair;s.member=!!(snap.member||snap.fair);s.fairPaidWave=snap.fairPaidWave||0;s.expWifi=snap.expWifi||0;s.emergUsed=!!snap.emergUsed;s.haloNow=!!snap.haloNow;s.cm=snap.cm||null;s.packs=store.get('packs',[])||[];s.classTold=!!snap.classTold;s.friendDrone=snap.friendDrone||0;s.distressT=snap.distressT||0;s.rescueAng=snap.rescueAng||0;
+  s.fair=!!snap.fair;s.member=!!(snap.member||snap.fair);s.fairPaidWave=snap.fairPaidWave||0;s.expWifi=snap.expWifi||0;s.emergUsed=!!snap.emergUsed;s.haloNow=!!snap.haloNow;s.cm=snap.cm||null;s.packs=store.get('packs',[])||[];s.classTold=!!snap.classTold;s.distressT=snap.distressT||0;s.rescueAng=snap.rescueAng||0;
   s.safetyFile=snap.safetyFile&&typeof snap.safetyFile==='object'?{hea:!!snap.safetyFile.hea,loc:!!snap.safetyFile.loc}:{hea:false,loc:false};
   s.safetyAsked=!!snap.safetyAsked;s.safetyOn=!!snap.safetyOn;
   s.formTier=snap.formTier||0;s.formRead=snap.formRead||0;s.formSkillRank=snap.formSkillRank||0;s.formSkillWave=snap.formSkillWave||0;s.waveHadBroker=!!snap.waveHadBroker;s.formJustUp=!!snap.formJustUp;s.hiveWave=snap.hiveWave||0;s.brokerN=snap.brokerN||0;
@@ -1669,7 +1616,7 @@ function restoreRun(snap){
   if(snap.strain&&snap.strain.pool){const mix=copyMix(snap.strain),arms=copyArms(snap.strain);s.strain={pool:(snap.strain.pool||[]).map(normGene),hits:(snap.strain.hits||[]).map(normGene),gen:snap.strain.gen||1,best:snap.strain.best?normGene(snap.strain.best):null,seen:mix.seen,scored:mix.scored,cut:mix.cut,arms}}
   if(snap.wifi)s.wifi=snap.wifi;
   s.wifiAcc=snap.wifiAcc||0;s.shieldAcc=snap.shieldAcc||0;s.wifiMoveIn=snap.wifiMoveIn||s.wifiMoveIn;
-  s.unread=snap.unread||0;s.hookFriend=snap.hookFriend||null;s.pingT=snap.pingT==null?9:snap.pingT;
+  
   Object.assign(s.p,snap.p);
   s.p.shield=s.p.shield||0;
   s.p.x=clamp(s.p.x,s.p.r,Math.max(s.p.r,W-s.p.r));
@@ -1718,7 +1665,7 @@ function newState(){
       breaches:0,breachSurvived:false,kills:0,hits:0,sampT:0,time:0,wifiT:0,wifiCoins:0,wifiExp:0,caught:0,honest:0,sub:0,subPaid:0,emerg:0,check:0,checkNo:0,
       comboPeak:0,waveHits:0,waveKills:0,waveT:0,shots:0,closeT:0,formBreaks:0,urgencyLate:0,urgencyOff:false},
     wifi:loadWifi(),wifiAcc:0,shieldAcc:0,wifiMoveIn:2+Math.floor(Math.random()*3),expWifi:0,expVis:0,amend:null,sosT:0,
-    nagT:0,pingT:9,unread:0,hookFriend:null,musicPush:null,fair:false,member:!!prof.member,fairPaidWave:0,emergUsed:false,cm:classRead(),packs:store.get('packs',[])||[],classTold:false,
+    nagT:0,musicPush:null,fair:false,member:!!prof.member,fairPaidWave:0,emergUsed:false,cm:classRead(),packs:store.get('packs',[])||[],classTold:false,
     formI:0,formTier:0,formRead:0,formSkillRank:0,formSkillWave:0,waveHadBroker:false,formJustUp:false,hiveWave:0,brokerN:0,sandbox:false,sandPicks:{},checkpoint:null,filed:false,breachLine:'',hotI:-1,hotBadge:'',taken:[]
   };
   parkWifi(s.wifi,s.p.x,s.p.y);
@@ -1983,6 +1930,9 @@ const shareExp=()=>TYPES.reduce((a,t)=>a+(S.shared[t]||0),0);
 const exposure=()=>shareExp()+(S.expWifi||0);
 const sharedN=t=>S.shared[t]||0;
 const hasAll=need=>need.every(t=>sharedN(t));
+// Saves from before a data type or inference was removed keep only what still exists.
+function keepTypes(o){const r={};for(const t of TYPES)if(o&&o[t])r[t]=o[t];return r}
+function keepInfs(o){const r={};for(const f of INF)if(o&&o[f.id])r[f.id]=true;return r}
 function countsWith(...adds){const c={};for(const t of TYPES)c[t]=sharedN(t);for(const t of adds)if(t)c[t]=(c[t]||0)+1;return c}
 function inferReady(need,c){c=c||countsWith();return need.every(t=>c[t])&&need.some(t=>c[t]>=2)}
 function inferProgress(f){
@@ -2078,7 +2028,6 @@ function onSubBtn(){
 }
 
 function startWave(){
-  if(S.friendDrone){S.p.drones=Math.max(0,S.p.drones-1);S.friendDrone=0}
   S.wave++;
   if(S.fair&&S.fairPaidWave!==S.wave){
     if(tryChargeFair(S.wave))toast('Fair Play · −◈ '+subPrice(),1400);
@@ -2383,9 +2332,6 @@ function packWave(w,n){
   const solos=shuffle(ping.concat(wat,craw)).map(type=>({kind:'one',type,skill:'raw'}));
   const q=tier<=0?solos:weaveJobs(forms,solos);
   const base=mimicLive()?(tier>=4?3:tier>0?2:0):0;
-  let cams=S.inf.face?1+Math.floor(w/3):0;
-  const camTake=Math.min(cams,cut.camera||0);
-  cams-=camTake;moved+=camTake;
   const mimicN=base+moved;
   if(mimicN>0){
     const genes=takeStrainGenes(mimicN);
@@ -2394,7 +2340,6 @@ function packWave(w,n){
       q.splice(at,0,{kind:'one',type:'strain',gene:g});
     });
   }
-  if(cams)for(let i=0;i<cams;i++)q.splice(Math.floor(Math.random()*(q.length||1)),0,{kind:'one',type:'camera'});
   S.waveHadBroker=false;
   if(S.breachNext){q.splice(Math.floor(q.length/2),0,{kind:'one',type:'broker'});S.breachNext=false;S.breachWave=w;S.waveHadBroker=true}
   else if(w%5===0){q.push({kind:'one',type:'broker'});S.waveHadBroker=true}
@@ -2645,15 +2590,6 @@ function sosHp(app){return app?3:2}
 const HELP_WAIT=5;
 function helpWait(){return HELP_WAIT-(S&&S.inf&&S.inf.home?2:0)}
 function riskCareful(){return S.tele.hits<=Math.max(1,S.wave)}
-function camSees(e){
-  for(const c of S.enemies){
-    if(c.dead||c.type!=='camera'||c===e)continue;
-    const dx=e.x-c.x,dy=e.y-c.y,d=Math.hypot(dx,dy);if(d>460)continue;
-    const diff=((Math.atan2(dy,dx)-c.ang)%TAU+TAU*1.5)%TAU-Math.PI;
-    if(Math.abs(diff)<.38)return true;
-  }
-  return false;
-}
 function haloLoc(){return !!(S&&S.safetyFile&&S.safetyFile.loc)}
 function haloHea(){return !!(S&&S.safetyFile&&S.safetyFile.hea)}
 function haloBrokerLine(){
@@ -2853,14 +2789,13 @@ function copyMix(raw){
 }
 function waveBudget(){
   const w=S.wave||1;
-  return Math.round((5+w*3)*((S.inf&&S.inf.graph)?1.4:1)*(1+(S.formTier||0)*.05));
+  return Math.round((5+w*3)*(1+(S.formTier||0)*.05));
 }
 function typeCap(t){
   const w=S.wave||1,n=waveBudget();
   if(t==='ping')return Math.round(n*(w>=3?.5:w>=2?.72:1));
   if(t==='watcher')return Math.round(n*(w>=2?.28:0));
   if(t==='crawler')return Math.round(n*(w>=3?.22:0));
-  if(t==='camera')return S.inf&&S.inf.face?1+Math.floor(w/3):0;
   return 0;
 }
 function loadStrain(){
@@ -3757,11 +3692,8 @@ function hurtPlayer(src){
   if(src){const a=Math.atan2(p.y-src.y,p.x-src.x);p.vx+=Math.cos(a)*500;p.vy+=Math.sin(a)*500}
   if(p.hp>0){
     if(S.mode==='intro'||S.sandbox)return;
-    if(p.hp===1&&S.inf.graph&&!S.friendDrone){p.drones++;S.friendDrone=1;S.tele.friendHelp=(S.tele.friendHelp||0)+1;ftext(p.x,p.y-30,'A FRIEND IS HERE','#ff5ad9',13);toast('Your contacts got the alert. A friend\'s drone joins you for this wave.',2600)}
     if(cmOn('HEA')&&hasPack('HEA')&&p.hp===S.cm.HEA.danger&&S.dangerWave!==S.wave){p.shield=1;S.dangerWave=S.wave;S.tele.dangerShield=(S.tele.dangerShield||0)+1;ftext(p.x,p.y-58,'CLASS CHECK-IN · SHIELD','#8a9bff',12)}
-    if(p.hp===1&&S.inf.mood&&S.moodWave!==S.wave){p.shield=1;S.moodWave=S.wave;S.tele.moodHp=(S.tele.moodHp||0)+1;ftext(p.x,p.y-44,'CHECK-IN · SHIELD','#9ae64a',13)}
     if(fileHea()&&p.hp<=2){hookNag('HEART RATE UP · don\'t quit. 73% of players like you keep going');musicPush(24,.2,1.5)}
-    else if(S.shared.BIO){hookNag('STRESS FACE READ · stay in the session');musicPush(16,.14,1.2)}
   }
   if(p.hp<=0){
     if(S.mode==='intro'){p.hp=p.maxHp;p.inv=1.2;return}
@@ -3778,7 +3710,6 @@ function blankMul(dist){
   return 1+(n>=2?2:1)*(1-t);
 }
 function damageEnemy(e,d,bx,by){
-  if(S.inf.face&&e.type!=='camera'&&camSees(e)){d*=1.25;S.tele.camHits=(S.tele.camHits||0)+1}
   e.hp-=d;e.flash=.07;sfx.hit();
   burst(bx,by,e.col,4,160,.25,2.5);
   if(e.formId&&(e.type==='watcher'||e.formRole==='def')){
@@ -3788,7 +3719,6 @@ function damageEnemy(e,d,bx,by){
 }
 function killEnemy(e){
   e.dead=true;S.tele.kills++;S.tele.waveKills=(S.tele.waveKills||0)+1;S.combo++;S.comboT=S.shared.HAB?3.4:2.2;S.tele.comboPeak=Math.max(S.tele.comboPeak||0,S.combo);
-  if(S.shared.BIO&&(S.combo===8||S.combo===15)){hookNag('SMILE DETECTED · you look happy. keep going');musicPush(14,.12,1.4)}
   if(S.shared.HAB&&S.combo===5)musicPush(12,.1,1.2);
   const mult=1+Math.min(S.combo,50)*.1,pts=Math.round(e.pts*mult);S.score+=pts;
   ftext(e.x,e.y-e.r,'+'+pts,e.type==='broker'?'#ffd23b':'#fff',e.type==='broker'?26:14);
@@ -3828,15 +3758,11 @@ function eshoot(e,a,spd,col,r=5){const am=aimNext&&aimNext.e===e?aimNext:null;ai
 function liveAds(){
   const p=S.p,out=[],sh=t=>S.shared[t],n=t=>DATA[t].n;
   if(fileHea()&&p.hp<=2)out.push('HEART RATE '+(88+Math.round((3-p.hp)*14))+' · CALM TEA 15% OFF','LOW ♥ · FIRST-AID KIT IN YOUR AREA');
-  if(sh('BIO')&&p.hp<=2)out.push('WE CAN SEE YOU\'RE NOT OKAY','STRESS FACE · FILTER IT AWAY');
-  if(S.inf.mood&&p.hp<=2)out.push('MOOD: DISTRESSED · YOU COST MORE TO REACH');
   if(sh('LOC')&&p.inWifi)out.push('CONNECTED TO FREE WI-FI · LOCAL DEAL','THIS HOTSPOT HAS LOGGED YOU '+Math.max(1,Math.round(S.tele.wifiT))+'s');
   if(sh('HAB'))out.push('YOU USUALLY ACCEPT AROUND WAVE '+S.wave,'WAVE '+S.wave+' IS YOUR WEAK SPOT');
   if(sh('HAB')&&S.tele.firstPick){const pk=PERKS.find(q=>q.id===S.tele.firstPick);if(pk)out.push('YOU PICKED '+pk.name+' FIRST · RELATED DEALS')}
   if(sh('LOC')&&S.model.on.zone)out.push('STORES IN YOUR USUAL CORNER MISS YOU');
   if(S.inf.home)out.push('STILL CLOSE TO HOME · WE FIGURED');
-  if(S.inf.face)out.push('CAMERA '+(2+S.wave%7)+' RECOGNIZED YOU');
-  if(sh('CON')&&S.inf.graph)out.push('YOUR FRIENDS\' DATA IS IN THIS AD TOO');
   if(S.inf.risk)out.push(riskCareful()?'CAREFUL PLAYER DISCOUNT · YOUR RISK SCORE IS LOW':'YOUR RISK SCORE RAISED THIS PRICE');
   if(S.inf.predict)out.push('WE KNOW WHERE YOU\'RE HEADED · SHOP AHEAD');
   if(S.model.on.panic)out.push('PANIC DASHERS BUY ENERGY DRINKS');
@@ -4221,7 +4147,7 @@ function update(dt){
   // ---- ads: targeted popups need sold data, not hotspot minutes ----
   const sold=shareExp(),winback=S.member&&!S.fair;
   if(S.mode==='play'&&(sold>=3||winback)){
-    S.adT-=dt;if(S.inf.mood&&p.hp<=2)S.adT=Math.min(S.adT,1.6);
+    S.adT-=dt;
     if(S.adT<=0){S.adT=winback&&sold<3?5.2:Math.max(2.5,12-sold*1.2);spawnAd()}
   }
   for(const ad of S.ads){ad.t+=dt;ad.x=clamp(ad.x+ad.vx*dt,ad.w/2,W-ad.w/2);ad.y=clamp(ad.y+ad.vy*dt,ad.h/2+60,H-ad.h/2);
@@ -4248,10 +4174,6 @@ function update(dt){
 
   // ---- combo ----
   if(S.nagT>0)S.nagT-=dt;
-  if(!S.fair&&S.shared.MSG&&S.mode==='play'){
-    S.pingT-=dt;
-    if(S.pingT<=0){S.pingT=rand(8,13);S.unread++;hookNag(S.unread+' UNREAD · your group chat is waiting');musicPush(10,.15,.9)}
-  }
   if(S.combo>0){S.comboT-=dt;if(S.comboT<=0){if(S.shared.HAB&&S.combo>=5){hookNag('STREAK LOST · most users play one more wave');musicPush(-14,-.12,1.3)}S.combo=0}}
 
   // ---- mode machine ----
@@ -4268,11 +4190,9 @@ function update(dt){
     let nudge='';
     if(!S.fair){
       if(S.shared.HAB)nudge='Don\'t stop. Sessions like yours usually last longer.';
-      else if(S.shared.CON){S.hookFriend=S.hookFriend||pick(['ALEX','JORDAN','SAM','RILEY','CASEY']);nudge=S.hookFriend+' is still playing.'}
-      else if(S.shared.MSG)nudge='Your group chat is waiting.';
     }
     if(nudge)pinNote(nudge,'#7dff6a');else clearNote();
-    if(!S.fair&&(S.shared.HAB||S.shared.CON||S.shared.MSG))musicPush(12,.12,2.2);
+    if(!S.fair&&S.shared.HAB)musicPush(12,.12,2.2);
   }
   if(S.mode==='clear'){S.clearT-=dt;if(S.clearT<=0&&!S.coinsArr.length)afterClear();else if(S.clearT<-1.5)afterClear()}
   if(S.mode==='breach'){S.breachT-=dt;if(S.breachT<=0){if(openTerms()){S.checkpoint='terms';saveGame()}}}
@@ -4705,11 +4625,8 @@ function showDossier(){
   const nInf=INF.filter(f=>S.inf[f.id]).length,haloUsed=T.emerg;
   if(T.free)add('WHAT SHARING GOT YOU','FREE UPGRADES','<b>'+T.free+'</b> · worth <b>'+(T.freeValue||0)+'</b> credits',0);
   if(S.inf.predict)add('WHAT SHARING GOT YOU','EARLY WARNING','Ships gave <b>50%</b> more warning',0);
-  if(T.camHits)add('WHAT SHARING GOT YOU','CAMERAS','<b>'+T.camHits+'</b> hits did 25% more damage',0);
-  if(T.friendHelp)add('WHAT SHARING GOT YOU','FRIEND','A friend\'s drone joined <b>'+T.friendHelp+'×</b>',0);
   if(T.riskSaved)add('WHAT SHARING GOT YOU','RISK SCORE','<b>'+T.riskSaved+'</b> credits off for careful play',0);
   if(T.homeFast)add('WHAT SHARING GOT YOU','HOME','Rescue arrived <b>2s</b> sooner',0);
-  if(T.moodHp)add('WHAT SHARING GOT YOU','CHECK-IN','A 1-hit shield at 1♥ <b>'+T.moodHp+'×</b>',0);
   if(haloUsed)add('WHAT SHARING GOT YOU','HALO','Instant rescue · no wait · 1 more ♥ than a mayday',0);
   if(nShared)add('WHAT SHARING COST','SOLD','<b>'+nShared+'</b> of 6 data types',0);
   if(nInf)add('WHAT SHARING COST','GUESSED','<b>'+nInf+'</b> inference'+(nInf===1?'':'s')+' made from your data',0);
@@ -4826,9 +4743,7 @@ function updateHUD(){
   if(S.fair)nags.push('FAIR PLAY · '+coinMark()+' '+subPrice()+'/WAVE');
   else{
     if(S.member)nags.push('MEMBER FILE · ADS CAN FIND YOU');
-    if(S.shared.MSG&&S.unread)nags.push(S.unread+' UNREAD');
     if(fileHea()&&p.hp<=2&&S.mode==='play')nags.push('♥ ELEVATED · STAY IN');
-    if(S.shared.CON&&S.hookFriend)nags.push(S.hookFriend+' IS AHEAD');
   }
   setH('hookNag',nags.join('<br>'));$('hookNag').classList.toggle('fair',!!S.fair);
   setH('chips',TYPES.map(t=>`<span class="chip ${S.shared[t]?'on':''}" style="--c:${DATA[t].c}">${DATA[t].i}<span class="cl">${DATA[t].s}${S.shared[t]>1?' ×'+S.shared[t]:''}</span></span>`).join(''));
@@ -4925,7 +4840,6 @@ function render(dt){
     g.globalAlpha=1}
   if(!S.readHold)for(const e of S.enemies)drawEnemy(e);
   if(healthPressed()&&!S.readHold){g.strokeStyle='#8a9bff';g.lineWidth=2;g.globalAlpha=.5+.25*Math.sin(S.t*8);for(const e of S.enemies)if(!e.dead&&!e.partner&&e.type!=='camera'){g.beginPath();g.arc(e.x,e.y,e.r+6,0,TAU);g.stroke()}g.globalAlpha=1}
-  if(S.inf.face&&!S.readHold){g.strokeStyle='rgba(255,122,58,.6)';g.lineWidth=1.5;for(const e of S.enemies)if(!e.dead&&e.type!=='camera'&&camSees(e)){g.strokeRect(e.x-e.r-5,e.y-e.r-5,(e.r+5)*2,(e.r+5)*2)}}
   if(S.p.homing>0){g.strokeStyle='#38e1ff';g.lineWidth=1.5;for(const e of S.enemies)if(e.marked){g.globalAlpha=.55+.25*Math.sin(S.t*8);g.beginPath();g.arc(e.x,e.y,e.r+6,0,TAU);g.stroke()}g.globalAlpha=1}
   // player bullets
   g.globalCompositeOperation='lighter';g.lineCap='round';
