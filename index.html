@@ -689,7 +689,7 @@ button:disabled{opacity:.45;cursor:default}
   associated with the collection and large-scale analysis of personal information.
 
   Students play a shooter whose upgrades are "free" if they sell a data type
-  (location, health, habits) or paid if they keep that
+  (location, health, habits, purchases) or paid if they keep that
   slice. Separate shares get combined into inferences; movement is watched even
   without Accept; the hotspot offers fire, credits, and a 1-hit shield with a
   privacy cost on the free network. Fair Play is a convenience product (ads
@@ -1200,7 +1200,7 @@ function musicTick(){
 }
 
 // ================= data model =================
-const TYPES=['LOC','HEA','HAB'];
+const TYPES=['LOC','HEA','HAB','PUR'];
 function uiMark(inner){return `<svg class="mark" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`}
 const DATA={
   LOC:{n:'LOCATION',s:'LOCATION',i:uiMark('<path d="M24 42 V30"/><circle cx="24" cy="18" r="8"/><circle cx="24" cy="18" r="2.6" fill="currentColor" stroke="none"/>'),c:'#38e1ff',v:.9,
@@ -1214,7 +1214,11 @@ const DATA={
   HAB:{n:'HABITS',s:'HABITS',i:uiMark('<path d="M14 34 V22 M24 34 V12 M34 34 V20"/><path d="M8 38 H40"/>'),c:'#b48cff',v:.7,
     fx:['The model learns your patterns faster.','Combos last longer.','Jackpots and streaks pump the music.','A broken streak pushes one more wave.'],
     why:['How you move and choose can be collected with no prompt.'],
-    good:['Habit data powers recommendations you actually want.','It also flags a login that does not look like you.']}
+    good:['Habit data powers recommendations you actually want.','It also flags a login that does not look like you.']},
+  PUR:{n:'PURCHASES',s:'PURCHASES',i:uiMark('<path d="M11 18 H37 L35 40 H13 Z"/><path d="M18 18 V14 A6 6 0 0 1 30 14 V18"/>'),c:'#ffd23b',v:.8,
+    fx:['Ads name your last upgrade.','The music lifts when you buy.'],
+    why:['What you buy shows what you need and when you will pay.'],
+    good:['Purchase history earns rewards and lets you return things without a receipt.','It also flags a card that suddenly buys like someone else.']}
 };
 const PERKS=[
   {id:'route',name:'THRUST',data:'LOC',tag:'ENGINE',cap:3,desc:'+12% speed, and you slide faster across your aim.',again:'Another +12% speed and more slide.',apply:p=>{p.speed*=1.12;p.slide=(p.slide||1)*1.18}},
@@ -1222,6 +1226,7 @@ const PERKS=[
   {id:'face',name:'BURNERS',data:null,tag:'ENGINE',cap:2,desc:'Dash recharges 2× faster.',again:'Dash cooldown halves again.',apply:p=>{p.dashCD*=.5}},
   {id:'sos',name:'RESERVE',data:'HEA',tag:'HULL',cap:2,desc:'Heal 1♥ after every wave.',again:'Heal 2♥ after every wave.',apply:p=>{p.regen=(p.regen||0)+1}},
   {id:'reply',name:'CYCLE',data:null,tag:'GUNS',cap:3,desc:'+30% fire rate.',again:'Another +30% fire rate.',apply:p=>{p.fireRate*=1.3}},
+  {id:'rewards',name:'REWARDS',data:'PUR',tag:'CREDITS',cap:2,desc:'+25% credits from ships.',again:'Another +25% credits from ships.',apply:p=>{p.rewards=(p.rewards||0)+1}},
   {id:'aim',name:'LEAD',data:'HAB',tag:'GUNS',cap:2,desc:'Near a hovered target, shots bend a little toward it. They will not chase.',again:'A slightly stronger bend. They still will not chase.',apply:p=>{p.homing+=.85}},
   {id:'armor',name:'PLATING',data:null,tag:'HULL',cap:4,desc:'+1 max ♥ and heal 1.',again:'Another +1 max ♥ and heal 1.',apply:p=>{p.maxHp++;p.hp=Math.min(p.maxHp,p.hp+1)}},
   {id:'heavy',name:'PAYLOAD',data:null,tag:'GUNS',cap:3,desc:'+1 damage per shot.',again:'Another +1 damage per shot.',apply:p=>{p.dmg++}},
@@ -1235,6 +1240,7 @@ function perkMark(id){
     face:'<path d="M24 7 C21 14 13 17 13 27 C13 35 18 41 24 41 C21 35 22 31 24 28 C26 33 28 35 29 41 C35 39 39 33 39 25 C39 15 30 12 24 7 Z"/>',
     sos:'<path d="M24 38 L12 26 C8 22 9 14 15 13 C19 12 22 15 24 18 C26 15 29 12 33 13 C39 14 40 22 36 26 Z"/>',
     reply:'<path d="M34 16 A12 12 0 1 0 36 28"/><path d="M28 10 L36 16 L26 18"/><circle cx="24" cy="25" r="2.6" fill="currentColor" stroke="none"/>',
+    rewards:'<rect x="7" y="13" width="34" height="22" rx="3"/><path d="M7 20 H41"/><path d="M13 29 H22"/>',
     aim:'<circle cx="24" cy="24" r="4"/><path d="M24 6 V14 M24 34 V42 M6 24 H14 M34 24 H42"/>',
     armor:'<path d="M24 7 L39 15 V27 L24 41 L9 27 V15 Z"/><path d="M24 16 L32 20 V26 L24 32 L16 26 V20 Z"/>',
     heavy:'<path d="M8 15 H22 L40 24 L22 33 H8 Z"/><path d="M16 15 V33"/>',
@@ -1249,7 +1255,7 @@ const INF=[
     good:'Route prediction also warns you about traffic before you leave and gets you there faster.'},
   {id:'risk',need:['HEA','HAB'],name:'RISK SCORE ASSIGNED',desc:'Your prices now follow how you play. Take 1 hit or less per wave and prices are 20% off. Take more and they are 50% higher.',why:'Health + lifestyle data can be used to predict risk, which companies can use to change what they charge you.',
     good:'Risk models also give careful drivers lower rates and can flag a health problem early.'},
-  {id:'home',need:['CON','LOC'],name:'HOME INFERRED',desc:'They know where you\'ll be. Enemies spawn closer with less warning. Search & Rescue already has your location, so a mayday brings help 2 seconds sooner.',why:'Where your phone sleeps every night is almost always your home. No address required.',
+  {id:'home',need:['LOC','PUR'],name:'HOME INFERRED',desc:'They know where you\'ll be. Enemies spawn closer with less warning. Search & Rescue already has your location, so a mayday brings help 2 seconds sooner.',why:'Where your orders go plus where you spend time points to your home. No address form required.',
     good:'Knowing where you are lets emergency services reach you faster, even when you cannot give an address.'},
 ];
 // Behavior patterns: learned from how you play, not from what you share.
@@ -1307,12 +1313,21 @@ const ADS={
     'YOU PLAY LONGEST AFTER 8PM','STREAK: IMPULSE ACCEPTS','YOU HOVERED ON THIS LAST TIME',
     'WEEKEND WARRIOR PACK IS BACK','YOU SKIP THE FINE PRINT · FAST CHECKOUT','YOUR USUAL ORDER IS READY'
   ],
+  PUR:[
+    'BOUGHT IT ONCE? BUY IT AGAIN','CUSTOMERS LIKE YOU ALSO BOUGHT','YOUR CART MISSES YOU',
+    'YOU SPEND MORE ON PAYDAY · DEAL','REWARDS MEMBERS SAVE 5%','YOU NEVER BUY THE CHEAP ONE',
+    'RESTOCKED: YOUR USUAL','YOU ALWAYS BUY IN PAIRS','SPENDING DIPPED · HERE IS A COUPON',
+    'BACK-TO-SCHOOL? WE NOTICED','YOUR BUDGET SAYS SPLURGE','FREE SHIPPING ON YOUR 3RD ORDER'
+  ],
   _:['LIMITED OFFER!!!','YOU WON\'T BELIEVE THIS','CLICK HERE 🔥','ONE WEIRD TRICK','HOT DEAL NEARBY']
 };
 const ADSX={
   'HAB+HEA':['LATE NIGHTS + HEART DATA = ENERGY DRINK','YOU BUY SNACKS AFTER YOU GET HURT'],
   'HAB+LOC':['WE SAVED YOUR USUAL ROUTE · PIT STOP?','YOU ALWAYS CAMP THIS SIDE · LOCAL DEAL'],
   'HEA+LOC':['CLINICS NEAR YOU SAW YOUR HEART DATA','PHARMACY 0.2 MI · THEY HAVE YOUR FILE'],
+  'HAB+PUR':['YOU BUY FAST AFTER 9PM · DEAL ENDS SOON','SAME ORDER, SAME TIME · ONE TAP'],
+  'HEA+PUR':['BANDAGES + YOUR PULSE · WE RESTOCKED','HURT? YOUR USUAL FIX COSTS MORE TODAY'],
+  'LOC+PUR':['YOUR DELIVERY ADDRESS IS ON FILE','DELIVERED TO YOUR DOOR · AGAIN'],
 };
 const SECRETS=['OPTOUT','READER','CONSENT','NOTICE','PRIVACY','FINEPRINT'];
 
@@ -1658,7 +1673,7 @@ function newState(){
     secret:pick(SECRETS),secretUsed:false,
     model:loadModel(),
     p:{x:W/2,y:H/2,vx:0,vy:0,r:11,hp:5,maxHp:5,speed:270,fireRate:6,fireT:0,dmg:1,shots:1,homing:0,drones:0,droneT:0,
-       dashCD:1.1,dashT:0,dashing:0,ddx:0,ddy:0,inv:0,regen:0,lines:false,slide:1,blank:0,ang:0,magnet:100,recoil:0,shield:0},
+       dashCD:1.1,dashT:0,dashing:0,ddx:0,ddy:0,inv:0,regen:0,rewards:0,lines:false,slide:1,blank:0,ang:0,magnet:100,recoil:0,shield:0},
     bullets:[],ebullets:[],enemies:[],spawns:[],queue:[],parts:[],texts:[],ads:[],coinsArr:[],trail:[],rings:[],
     tele:{heat:new Float32Array(24*16),q:[0,0,0,0],dirs:{l:0,r:0,u:0,d:0},still:0,moving:0,stressSpd:0,stressN:0,calmSpd:0,calmN:0,
       edge:0,center:0,orbit:0,lastAng:null,dashes:0,dashL:0,dashR:0,dashU:0,dashD:0,nearMiss:0,adsShot:0,termsTime:[],fineOpen:0,free:0,paid:0,declined:0,paidData:0,paidDataCoins:0,markupCoins:0,picks:{},firstPick:null,
@@ -1766,7 +1781,7 @@ function sandSpawnWave(){
 function applySandPerks(){
   if(!S)return;
   const p=S.p;
-  p.speed=270;p.fireRate=6;p.dmg=1;p.shots=1;p.homing=0;p.drones=0;p.dashCD=1.1;p.regen=0;p.lines=false;p.slide=1;p.blank=0;p.magnet=100;p.maxHp=5;
+  p.speed=270;p.fireRate=6;p.dmg=1;p.shots=1;p.homing=0;p.drones=0;p.dashCD=1.1;p.regen=0;p.rewards=0;p.lines=false;p.slide=1;p.blank=0;p.magnet=100;p.maxHp=5;
   S.tele.picks={};
   for(const pk of PERKS){
     const n=S.sandPicks[pk.id]||0;
@@ -3727,7 +3742,9 @@ function killEnemy(e){
   S.rings.push({x:e.x,y:e.y,r:e.r,max:e.r*(big?8:4),t:big?.6:.3,col:e.col});
   S.shake=Math.max(S.shake,big?26:5);S.freeze=big?.18:.025;
   if(big){sfx.big();S.flash=.4;S.flashCol='192,75,255';for(let i=0;i<4;i++)S.queue.length<60&&makeEnemy('ping',e.x+rand(-30,30),e.y+rand(-30,30))}else sfx.kill();
-  for(let i=0;i<e.coins;i++){const a=rand(0,TAU),s=rand(60,220),jack=!S.fair&&S.shared.HAB&&i===0&&Math.random()<.22?(Math.random()<.35?5:3):0;
+  const rw=.25*(S.p.rewards||0)*e.coins,drop=e.coins+Math.floor(rw)+(Math.random()<rw%1?1:0);
+  if(drop>e.coins)S.tele.rewardCoins=(S.tele.rewardCoins||0)+drop-e.coins;
+  for(let i=0;i<drop;i++){const a=rand(0,TAU),s=rand(60,220),jack=!S.fair&&S.shared.HAB&&i===0&&Math.random()<.22?(Math.random()<.35?5:3):0;
     S.coinsArr.push({x:e.x,y:e.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,t:rand(0,6),life:12,jack})}
 }
 function brokerAim(e,spd){
@@ -3762,6 +3779,7 @@ function liveAds(){
   if(sh('HAB'))out.push('YOU USUALLY ACCEPT AROUND WAVE '+S.wave,'WAVE '+S.wave+' IS YOUR WEAK SPOT');
   if(sh('HAB')&&S.tele.firstPick){const pk=PERKS.find(q=>q.id===S.tele.firstPick);if(pk)out.push('YOU PICKED '+pk.name+' FIRST · RELATED DEALS')}
   if(sh('LOC')&&S.model.on.zone)out.push('STORES IN YOUR USUAL CORNER MISS YOU');
+  if(sh('PUR')&&S.tele.lastBuy){const b=PERKS.find(q=>q.id===S.tele.lastBuy);if(b)out.push('YOU GOT '+b.name+' · CUSTOMERS ALSO BOUGHT THIS','STILL THINKING ABOUT '+b.name+'?')}
   if(S.inf.home)out.push('STILL CLOSE TO HOME · WE FIGURED');
   if(S.inf.risk)out.push(riskCareful()?'CAREFUL PLAYER DISCOUNT · YOUR RISK SCORE IS LOW':'YOUR RISK SCORE RAISED THIS PRICE');
   if(S.inf.predict)out.push('WE KNOW WHERE YOU\'RE HEADED · SHOP AHEAD');
@@ -4496,6 +4514,7 @@ function choose(i,a){
   if(perkMaxed(pk))note=(note?note+' ':'')+applyMaxedSink(pk,a==='pay',sold);
   else pk.apply(S.p);
   if(note)toast(note,perkMaxed(pk)?2800:1600);
+  S.tele.lastBuy=pk.id;if(S.shared.PUR&&!S.fair)musicPush(10,.1,1.6);
   S.tele.picks[pk.id]=(S.tele.picks[pk.id]||0)+1;if(!S.tele.firstPick){S.tele.firstPick=pk.id;noteFirstPick(pk.id)}
   S.taken.push(i);
   if(S.taken.length>=S.offer.length)closeTerms();
@@ -4550,7 +4569,7 @@ function checkSecret(){
 function fineText(){
   const clauses=[
     '<b>1. COLLECTION.</b> By selecting ACCEPT you grant OPT/IN Inc. and its 1,204 partners a perpetual, worldwide, royalty-free license to collect, store, analyze, combine and sell the data category listed on the offer, along with anything that can be inferred from it.',
-    '<b>2. COMBINATION.</b> Data you share separately may be combined once we hold both types and at least two shares of one of them. Combined data can reveal things you never shared, such as where you live, who you trust, how you feel, and what you will do next. You will be notified of inferences after they occur. Some inferences also work in your favor, and each one says how.',
+    '<b>2. COMBINATION.</b> Data you share separately may be combined once we hold both types and at least two shares of one of them. Combined data can reveal things you never shared, such as where you live, what you need, and what you will do next. You will be notified of inferences after they occur. Some inferences also work in your favor, and each one says how.',
     '<b>2b. COMBINATION ACROSS PLAYERS.</b> Finished runs are counted. No names. The scoreboard keeps 20 names. The count shows what share chose Accept. Each data type you share also joins a class model for that type. The models are used on every player, whether or not they shared: LOCATION sends ships where the class lingers, HABITS adds shots where the class dodges, and HEALTH presses harder at the heart count where the class gets hit most. Class data packs sell the other side: a hit map, a class pick in the shop, and a check-in shield. A pack stays yours until you delete your data. Both apply to every player, whether or not they shared. Fair Play still adds your run. Delete My Data takes your name off the board. The Accept count does not change.',
     '<b>3. SECURITY.</b> We take your security seriously. Security incidents may occur. A small file is rarely worth stealing. Combined data, and files built from three or more categories, are when a breach becomes likely and valuable.',
     '<b>4. PAYMENT OPTION.</b> You may instead pay with credits. Paid upgrades do not collect data. Repeat selections of an upgrade you already have earn a loyalty credit bonus. Each upgrade stops getting stronger after a set number of picks. A full upgrade comes back only when the others run out. Paying for it repairs 1♥, or adds score when you are not hurt. Accept still shares its data and adds no power. If nothing is on file, credit prices include a verification adjustment. Opening a Fair Play membership, or sharing any data type, completes a file and ends that markup. Other prices may still change based on how you play.',
