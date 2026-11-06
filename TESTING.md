@@ -52,6 +52,18 @@ Use dev mode and the sandbox to jump to a setup instead of playing up to it. Pre
 
 For each area: load the setup, watch for the effect on screen, check the matching dossier line.
 
+**UI lab (`index.html?ui`).** A panel of buttons that puts the game on any banner, reveal, screen, dialog, toast, or ad without playing to it. About 94 items, grouped: wave banners, Halo and rescue, reveals (all inferences and patterns), shop variants, screens, dossier variants, dialogs, toasts, and ads. Each button calls the game's own function, so what shows is what a player sees.
+- Like the check page, it runs in memory and never touches saved runs, the class models, or the leaderboard.
+- **keep banners up** holds a banner on screen so you can inspect it. The panel fades when the mouse leaves it, and the backtick key (`` ` ``) collapses it.
+- Dossier and leaderboard scenes are built from a short headless run, so their numbers are real telemetry.
+- **run all** triggers every item and marks any that throw, log an error, or leave nothing on screen. From the console: `uiLab.go('HALO SAVED YOU')` triggers one by its label.
+- When a new banner, reveal, or screen is added to the game, add a button for it in `ui.js`.
+
+**Decisions page (`decisions.html`).** Every choice a player can make, with what each option gets them (＋) and what it costs them (−): data upgrades, other upgrades, the shop's side choices, class packs, Halo, Fair Play, the hotspot, how much to share, Delete My Data, behavior patterns, and inferences. Use it to review the game's trade-offs in one place.
+- Most of it is read live from the game's tables, so new upgrades, data types, inferences, and patterns appear on their own.
+- The hand-written parts in `decisions.js` are stamped with a fingerprint of the game text or code they describe. When that changes, the entry shows **OUT OF DATE** and the check page fails, until the wording is reviewed and re-stamped (`decisionsStamp()` in the console, pasted over `STAMPS`).
+- **Rule:** when a decision point is added, removed, or changed in `index.html`, update `decisions.js` in the same change.
+
 ## D. Classroom playtest
 
 - **Assign strategies.** One group always accepts, one never accepts, one tries Fair Play, one plays however they like.

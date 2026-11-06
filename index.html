@@ -5262,8 +5262,12 @@ $('devBack').addEventListener('click',closeDevGate);
 $('setBack').addEventListener('click',closeSettings);
 $('introHold').addEventListener('click',()=>{if(S&&S.introHold)dismissOptIn()});
 $('readHold').addEventListener('click',dismissRead);
-// index.html?check runs checks.js instead of booting a run or touching the leaderboard. See TESTING.md.
-if(/[?&]check\b/.test(location.search)){const sc=document.createElement('script');sc.src='checks.js';document.body.appendChild(sc)}
+// index.html?check runs checks.js, ?ui runs ui.js, and ?decisions runs decisions.js, instead of booting a run or touching the leaderboard. See TESTING.md.
+const labTool=(location.search.match(/[?&](check|ui|decisions)\b/)||[])[1];
+if(labTool){
+  const load=src=>new Promise(r=>{const sc=document.createElement('script');sc.src=src;sc.onload=sc.onerror=r;document.body.appendChild(sc)});
+  if(labTool==='check')load('decisions.js').then(()=>load('checks.js'));else load(labTool+'.js');
+}
 else{
 const resumedDead=bootDeadRun();
 boardPull().then(async list=>{

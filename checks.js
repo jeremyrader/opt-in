@@ -251,6 +251,14 @@
   check('Every inference has a reason and an upside',()=>{for(const f of INF)ok(f.why&&f.good,f.name)});
 
   // =====================================================================
+  group('Decisions page');
+  check('Every hand-written decision matches the game text and code it describes',()=>{
+    const a=decisionsAudit();
+    eq(a.stale.length,0,'out of date: '+a.stale.map(x=>x.title+' ('+x.keys.join(', ')+')').join('; ')+'. Review decisions.js, then run decisionsStamp()')});
+  check('Every class model, pack, and inference has its wording on the decisions page',()=>{
+    const a=decisionsAudit();eq(a.missing.length,0,'missing: '+a.missing.join(', '))});
+
+  // =====================================================================
   group('Full run');
   star('A run with everything shared reaches wave 10 with no errors',()=>{
     fresh({shared:ALL2,wave:0});S.p.maxHp=999;S.p.hp=999;S.wave=0;startWave();
