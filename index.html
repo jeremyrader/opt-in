@@ -5262,6 +5262,9 @@ $('devBack').addEventListener('click',closeDevGate);
 $('setBack').addEventListener('click',closeSettings);
 $('introHold').addEventListener('click',()=>{if(S&&S.introHold)dismissOptIn()});
 $('readHold').addEventListener('click',dismissRead);
+// index.html?check runs checks.js instead of booting a run or touching the leaderboard. See TESTING.md.
+if(/[?&]check\b/.test(location.search)){const sc=document.createElement('script');sc.src='checks.js';document.body.appendChild(sc)}
+else{
 const resumedDead=bootDeadRun();
 boardPull().then(async list=>{
   paintTitleBoard(boardPrune(list).length);
@@ -5272,6 +5275,7 @@ boardPull().then(async list=>{
   }
 });
 if(!resumedDead&&logFresh())openLog();
+}
 </script>
 </body>
 </html>
