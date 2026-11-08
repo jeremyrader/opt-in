@@ -228,7 +228,7 @@
   item('Tap to open · '+BEH[0].name,()=>revealMock(BEH[0],true,true),'#reveal:not(.hidden) .rlTog');
 
   group('Shop');
-  item('Shop · nothing on file (no-file markup)',()=>shop({wave:1}),'#terms:not(.hidden)');
+  item('Shop · nothing on file',()=>shop({wave:1}),'#terms:not(.hidden)');
   item('Shop · all four types on file',()=>shop({profile:{shared:ALL2,inf:[]}}),'#terms:not(.hidden)');
   item('Shop · "popular" badge',()=>shop({hot:1}),'#terms:not(.hidden)');
   item('Shop · extra data on the card (bundle)',()=>shop({amend:{i:0,kind:'bundle',extra:'HAB'}}),'#terms:not(.hidden)');
@@ -253,6 +253,9 @@
   item('Settings',()=>{clean();seed({});S=null;openSettings()},'#settings:not(.hidden)');
   item('Key hints',()=>{run({wave:1});showKeys()},'#keys:not(.hidden)');
   item('Pause menu · empty file',()=>pauseMenu({}),'#pause:not(.hidden)');
+  item('HUD · your file, 1 type',()=>{run({shared:{LOC:1}});updateHUD()},'#filePips i.on');
+  item('HUD · your file, full (10)',()=>{run({shared:ALL2,inf:ALL_INF});updateHUD()},'#filePips i.on');
+  item('Pause menu · YOUR FILE',()=>{pauseMenu({shared:ALL2,inf:ALL_INF});pauseSel='file';renderPause()},'#pause:not(.hidden)');
   item('Pause menu · full file',()=>{
     pauseMenu({shared:ALL2,inf:ALL_INF,crowd:CROWD,packs:['LOC','HAB','HEA','PUR']});
   },'#pause:not(.hidden)');

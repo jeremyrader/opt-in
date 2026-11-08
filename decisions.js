@@ -42,11 +42,11 @@
   };
   // What each inference does in play, split into what it costs and what it gives.
   const INF_SPLIT={
-    predict:{neg:'Ships aim where you will be, not where you are.',pos:'50% more warning before ships arrive.'},
-    risk:{neg:'Prices are 50% higher if you take more than 1 hit a wave.',pos:'Prices are 20% lower if you take 1 hit or less a wave.'},
-    retreat:{neg:'At 2♥ or less, half of new ships spawn near the spot you go when hurt.',pos:'A mayday brings help 2 seconds sooner.'},
-    home:{neg:'Ships spawn closer to you, with less warning.',pos:'Every 3rd wave starts with a 1-hit shield.'},
-    needs:{neg:'At 2♥ or less, PLATING and RESERVE cost 50% more.',pos:'At 2♥ or less, the shop always stocks one of them.'},
+    predict:{neg:'Ships aim where you will be, not where you are, and some fly there. More of them on a bigger file.',pos:'50% more warning before ships arrive.'},
+    risk:{neg:'Take more than 1 hit a wave and prices are 50% higher, Halo brings you back with 1♥ less, and a mayday takes 2 seconds longer.',pos:'Prices are 20% lower if you take 1 hit or less a wave.'},
+    retreat:{neg:'At 2♥ or less, about half of new ships spawn near the spot you go when hurt, more on a bigger file.',pos:'A mayday brings help 2 seconds sooner.'},
+    home:{neg:'Ships spawn closer to you, with less warning. Even less on a bigger file.',pos:'Every 3rd wave starts with a 1-hit shield.'},
+    needs:{neg:'At 2♥ or less, PLATING and RESERVE cost 50% more, and every repair heals 1♥ less (from 3♥ on a big file).',pos:'At 2♥ or less, the shop always stocks one of them.'},
     impulse:{neg:'Offer timers drop to 5 seconds, and buying before one ends costs 25% more.',pos:'Buying an upgrade again returns 70% of its price instead of 40%.'}
   };
 
@@ -60,23 +60,23 @@
     for(const t of TYPES)for(const pk of PERKS.filter(p=>p.data===t)){
       const D=DATA[t],c=CLASS[t]||{neg:'(class wording missing)',pos:''},inf=INF.filter(f=>f.need.includes(t));
       add('data-'+t,'Shop · upgrades that ask for data',pk.name+' · '+D.n,'Every shop offer that asks for '+D.n+'. Accept it free, or pay credits.',
-        ['fine:2','fine:2b','fine:3','fine:4','fn:choose','fn:exposure'],[
+        ['fine:2','fine:2b','fine:3','fine:4','fn:choose','fn:exposure','fn:priceMult','fn:fileWeight','fn:harmScale','const:HARM','const:START_COINS','fn:harmFound','fn:weakHp','fn:patternKeep','fn:buildKnown'],[
         {label:'ACCEPT · FREE · shares '+D.n,
           pos:['Free '+pk.name+': '+pk.desc,'Costs no credits.',...D.good.map(g=>'Real world: '+g)],
           neg:[...D.why.map(g=>'Real world: '+g),'Joins the class model, which is used on every player: '+c.neg,
             'Can combine with another type into an inference: '+inf.map(f=>f.name+' (with '+other(f,t)+')').join(', ')+'.',
+            'Your file grows. Every harm from your data and inferences gets stronger.',
             'Stays on file across runs until you delete your data.','Adds exposure. Files with three or more types are most likely to be breached.'],
           also:D.fx},
         {label:'BUY · CREDITS · keeps '+D.n+' private',
           pos:['Nothing collected. '+D.n+' stays out of the class model and out of '+inf.map(f=>f.name).join(', ')+'.','The same '+pk.name+', the same power.'],
-          neg:['Costs credits, and prices rise each wave.','While nothing is on file, prices carry a 40% markup. It ends when you share anything or join Fair Play.',
-            'The class model still reaches you, because it is used on every player: '+c.neg,'You are still watched. How you move and choose is recorded either way.']}
+          neg:['Costs credits, and prices rise each wave. Every run starts with '+START_COINS+' credits.','The class model still reaches you, because it is used on every player: '+c.neg,'You are still watched. How you move and choose is recorded either way.']}
       ]);
     }
     // Shop: upgrades that never ask for data.
     for(const pk of PERKS.filter(p=>!p.data)){
       add('plain-'+pk.id,'Shop · upgrades with no data',pk.name,'Every shop offer with no data attached. Buy it, or pass.',
-        ['fine:4','fn:choose'],[
+        ['fine:4','fn:choose','fn:priceMult'],[
         {label:'BUY · CREDITS',pos:[pk.desc,'No data collected.'],neg:['Costs credits, and prices rise each wave.','Stops getting stronger after '+pk.cap+' pick'+(pk.cap===1?'':'s')+'.']},
         {label:'PASS',pos:['Keeps your credits.'],neg:['A weaker ship.']}]);
     }
@@ -89,7 +89,7 @@
         neg:['Each upgrade stops getting stronger after a set number of picks.','If you always pick the same one first, NEXT MOVE PREDICTED makes it cost 2×.']},
       {label:'SPREAD YOUR PICKS',pos:['Keeps the game from predicting your first pick.','More kinds of power.'],neg:['No loyalty bonus.']}]);
     add('maxed','Shop · other choices','An upgrade that is already full','Offered again only when the others run out.',['fn:applyMaxedSink','fine:4'],[
-      {label:'PAY CREDITS',pos:['Repairs 1♥, or adds score if you are already full.'],neg:['Costs credits.','No extra power.']},
+      {label:'PAY CREDITS',pos:['Repairs 1♥ (none while hurt with NEEDS PREDICTED), or adds score if you are already full.'],neg:['Costs credits.','No extra power.']},
       {label:'ACCEPT · FREE',pos:['Costs no credits.'],neg:['Still shares its data.','No extra power.']}]);
     add('amend','Shop · other choices','Fine print on the card','Data offers from wave 2, about half the time. Read the card before you accept.',['fn:pickAmendment','fn:amendText'],[
       {label:'"…AND YOUR (OTHER TYPE)"',pos:['The upgrade is free.'],neg:['Accepting shares a second type too, which can complete an inference.']},
@@ -109,11 +109,11 @@
     }
 
     add('halo','Halo and rescue','Halo: automatic rescue, or a mayday','Asked at wave 3, or the first time a hit would end your run. Changeable from the pause menu.',
-      ['fine:4c','fn:haloRescue','fn:sendMayday','fn:rescueArrives','const:HELP_WAIT'],[
-      {label:'HALO ON',pos:['You come back instantly with 3♥.','No wait, and 1♥ more than a mayday.'],
+      ['fine:4c','fn:haloRescue','fn:sendMayday','fn:rescueArrives','const:HELP_WAIT','fn:helpWait','fn:coverCut'],[
+      {label:'HALO ON',pos:['You come back instantly with 3♥ (2♥ if RISK SCORE rates you high-risk).','No wait, and 1♥ more than a mayday.'],
         neg:['Sells your health and location to a data broker.','The next broker aims at you better.','Turning Halo off later does not undo the sale.']},
       {label:'HALO OFF · MAYDAY',pos:['Nothing is sold.'],
-        neg:['Search & Rescue needs '+HELP_WAIT+' seconds to trace your beacon (2 less with RETREAT MAPPED).','Until then you move slowly and cannot shoot or dash, and one hit ends the run.','You come back with 2♥.']}]);
+        neg:['Search & Rescue needs '+HELP_WAIT+' seconds to trace your beacon (2 less with RETREAT MAPPED, 2 more if RISK SCORE rates you high-risk).','Until then you move slowly and cannot shoot or dash, and one hit ends the run.','You come back with 2♥.']}]);
     add('fair','Fair Play','Fair Play subscription','The SUBSCRIBE button in the shop.',['fine:4b','fn:confirmFair','fn:tryChargeFair','fn:subPrice'],[
       {label:'SUBSCRIBE · ◈ '+subPrice()+' A WAVE',
         pos:['No ads, no countdown, a cleaner shop.','Credit upgrades are 20% off.','The hotspot becomes Secure Wi-Fi and adds no exposure.','The fire bonus and the 1-hit shield still apply.'],
@@ -124,9 +124,9 @@
         neg:['Adds a lot of exposure.','Each shield charge adds more to your file.','The heat cools if you leave. Sold data types do not.']},
       {label:'STAY OUT',pos:['No exposure from the ring.'],neg:['No fire bonus and no shield.']},
       {label:'WITH FAIR PLAY · SECURE WI-FI',pos:['Shield and fire bonus still apply.','The ring adds no exposure.'],neg:['Credits trickle more slowly.','The watch continues.']}]);
-    add('exposure','How much you share','How many types, and how many times','Every Accept adds to your exposure.',['fine:3','fn:exposure','fn:shareExp'],[
-      {label:'SHARE MORE',pos:['More free upgrades.','More inferences, each with an upside.'],neg:['Higher exposure. After a wave a breach can leak what you shared to brokers.','Files with three or more types are the likeliest to be breached.','Everything stays on file until you delete your data.']},
-      {label:'SHARE LITTLE',pos:['Low breach risk. A small file is rarely worth stealing.','Fewer inferences made about you.'],neg:['You pay credits for upgrades.','Sharing nothing at all adds a 40% markup until something is on file.']}]);
+    add('exposure','How much you share','How many types, and how many times','Every Accept adds to your exposure. YOUR FILE on the HUD counts types plus inferences.',['fine:3','fn:exposure','fn:shareExp','fn:fileWeight','fn:harmScale','const:HARM'],[
+      {label:'SHARE MORE',pos:['More free upgrades.','More inferences, each with an upside.'],neg:['Each type or inference added makes every harm from your file stronger.','Higher exposure. After a wave a breach can leak what you shared to brokers.','Files with three or more types are the likeliest to be breached.','Everything stays on file until you delete your data.']},
+      {label:'SHARE LITTLE',pos:['Low breach risk. A small file is rarely worth stealing.','Each harm stays small.','Fewer inferences made about you.'],neg:['You pay credits for upgrades.']}]);
     add('delete','Delete My Data','Delete My Data','The small button on the title screen.',['fn:deleteMyData','fine:5'],[
       {label:'DELETE',pos:['Removes your name, saved run, shared data, inferences, behavior patterns, the mimic, your data packs, your high score, and your leaderboard rows.','You choose a new name next time.'],
         neg:['Copies already taken stay out there.','The class Accept count does not change.','You lose your high score, your packs, and your progress.']},
@@ -141,7 +141,7 @@
     // What combinations create: one entry per inference.
     for(const f of INF){
       const s=INF_SPLIT[f.id]||{neg:'(wording missing)',pos:'(wording missing)'};
-      add('inf-'+f.id,'What combinations create',f.name+' · '+f.need.map(t=>DATA[t].n).join(' + '),'Appears once you share both types and at least one of them twice.',['inf:'+f.id],[
+      add('inf-'+f.id,'What combinations create',f.name+' · '+f.need.map(t=>DATA[t].n).join(' + '),'Appears once you share both types and at least one of them twice.',['inf:'+f.id,'const:HARM',...({predict:['fn:routeLead'],retreat:['fn:retreatChance'],risk:['fn:coverCut'],needs:['fn:soldShort']}[f.id]||[])],[
         {label:'WHAT IT COSTS YOU',pos:[],neg:[s.neg,'Real world: '+f.why]},
         {label:'WHAT IT GIVES YOU',pos:[s.pos,'Real world: '+f.good],neg:[]}]);
     }
@@ -233,40 +233,54 @@ ${sections.map(s=>`<h2 id="${slug(s)}">${esc(s)}</h2>`+entries.filter(e=>e.secti
 // Fingerprints of the game text and code each hand-written entry describes. Regenerate with decisionsStamp().
 const STAMPS={
   'const:DEAL_OFF':'375w6u',
+  'const:HARM':'15iila4',
   'const:HELP_WAIT':'3t22',
   'const:PACKS':'mcbuza',
   'const:PACK_PRICE':'3hmw9',
+  'const:START_COINS':'3hmw9',
   'fine:2':'1rhwqy',
   'fine:2b':'1bdcelg',
   'fine:3':'1hoyhbx',
-  'fine:4':'m67a32',
+  'fine:4':'ofx4ae',
   'fine:4b':'109eilj',
   'fine:4c':'1ms24e9',
   'fine:4d':'yghvdz',
   'fine:5':'1whgpvz',
   'fn:amendText':'1txz4kx',
-  'fn:applyMaxedSink':'114qdm5',
+  'fn:applyMaxedSink':'woxo4t',
+  'fn:buildKnown':'1ujogeh',
   'fn:checkSecret':'4k1174',
-  'fn:choose':'15fl02p',
+  'fn:choose':'1175ef1',
   'fn:closeTerms':'160zcxw',
   'fn:confirmFair':'kn7d0p',
+  'fn:coverCut':'1souutp',
   'fn:deleteMyData':'1lc1vlw',
   'fn:exposure':'1j1tq0z',
-  'fn:haloRescue':'nnbgmx',
-  'fn:learnPatterns':'1urkckt',
+  'fn:fileWeight':'1nd8z6y',
+  'fn:haloRescue':'1fs6pla',
+  'fn:harmFound':'1scnh37',
+  'fn:harmScale':'lb1i75',
+  'fn:helpWait':'1hgel1s',
+  'fn:learnPatterns':'1lai2fe',
+  'fn:patternKeep':'w67ysl',
   'fn:pickAmendment':'1dg2p71',
+  'fn:priceMult':'1jx2221',
   'fn:rescueArrives':'ocj9n4',
+  'fn:retreatChance':'hv52jf',
+  'fn:routeLead':'z4vzuk',
   'fn:sendMayday':'13zs9f1',
   'fn:shareExp':'m44azz',
+  'fn:soldShort':'12toxwi',
   'fn:stackNote':'1v9rrak',
   'fn:startUrgency':'zzfdgc',
   'fn:subPrice':'3114sm',
   'fn:tryChargeFair':'y539bc',
+  'fn:weakHp':'1b5ynaj',
   'inf:home':'l9tuzh',
   'inf:impulse':'1m35mfn',
-  'inf:needs':'h063r5',
-  'inf:predict':'6l02z2',
-  'inf:retreat':'pst6m2',
-  'inf:risk':'1fvqe8a',
+  'inf:needs':'hm52i0',
+  'inf:predict':'qncspw',
+  'inf:retreat':'2hdbtu',
+  'inf:risk':'1jjhrdn',
 };
 if(/[?&]decisions\b/.test(location.search))decisionsRender();

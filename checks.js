@@ -57,10 +57,9 @@
 
   // =====================================================================
   group('Price modifiers');
-  star('Base price has no markup once something is on file',()=>{
-    fresh({shared:{LOC:1}});const p=perk('heavy');eq(price(p),listPrice(p))});
-  star('No file on record adds 40%',()=>{
-    fresh();const p=perk('heavy');eq(price(p),Math.round(listPrice(p)*1.4))});
+  star('Base price is the list price, whether or not anything is on file',()=>{
+    fresh({shared:{LOC:1}});const p=perk('heavy');eq(price(p),listPrice(p),'with a file');
+    fresh();eq(price(p),listPrice(p),'with nothing on file')});
   star('RISK SCORE: careful play is 20% off',()=>{
     fresh({shared:{LOC:1},inf:['risk']});S.tele.hits=0;const p=perk('heavy');eq(price(p),Math.round(listPrice(p)*.8))});
   star('RISK SCORE: risky play costs 50% more',()=>{
@@ -116,8 +115,8 @@
   star('RETREAT MAPPED: at 2♥, about half of new ships spawn near your hurt spot',()=>{
     fresh({shared:{LOC:1},inf:['retreat'],hp:2});S.retreat.fill(0);S.retreat[classCell(100,100)]=10;
     const spot=retreatSpot();S.p.x=W-100;S.p.y=H-100;for(let i=0;i<200;i++)spawnWarn('ping');
-    const sent=S.tele.retreatSpawns||0,near=S.spawns.filter(s=>Math.hypot(s.x-spot.x,s.y-spot.y)<160).length;
-    between(sent,70,130,'retreat spawns (of 200)');ok(near>=sent,'only '+near+' of '+sent+' retreat spawns landed near the spot')});
+    const sent=S.tele.retreatSpawns||0,near=S.spawns.filter(s=>Math.hypot(s.x-spot.x,s.y-spot.y)<160).length,want=retreatChance()*200;
+    between(sent,want-30,want+30,'retreat spawns (of 200)');ok(near>=sent,'only '+near+' of '+sent+' retreat spawns landed near the spot')});
   star('RETREAT MAPPED: no retreat spawns at 3♥',()=>{
     fresh({shared:{LOC:1},inf:['retreat'],hp:3});S.retreat.fill(0);S.retreat[classCell(100,100)]=10;
     S.p.x=W-100;S.p.y=H-100;for(let i=0;i<100;i++)spawnWarn('ping');eq(S.tele.retreatSpawns||0,0)});
@@ -127,7 +126,7 @@
     eq(S.spawns.filter(s=>Math.hypot(s.x-S.p.x,s.y-S.p.y)<100).length,0,'ships within 100px')});
   star('RETREAT MAPPED: still works when HOME INFERRED is on too',()=>{
     fresh({shared:{LOC:1},inf:['retreat','home'],hp:2});S.retreat.fill(0);S.retreat[classCell(100,100)]=10;
-    S.p.x=W-100;S.p.y=H-100;for(let i=0;i<200;i++)spawnWarn('ping');between(S.tele.retreatSpawns||0,70,130,'retreat spawns (of 200)')});
+    S.p.x=W-100;S.p.y=H-100;for(let i=0;i<200;i++)spawnWarn('ping');const want=retreatChance()*200;between(S.tele.retreatSpawns||0,want-30,want+30,'retreat spawns (of 200)')});
   star('RETREAT MAPPED: a mayday brings help 2 seconds sooner',()=>{
     fresh();eq(helpWait(),HELP_WAIT,'without');S.inf.retreat=true;eq(helpWait(),HELP_WAIT-2,'with')});
   star('HOME INFERRED: ships spawn close to you',()=>{
@@ -167,6 +166,42 @@
     between(S.coinsArr.length-before,950,1050,'coins from 400 ships worth 2')});
   check('Pair ads run when both types are shared',()=>{
     fresh({shared:{LOC:1,PUR:1}});const pool=buildAds();ok(ADSX['LOC+PUR'].some(a=>pool.includes(a)),'missing')});
+
+  // =====================================================================
+  group('Your file');
+  const near=()=>S.spawns.filter(s=>Math.hypot(s.x-S.p.x,s.y-S.p.y)<220).length;
+  const grow=(...t)=>{for(const k of t)S.shared[k]=1};  // more types on file without unlocking inferences
+  star('Every run starts with '+START_COINS+' credits',()=>{mem.clear();beginRun();eq(S.coins,START_COINS)});
+  star('File weight counts data types plus inferences',()=>{
+    fresh();eq(fileWeight(),0,'nothing on file');eq(harmScale(),1,'scale with nothing on file');
+    fresh({shared:ALL2});eq(fileWeight(),TYPES.length+INF.length,'everything on file');eq(+harmScale().toFixed(2),+(1+HARM.per*(FILE_MAX-1)).toFixed(2),'full scale')});
+  star('LOCATION: some ships spawn close to you, more on a bigger file',()=>{
+    fresh();S.p.x=W/2;S.p.y=H/2;for(let i=0;i<300;i++)spawnWarn('ping');eq(near(),0,'close spawns with nothing shared');
+    fresh({shared:{LOC:1}});S.p.x=W/2;S.p.y=H/2;for(let i=0;i<300;i++)spawnWarn('ping');const small=near();between(small,45,105,'close spawns (of 300), Location only');
+    fresh({shared:{LOC:1}});grow('HEA','HAB','PUR');S.p.x=W/2;S.p.y=H/2;for(let i=0;i<300;i++)spawnWarn('ping');ok(near()>small+15,'4 types: '+near()+' close spawns, 1 type: '+small);
+    eq(S.spawns.filter(s=>Math.hypot(s.x-S.p.x,s.y-S.p.y)<130).length,0,'ships within 130px')});
+  star('HEALTH: ships fire faster when you are hurt, from 3♥ on a big file',()=>{
+    fresh({shared:{HEA:1}});eq(weakHp(),2,'small file');eq(+weakFire().toFixed(2),1.55,'small file fire');
+    grow('LOC','HAB','PUR');eq(weakHp(),3,'4 types');ok(weakFire()>1.55,'fire does not grow')});
+  star('HABITS: patterns take longer to lose on a bigger file',()=>{
+    fresh({shared:{HAB:1}});eq(patternKeep(),0,'1 type');eq(patternExtra(),0,'1 type');
+    fresh({shared:ALL2});ok(patternKeep()>=3,'full file keeps '+patternKeep());eq(patternExtra(),1,'full file');
+    fresh({shared:{LOC:2,HEA:2,PUR:2}});eq(patternKeep(),0,'Habits not shared')});
+  star('PURCHASES: some ordinary ships read your upgrades',()=>{
+    const count=()=>{let n=0;for(let i=0;i<400;i++)if(shipAdapt({type:'ping',skill:'raw'}))n++;return n};
+    fresh();eq(count(),0,'with Purchases not shared');
+    fresh({shared:{PUR:1}});between(count(),25,75,'of 400 ships, Purchases only');
+    for(let i=0;i<50;i++)eq(shipAdapt({type:'broker',skill:'raw'}),false,'a broker')});
+  star('ROUTE PREDICTED: some ships fly toward where you will be',()=>{
+    fresh({shared:{LOC:1},inf:['predict']});let n=0;for(let i=0;i<400;i++)if(routeLead({})>0)n++;between(n,90,190,'of 400 ships');
+    fresh({shared:{LOC:1}});eq(routeLead({}),0,'without the inference')});
+  star('RISK SCORE: high-risk, Halo brings you back with 1♥ less',()=>{
+    fresh({hp:1,shared:{LOC:1},inf:['risk']});S.tele.hits=99;S.mode='play';S.safetyAsked=true;S.safetyOn=true;S.p.inv=0;hurtPlayer();eq(S.p.hp,2,'hearts')});
+  star('RISK SCORE: high-risk, a mayday takes 2 seconds longer',()=>{
+    fresh({shared:{LOC:1},inf:['risk']});S.tele.hits=99;eq(helpWait(),HELP_WAIT+2,'high-risk');S.tele.hits=0;eq(helpWait(),HELP_WAIT,'careful')});
+  star('NEEDS PREDICTED: hurt, PLATING and maxed repairs heal 1♥ less',()=>{
+    fresh({shared:{LOC:1},inf:['needs'],hp:2});const m=S.p.maxHp;perk('armor').apply(S.p);eq(S.p.hp,2,'PLATING heal');eq(S.p.maxHp,m+1,'PLATING max');
+    fresh({shared:{LOC:1},inf:['needs'],hp:4});perk('armor').apply(S.p);eq(S.p.hp,5,'PLATING heal at 4♥')});
 
   // =====================================================================
   group('Halo and mayday');

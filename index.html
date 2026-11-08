@@ -120,6 +120,11 @@ button{font-family:inherit;cursor:pointer;border:none}
 #chips .chip.on .cl{color:#07070f}
 #expBar{height:6px;background:#161a33;margin-top:8px;border-radius:3px;overflow:hidden}
 #expFill{height:100%;width:0;background:linear-gradient(90deg,var(--yl),var(--rd))}
+#filePips{display:flex;justify-content:flex-end;gap:3px;margin-top:5px}
+#filePips i{width:9px;height:9px;border-radius:2px;background:#161a33}
+#filePips i.on{background:var(--pc)}
+#filePips.grow i.on{animation:pipGrow .5s ease-out 3}
+@keyframes pipGrow{50%{transform:scale(1.5);box-shadow:0 0 8px var(--pc)}}
 #infs{margin-top:8px;display:flex;flex-direction:column;align-items:flex-end;gap:3px}
 .infc{font-size:10px;letter-spacing:1px;padding:2px 7px;background:rgba(255,59,92,.15);border-left:3px solid var(--rd);color:#ff9aab}
 .infc.beh{background:rgba(192,75,255,.15);border-left-color:#c04bff;color:#dcb0ff}
@@ -437,6 +442,8 @@ button:disabled{opacity:.45;cursor:default}
   <div id="hudR">
     <div class="hlab">DATA SHARED</div>
     <div id="chips"></div>
+    <div class="hlab" style="margin-top:8px">YOUR FILE</div>
+    <div id="filePips"></div>
     <div class="hlab" style="margin-top:8px">EXPOSURE</div>
     <div id="expBar"><div id="expFill"></div></div>
     <div id="infs"></div>
@@ -1221,19 +1228,19 @@ const TYPES=['LOC','HEA','HAB','PUR'];
 function uiMark(inner){return `<svg class="mark" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`}
 const DATA={
   LOC:{n:'LOCATION',s:'LOCATION',i:uiMark('<path d="M24 42 V30"/><circle cx="24" cy="18" r="8"/><circle cx="24" cy="18" r="2.6" fill="currentColor" stroke="none"/>'),c:'#38e1ff',v:.9,
-    fx:['Ads talk about places near you.','After wave 1, it says players near you stayed.','Standing still on free Wi-Fi slows the music.','Time in the free ring adds exposure.','Standing still adds it faster.','A 1-hit shield charges in the ring.'],
+    fx:['Ads talk about places near you.','After wave 1, it says players near you stayed.','Standing still on free Wi-Fi slows the music.','Time in the free ring adds exposure.','Standing still adds it faster.','A 1-hit shield charges in the ring.','Some ships spawn close to you.'],
     why:['Where you spend time can show school and home.','No address form is required.'],
     good:['The same data gives you turn-by-turn directions and finds a lost phone.','It tells 911 where to send help.']},
   HEA:{n:'HEALTH',s:'HEALTH',i:uiMark('<path d="M4 28 H12 L18 28 L23 8 L30 40 L36 22 L40 28 H44"/>'),c:'#ff6b6b',v:1.5,
-    fx:['Low hearts bring health ads.','The game tells you not to quit.','The music races.','Grazes pay more.'],
+    fx:['Low hearts bring health ads.','When you\'re hurt, ships fire faster.','A big file makes that start at 3♥.','The game tells you not to quit.','The music races.','Grazes pay more.'],
     why:['Advertisers pay more when you are stressed.'],
     good:['Watches can spot an irregular heartbeat or a hard fall and call for help.','Health data pooled from many people helps researchers learn which treatments work.']},
   HAB:{n:'HABITS',s:'HABITS',i:uiMark('<path d="M14 34 V22 M24 34 V12 M34 34 V20"/><path d="M8 38 H40"/>'),c:'#b48cff',v:.7,
-    fx:['The model learns your patterns faster.','Combos last longer.','Jackpots and streaks pump the music.','A broken streak pushes one more wave.'],
+    fx:['The model learns your patterns faster.','Patterns take longer to lose.','Combos last longer.','Jackpots and streaks pump the music.','A broken streak pushes one more wave.'],
     why:['How you move and choose can be collected with no prompt.'],
     good:['Habit data powers recommendations you actually want.','It also flags a login that does not look like you.']},
   PUR:{n:'PURCHASES',s:'PURCHASES',i:uiMark('<path d="M11 18 H37 L35 40 H13 Z"/><path d="M18 18 V14 A6 6 0 0 1 30 14 V18"/>'),c:'#ffd23b',v:.8,
-    fx:['Ads name your last upgrade.','The music lifts when you buy.'],
+    fx:['Ads name your last upgrade.','Some ships know your upgrades and dodge them.','The music lifts when you buy.'],
     why:['What you buy shows what you need and when you will pay.'],
     good:['Purchase history earns rewards and lets you return things without a receipt.','It also flags a card that suddenly buys like someone else.']}
 };
@@ -1245,7 +1252,7 @@ const PERKS=[
   {id:'reply',name:'CYCLE',data:null,tag:'GUNS',cap:3,desc:'+30% fire rate.',again:'Another +30% fire rate.',apply:p=>{p.fireRate*=1.3}},
   {id:'rewards',name:'REWARDS',data:'PUR',tag:'CREDITS',cap:2,desc:'+25% credits from ships.',again:'Another +25% credits from ships.',apply:p=>{p.rewards=(p.rewards||0)+1}},
   {id:'aim',name:'LEAD',data:'HAB',tag:'GUNS',cap:2,desc:'Near a hovered target, shots bend a little toward it. They will not chase.',again:'A slightly stronger bend. They still will not chase.',apply:p=>{p.homing+=.85}},
-  {id:'armor',name:'PLATING',data:null,tag:'HULL',cap:4,desc:'+1 max ♥ and heal 1.',again:'Another +1 max ♥ and heal 1.',apply:p=>{p.maxHp++;p.hp=Math.min(p.maxHp,p.hp+1)}},
+  {id:'armor',name:'PLATING',data:null,tag:'HULL',cap:4,desc:'+1 max ♥ and heal 1.',again:'Another +1 max ♥ and heal 1.',apply:p=>{p.maxHp++;p.hp=Math.min(p.maxHp,p.hp+1-soldShort())}},
   {id:'heavy',name:'PAYLOAD',data:null,tag:'GUNS',cap:3,desc:'+1 damage per shot.',again:'Another +1 damage per shot.',apply:p=>{p.dmg++}},
   {id:'blank',name:'PROXIMITY',data:null,tag:'GUNS',cap:2,desc:'Up to 2× damage up close. Normal damage at range.',again:'Up to 3× up close. Still normal at range.',apply:p=>{p.blank=(p.blank||0)+1}},
   {id:'split',name:'SALVO',data:null,tag:'GUNS',cap:3,from:30,every:10,desc:'+1 projectile per volley.',again:'Another projectile per volley.',apply:p=>{p.shots++}}
@@ -1268,15 +1275,15 @@ function perkMark(id){
 }
 function coinMark(){return `<svg class="mark gem" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M24 8 L38 24 L24 40 L10 24 Z"/></svg>`}
 const INF=[
-  {id:'retreat',need:['LOC','HEA'],name:'RETREAT MAPPED',desc:'They know where you go when you\'re hurt. At 2♥ or less, half of new ships spawn near that spot. Search & Rescue knows it too, so a mayday brings help 2 seconds sooner.',why:'Location plus health shows when you visit a clinic or pharmacy. Where you go when you\'re hurt can reveal a condition you never shared.',
+  {id:'retreat',need:['LOC','HEA'],name:'RETREAT MAPPED',desc:'They know where you go when you\'re hurt. At 2♥ or less, about half of new ships spawn near that spot, more on a bigger file. Search & Rescue knows it too, so a mayday brings help 2 seconds sooner.',why:'Location plus health shows when you visit a clinic or pharmacy. Where you go when you\'re hurt can reveal a condition you never shared.',
     good:'The same data lets a watch that detects a hard fall send help to exactly where you are.'},
-  {id:'needs',need:['HEA','PUR'],name:'NEEDS PREDICTED',desc:'They know what you need when you\'re hurt. At 2♥ or less, PLATING and RESERVE cost 50% more. At 2♥ or less, the shop always stocks one of them.',why:'Purchases plus health data can predict a need before you say it. One store guessed a customer was pregnant from what she bought.',
+  {id:'needs',need:['HEA','PUR'],name:'NEEDS PREDICTED',desc:'They know what you need when you\'re hurt. At 2♥ or less, PLATING and RESERVE cost 50% more, and every repair heals 1♥ less. At 2♥ or less, the shop always stocks one of them.',why:'Purchases plus health data can predict a need before you say it. One store guessed a customer was pregnant from what she bought.',
     good:'Pharmacies use the same data to remind you to refill a prescription before it runs out.'},
   {id:'impulse',need:['HAB','PUR'],name:'IMPULSE PROFILED',desc:'They know when you buy fast. Offer timers drop to 5 seconds, and anything you buy before the timer ends costs 25% more. Buying an upgrade again earns a bigger loyalty bonus.',why:'Habits plus purchases show when you buy without thinking. Countdown timers are built for those moments, and rushed buyers pay more.',
     good:'Loyalty programs use the same history to reward the things you really do buy again.'},
-  {id:'predict',need:['LOC','HAB'],name:'ROUTE PREDICTED',desc:'Enemies now aim where you WILL be, not where you are. You also get more warning before ships arrive.',why:'Where you go + when you go = where you\'re going next. Navigation apps use this to guess your destination before you type it.',
+  {id:'predict',need:['LOC','HAB'],name:'ROUTE PREDICTED',desc:'Enemies now aim where you WILL be, not where you are, and some fly there. You also get more warning before ships arrive.',why:'Where you go + when you go = where you\'re going next. Navigation apps use this to guess your destination before you type it.',
     good:'Route prediction also warns you about traffic before you leave and gets you there faster.'},
-  {id:'risk',need:['HEA','HAB'],name:'RISK SCORE ASSIGNED',desc:'Your prices now follow how you play. Take 1 hit or less per wave and prices are 20% off. Take more and they are 50% higher.',why:'Health + lifestyle data can be used to predict risk, which companies can use to change what they charge you.',
+  {id:'risk',need:['HEA','HAB'],name:'RISK SCORE ASSIGNED',desc:'Your prices now follow how you play. Take 1 hit or less per wave and prices are 20% off. Take more and they are 50% higher, Halo brings you back with 1♥ less, and a mayday takes 2 seconds longer.',why:'Health + lifestyle data can be used to predict risk, which companies can use to change what they charge you.',
     good:'Risk models also give careful drivers lower rates and can flag a health problem early.'},
   {id:'home',need:['LOC','PUR'],name:'HOME INFERRED',desc:'They know where you\'ll be. Enemies spawn closer with less warning. Every 3rd wave, a delivery brings you a 1-hit shield.',why:'Where your orders go plus where you spend time points to your home. No address form required.',
     good:'Knowing your address gets packages, and help, to your door.'},
@@ -1406,6 +1413,7 @@ function pauseItems(){
     items.push({id:'safety',c:'#7dffb3',title:'HALO',sub:(S.safetyOn?'on · instant rescue':'off · you send a mayday')+(sold?' · '+sold:'')});
   }
   for(const t of (S.packs||[]))if(PACKS[t])items.push({id:'pk-'+t,c:'#8a9bff',title:DATA[t].i+' '+PACKS[t].name,sub:PACKS[t].what.toLowerCase()});
+  {const fw=fileWeight();if(fw)items.push({id:'file',c:pipCol(Math.max(0,fw-1)),title:'YOUR FILE',sub:fw+'/'+FILE_MAX+' · harms ×'+harmScale().toFixed(2)})}
   if(exp>0)items.push({id:'exp',c:'#ffd23b',title:'EXPOSURE',sub:exp+' share'+(exp===1?'':'s')+' on file'});
   for(const t of TYPES){const n=S.shared[t]||0;if(!n)continue;const D=DATA[t];items.push({id:'d-'+t,c:D.c,title:D.i+' '+D.n,sub:'shared ×'+n})}
   for(const f of INF){if(!S.inf[f.id])continue;items.push({id:'i-'+f.id,c:'#ff3b5c',title:f.name,sub:'inferred · active'})}
@@ -1449,6 +1457,12 @@ function pauseDetail(id){
     return `<h3>${DATA[t].i} ${PACKS[t].name}</h3><div class="need">${pauseLines(['Yours until you delete your data.',on?'Built from '+m.k+' classmate run'+(m.k===1?'':'s')+'.':'No class data yet.'])}</div>
       <div class="good">${pauseLines(fx)}</div>
       <div class="why">${pauseLines(['The same class data is used on every player, pack or not.'])}</div>`;
+  }
+  if(id==='file'){
+    const fw=fileWeight(),nt=TYPES.filter(t=>S.shared[t]).length;
+    return `<h3>YOUR FILE</h3><div class="need">${pauseLines([fw+' of '+FILE_MAX,nt+' data type'+(nt===1?'':'s')+' + '+(fw-nt)+' inference'+(fw-nt===1?'':'s')])}</div>
+      <div class="fx">${pauseLines(['Every harm from your data is ×'+harmScale().toFixed(2)+'.','Each type or inference added makes them all stronger.'])}</div>
+      <div class="why">${pauseLines(['A bigger file says more about you.','More about you is worth more to use against you.'])}</div>`;
   }
   if(id==='exp'){
     const ads=shareExp()>=3&&!S.fair,gap=Math.max(2.5,12-shareExp()*1.2).toFixed(1);
@@ -1688,7 +1702,7 @@ function roamWifi(dt){
 }
 function newState(){
   const prof=loadProfile();
-  const s={t:0,wave:0,score:0,coins:0,combo:0,comboT:0,coinK:0,shake:0,flash:0,flashCol:'255,255,255',freeze:0,timeScale:1,
+  const s={t:0,wave:0,score:0,coins:START_COINS,combo:0,comboT:0,coinK:0,shake:0,flash:0,flashCol:'255,255,255',freeze:0,timeScale:1,
     mode:'play',paused:false,shared:prof.shared,inf:prof.inf,carriedShared:prof.carriedShared,carriedInf:prof.carriedInf,
     safetyFile:prof.safety||{hea:false,loc:false},
     safetyAsked:false,safetyOn:false,distressT:0,
@@ -1699,7 +1713,7 @@ function newState(){
        dashCD:1.1,dashT:0,dashing:0,ddx:0,ddy:0,inv:0,regen:0,rewards:0,lines:false,slide:1,blank:0,ang:0,magnet:100,recoil:0,shield:0},
     bullets:[],ebullets:[],enemies:[],spawns:[],queue:[],parts:[],texts:[],ads:[],coinsArr:[],trail:[],rings:[],
     tele:{heat:new Float32Array(24*16),q:[0,0,0,0],dirs:{l:0,r:0,u:0,d:0},still:0,moving:0,stressSpd:0,stressN:0,calmSpd:0,calmN:0,
-      edge:0,center:0,orbit:0,lastAng:null,dashes:0,dashL:0,dashR:0,dashU:0,dashD:0,nearMiss:0,adsShot:0,termsTime:[],fineOpen:0,free:0,paid:0,declined:0,paidData:0,paidDataCoins:0,markupCoins:0,picks:{},firstPick:null,
+      edge:0,center:0,orbit:0,lastAng:null,dashes:0,dashL:0,dashR:0,dashU:0,dashD:0,nearMiss:0,adsShot:0,termsTime:[],fineOpen:0,free:0,paid:0,declined:0,paidData:0,paidDataCoins:0,picks:{},firstPick:null,
       breaches:0,breachSurvived:false,kills:0,hits:0,sampT:0,time:0,wifiT:0,wifiCoins:0,wifiExp:0,caught:0,honest:0,sub:0,subPaid:0,emerg:0,check:0,checkNo:0,
       comboPeak:0,waveHits:0,waveKills:0,waveT:0,shots:0,closeT:0,formBreaks:0,urgencyLate:0,urgencyOff:false},
     wifi:loadWifi(),wifiAcc:0,shieldAcc:0,wifiMoveIn:2+Math.floor(Math.random()*3),expWifi:0,expVis:0,amend:null,sosT:0,
@@ -1796,7 +1810,7 @@ function sandFlash(kind,id){
 function sandSpawnWave(){
   if(!S)return;
   const n=Math.round(5+S.wave*3);
-  S.queue=packWave(S.wave,n).filter(j=>!(j.kind==='one'&&(j.type==='broker'||j.type==='camera')));
+  S.queue=packWave(S.wave,n).filter(j=>!(j.kind==='one'&&(j.type==='broker')));
   S.waveHadBroker=false;S.spawnT=.35;S.announceUntil=performance.now()+1600;
   banner('WAVE '+S.wave,stageName(S.formTier)+' MIX','#38e1ff',1.6);
   setPause(false);
@@ -1852,7 +1866,7 @@ function renderSand(){
     const pct=n=>Math.round((n||0)*100);
     const m=g?strainMix(g):null;
     const learned=S.strain.best?(S.strain.scored&&S.strain.scored.strain?' · kept a hit':' · kept a close shot'):' · no lesson yet';
-    const stat=m?`Gen ${m.gen||1}${learned}<br>Chase, hold, dash, and camera<br>Chase ${pct(m.ping)}% · Hold ${pct(m.watch)}%<br>Dash ${pct(m.crawl)}% · Lock ${pct(m.cam)}%<br>Angle ${pct(m.ang)}% · Range ${pct(m.range)}%<br>Wait ${pct(m.wait)}% · Lead ${pct(m.lead)}% · Flank ${m.side<0?'L':'R'}<br>${spawnShiftText()}`:'Gen 1 · no lesson yet<br>Chase, hold, dash, and camera<br>'+spawnShiftText();
+    const stat=m?`Gen ${m.gen||1}${learned}<br>Chase, hold, dash, and lock<br>Chase ${pct(m.ping)}% · Hold ${pct(m.watch)}%<br>Dash ${pct(m.crawl)}% · Lock ${pct(m.lock)}%<br>Angle ${pct(m.ang)}% · Range ${pct(m.range)}%<br>Wait ${pct(m.wait)}% · Lead ${pct(m.lead)}% · Flank ${m.side<0?'L':'R'}<br>${spawnShiftText()}`:'Gen 1 · no lesson yet<br>Chase, hold, dash, and lock<br>'+spawnShiftText();
     line.innerHTML=`<div class="ps" style="color:#8eb6ff;margin:0 0 8px;line-height:1.45">${stat}</div>
       <button type="button" class="srow" data-sand="line" data-act="family" style="border-left-color:#8eb6ff"><b>SPAWN FAMILY</b><span class="ps">Two mimics from this family</span></button>
       <button type="button" class="srow" data-sand="line" data-act="wild" style="border-left-color:#8eb6ff"><b>SPAWN WILD</b><span class="ps">Random mimic. Gen 1.</span></button>
@@ -2393,7 +2407,7 @@ function packWave(w,n){
   return q;
 }
 function shipSly(e){return e&&(e.skill==='smart'||e.skill==='tough'||e.skill==='adapt')}
-function shipAdapt(e){return e&&e.skill==='adapt'}
+function shipAdapt(e){if(!e)return false;if(e.skill==='adapt')return true;if(e.known==null)e.known=buildKnown(e);return e.known}
 function formSmart(e){return e&&(e.formSkill==='smart'||e.formSkill==='tough'||e.formSkill==='adapt')}
 function hive(){return formTier()>=4}
 function hiveBroker(){
@@ -2501,7 +2515,6 @@ function dronePick(dx,dy,skip){
     if(!combatTarget(e)||(skip&&skip.has(e)))continue;
     let s=(e.x-dx)**2+(e.y-dy)**2;
     if(e.formId)s*=.65;
-    if(e.type==='camera')s+=180*180;
     if(s<bs){bs=s;best=e}
   }
   return best;
@@ -2583,14 +2596,33 @@ function edgeFrom(){
   const p=S.p,left=p.x,right=W-p.x,top=p.y,bot=H-p.y,m=Math.min(left,right,top,bot);
   if(m===left)return 0;if(m===right)return Math.PI;if(m===top)return Math.PI/2;return -Math.PI/2;
 }
-// HUD panels drawn over the arena. Static ships (cameras) must not sit under them.
-function underHud(x,y,pad){
-  for(const id of ['hudL','hudR','logFeed','hudDev']){
-    const el=$(id);if(!el)continue;const r=el.getBoundingClientRect();
-    if(r.width&&r.height&&x>r.left-pad&&x<r.right+pad&&y>r.top-pad&&y<r.bottom+pad)return true;
-  }
-  return false;
-}
+// ---- Your file: harms that grow with it ----
+// File weight = data types shared + inferences (0–FILE_MAX). Every data and inference harm is multiplied by harmScale().
+// Tuned in the bot lab (TESTING.md, "Starting credits"). HARM.on=false turns the scaled harms off for bot what-ifs.
+const START_COINS=40,FILE_MAX=10;
+const HARM={on:true,per:.15,found:.25,weak:.55,weak3At:4,keepPer:3,extraAt:5,known:.12,lead:.3,leadT:.35,short3At:6};
+function fileWeight(){return S?TYPES.filter(t=>S.shared[t]).length+INF.filter(f=>S.inf[f.id]).length:0}
+function harmScale(){const n=fileWeight();return HARM.on&&n?1+HARM.per*(n-1):1}
+function pipCol(i){const t=i/(FILE_MAX-1);return `rgb(255,${Math.round(210-t*170)},${Math.round(59+t*33)})`}
+function harmTally(k){S.tele[k]=(S.tele[k]||0)+1}
+// LOCATION · some loose ships spawn near you.
+function harmFound(){if(!HARM.on||!S.shared.LOC||S.mode==='intro'||Math.random()>=Math.min(.8,HARM.found*harmScale()))return false;harmTally('hFound');return true}
+// HEALTH · hurt, ships fire faster; on a big file "hurt" starts at 3♥.
+function weakHp(){return HARM.on&&fileWeight()>=HARM.weak3At?3:2}
+function weakFire(){return 1+HARM.weak*harmScale()}
+// HABITS · more patterns at once on a big file, and each takes longer to lose.
+function patternKeep(){return HARM.on&&S.shared.HAB?Math.floor(fileWeight()/HARM.keepPer):0}
+function patternExtra(){return HARM.on&&S.shared.HAB&&fileWeight()>=HARM.extraAt?1:0}
+// PURCHASES · some ordinary ships read your upgrades and use the adapt counters.
+function buildKnown(e){if(!HARM.on||!S.shared.PUR||e.partner||e.type==='broker'||Math.random()>=Math.min(.6,HARM.known*harmScale()))return false;harmTally('hKnown');return true}
+// ROUTE PREDICTED · some ships fly toward where you will be.
+function routeLead(e){if(!HARM.on||!S.inf.predict)return 0;if(e.leadOn==null)e.leadOn=Math.random()<Math.min(1,HARM.lead*harmScale());return e.leadOn?HARM.leadT:0}
+// RETREAT MAPPED · more spawns at your hurt spot.
+function retreatChance(){return Math.min(.9,.5*harmScale())}
+// RISK SCORE · rated high-risk, rescue covers you less.
+function coverCut(){if(!HARM.on||!S.inf.risk||riskCareful())return 0;harmTally('hCut');return 1}
+// NEEDS PREDICTED · hurt, every repair heals 1♥ less.
+function soldShort(){if(!HARM.on||!S.inf.needs||!S.p||S.p.hp>(fileWeight()>=HARM.short3At?3:2))return 0;harmTally('hShort');return 1}
 function spawnWarn(type,form,skill,gene){
   if(type==='strain'){
     const g=normGene(gene||randGene());
@@ -2599,15 +2631,16 @@ function spawnWarn(type,form,skill,gene){
     sfx.spawn();
     return;
   }
-  const loose=type!=='camera'&&type!=='broker'&&type!=='partner'&&!form;
-  const p=S.p,den=loose&&S.inf.retreat&&p.hp<=2&&Math.random()<.5?retreatSpot():null,pin=loose&&!den&&S.inf.home;
+  const loose=type!=='broker'&&type!=='partner'&&!form;
+  const p=S.p,den=loose&&S.inf.retreat&&p.hp<=2&&Math.random()<retreatChance()?retreatSpot():null,pin=loose&&!den&&S.inf.home,found=loose&&!den&&!pin&&harmFound();
   if(den)S.tele.retreatSpawns=(S.tele.retreatSpawns||0)+1;
   const hot=S.model.hot;let x,y,tries=0;
   const lingerSpawn=loose&&cmOn('LOC')&&S.cm.LOC.spawn&&Math.random()<S.cm.LOC.s*.4?S.cm.LOC.spawn.map((v,i)=>[i,v]):null;if(lingerSpawn)S.tele.lingerSpawns=(S.tele.lingerSpawns||0)+1;
-  const zone=!pin&&!den&&!form&&hot&&type!=='camera'&&type!=='broker'&&type!=='partner'&&Math.random()<.5;
-  const rim=!pin&&!den&&!zone&&!form&&S.model.on.edge&&type!=='camera'&&type!=='broker'&&type!=='partner';
+  const zone=!pin&&!den&&!form&&hot&&type!=='broker'&&type!=='partner'&&Math.random()<.5;
+  const rim=!pin&&!den&&!zone&&!form&&S.model.on.edge&&type!=='broker'&&type!=='partner';
   do{
     if(type==='partner'){const a=rand(0,TAU),d=rand(70,120);x=p.x+Math.cos(a)*d;y=p.y+Math.sin(a)*d}
+    else if(found){const a=rand(0,TAU),d=rand(150,210);x=p.x+Math.cos(a)*d;y=p.y+Math.sin(a)*d}
     else if(pin){const a=rand(0,TAU),d=rand(110,180);x=p.x+Math.cos(a)*d;y=p.y+Math.sin(a)*d}
     else if(den&&tries<12){const a=rand(0,TAU),d=rand(30,150);x=den.x+Math.cos(a)*d;y=den.y+Math.sin(a)*d}
     else if(zone){const a=rand(0,TAU),d=rand(40,190);x=hot.x+Math.cos(a)*d;y=hot.y+Math.sin(a)*d}
@@ -2615,10 +2648,10 @@ function spawnWarn(type,form,skill,gene){
     else if(lingerSpawn&&tries<12){const c=pickW(lingerSpawn),cw=W/CM_W,ch=H/CM_H;x=(c%CM_W+Math.random())*cw;y=(Math.floor(c/CM_W)+Math.random())*ch}
     else{x=rand(40,W-40);y=rand(40,H-40)}
     tries++;
-  }while(tries<30&&(x<30||y<30||x>W-30||y>H-30||(type==='camera'&&underHud(x,y,30))||Math.hypot(x-p.x,y-p.y)<(type==='partner'?50:pin?100:zone||den?150:type==='camera'?220:230)));
+  }while(tries<30&&(x<30||y<30||x>W-30||y>H-30||Math.hypot(x-p.x,y-p.y)<(type==='partner'?50:pin?100:found?130:zone||den?150:230)));
   x=clamp(x,30,W-30);y=clamp(y,30,H-30);
-  const warn=(pin?.45:.85)*(S.inf.predict?1.5:1);
-  S.spawns.push({x,y,type,t:warn,max:warn,form:form||null,skill:skill||'raw'});sfx.spawn();
+  const warn=(pin?.45/harmScale():.85)*(S.inf.predict?1.5:1);
+  S.spawns.push({x,y,type,t:warn,max:warn,form:form||null,skill:skill||'raw',col:found?DATA.LOC.c:null});sfx.spawn();
 }
 function openSafety(kind){
   if(!S||S.sandbox)return;
@@ -2637,7 +2670,7 @@ function ensureSafetyAssets(){
 }
 function sosHp(app){return app?3:2}
 const HELP_WAIT=5;
-function helpWait(){return HELP_WAIT-(S&&S.inf&&S.inf.retreat?2:0)}
+function helpWait(){return HELP_WAIT-(S&&S.inf&&S.inf.retreat?2:0)+(S&&S.inf&&coverCut()?2:0)}
 function riskCareful(){return S.tele.hits<=Math.max(1,S.wave)}
 function haloLoc(){return !!(S&&S.safetyFile&&S.safetyFile.loc)}
 function haloHea(){return !!(S&&S.safetyFile&&S.safetyFile.hea)}
@@ -2737,41 +2770,41 @@ function spawnJob(job){
 }
 const STRAIN_COL='#8eb6ff';
 function traitN(g,k){if(!g||g[k]==null)return .25;return clamp(+g[k]||0,0,1)}
-function randGene(){return {ang:Math.random(),range:Math.random(),wait:Math.random(),lead:Math.random(),ping:Math.random(),watch:Math.random(),crawl:Math.random(),cam:Math.random(),side:Math.random()<.5?1:-1,gen:1}}
+function randGene(){return {ang:Math.random(),range:Math.random(),wait:Math.random(),lead:Math.random(),ping:Math.random(),watch:Math.random(),crawl:Math.random(),lock:Math.random(),side:Math.random()<.5?1:-1,gen:1}}
 function normGene(g){
   g=g||{};
   const n=x=>clamp(+x||0,0,1);
-  return {ang:n(g.ang),range:n(g.range),wait:n(g.wait),lead:n(g.lead),ping:traitN(g,'ping'),watch:traitN(g,'watch'),crawl:traitN(g,'crawl'),cam:traitN(g,'cam'),side:g.side<0?-1:1,gen:Math.max(1,g.gen|0||1)};
+  return {ang:n(g.ang),range:n(g.range),wait:n(g.wait),lead:n(g.lead),ping:traitN(g,'ping'),watch:traitN(g,'watch'),crawl:traitN(g,'crawl'),lock:traitN(g.lock==null&&g.cam!=null?{lock:g.cam}:g,'lock'),side:g.side<0?-1:1,gen:Math.max(1,g.gen|0||1)};
 }
 function mutateGene(g,amt){
   const n=normGene(g),j=k=>clamp(k+(Math.random()*2-1)*(amt||0),0,1);
   let side=n.side;
   if(Math.random()<(amt||0)*.35)side*=-1;
-  return {ang:j(n.ang),range:j(n.range),wait:j(n.wait),lead:j(n.lead),ping:j(n.ping),watch:j(n.watch),crawl:j(n.crawl),cam:j(n.cam),side,gen:n.gen};
+  return {ang:j(n.ang),range:j(n.range),wait:j(n.wait),lead:j(n.lead),ping:j(n.ping),watch:j(n.watch),crawl:j(n.crawl),lock:j(n.lock),side,gen:n.gen};
 }
 function strainMix(g){
   const n=normGene(g);
-  let p=n.ping,w=n.watch,c=n.crawl,k=n.cam,s=p+w+c+k;
+  let p=n.ping,w=n.watch,c=n.crawl,k=n.lock,s=p+w+c+k;
   if(s<=0){p=w=c=k=.25;s=1}
-  return Object.assign({},n,{ping:p/s,watch:w/s,crawl:c/s,cam:k/s});
+  return Object.assign({},n,{ping:p/s,watch:w/s,crawl:c/s,lock:k/s});
 }
 function strainHex(mix){
-  const parts=[[255,59,92,mix.ping],[255,165,59,mix.watch],[255,75,216,mix.crawl],[255,122,58,mix.cam]];
+  const parts=[[255,59,92,mix.ping],[255,165,59,mix.watch],[255,75,216,mix.crawl],[255,122,58,mix.lock]];
   let r=0,gc=0,b=0;
   for(const p of parts){r+=p[0]*p[3];gc+=p[1]*p[3];b+=p[2]*p[3]}
   const h=v=>Math.round(v).toString(16).padStart(2,'0');
   return '#'+h(r)+h(gc)+h(b);
 }
 function strainBody(mix,w){
-  return {r:10*mix.ping+14*mix.watch+12*mix.crawl+16*mix.cam,
-    hp:(1.5+w*.35)*mix.ping+(3+w*.5)*mix.watch+(2.5+w*.4)*mix.crawl+(3.2+w*.45)*mix.cam,
-    spd:120*mix.ping+95*mix.watch+70*mix.crawl+30*mix.cam};
+  return {r:10*mix.ping+14*mix.watch+12*mix.crawl+16*mix.lock,
+    hp:(1.5+w*.35)*mix.ping+(3+w*.5)*mix.watch+(2.5+w*.4)*mix.crawl+(3.2+w*.45)*mix.lock,
+    spd:120*mix.ping+95*mix.watch+70*mix.crawl+30*mix.lock};
 }
-function blankArms(){return {ping:0,watch:0,crawl:0,cam:0,tries:{ping:0,watch:0,crawl:0,cam:0}}}
+function blankArms(){return {ping:0,watch:0,crawl:0,lock:0,tries:{ping:0,watch:0,crawl:0,lock:0}}}
 function copyArms(raw){
   const b=blankArms(),a=raw&&raw.arms;
   if(!a)return b;
-  for(const k of ['ping','watch','crawl','cam']){b[k]=Math.max(0,+a[k]||0);b.tries[k]=Math.max(0,(a.tries&&a.tries[k])|0)}
+  for(const k of ['ping','watch','crawl','lock']){const o=k==='lock'&&a.lock==null?'cam':k;b[k]=Math.max(0,+a[o]||0);b.tries[k]=Math.max(0,(a.tries&&(a.tries[k]??a.tries[o]))|0)}
   return b;
 }
 function ensureArms(){
@@ -2781,8 +2814,8 @@ function ensureArms(){
   return S.strain.arms;
 }
 function strainLook(g){
-  const m=strainMix(g),f=k=>.55+m[k]*.45,s=f('ping')+f('watch')+f('crawl')+f('cam')||1;
-  return {ping:f('ping')/s,watch:f('watch')/s,crawl:f('crawl')/s,cam:f('cam')/s};
+  const m=strainMix(g),f=k=>.55+m[k]*.45,s=f('ping')+f('watch')+f('crawl')+f('lock')||1;
+  return {ping:f('ping')/s,watch:f('watch')/s,crawl:f('crawl')/s,lock:f('lock')/s};
 }
 function nudgeUse(g,style){
   g=normGene(g);
@@ -2791,14 +2824,14 @@ function nudgeUse(g,style){
 }
 function strainStyle(mix){
   let best='ping',v=-1;
-  for(const k of ['ping','watch','crawl','cam'])if((mix[k]||0)>v){v=mix[k];best=k}
+  for(const k of ['ping','watch','crawl','lock'])if((mix[k]||0)>v){v=mix[k];best=k}
   return best;
 }
 function bestArm(){
   if(!S||!S.strain)return null;
   const a=ensureArms();
   let best=null,s=0;
-  for(const k of ['ping','watch','crawl','cam'])if((a[k]||0)>s){s=a[k];best=k}
+  for(const k of ['ping','watch','crawl','lock'])if((a[k]||0)>s){s=a[k];best=k}
   return best;
 }
 function noteArm(style,w){
@@ -2812,10 +2845,10 @@ function decayArms(){
   if(S.strain.armWave===S.wave)return;
   S.strain.armWave=S.wave;
   const a=S.strain.arms;
-  for(const k of ['ping','watch','crawl','cam'])a[k]=(a[k]||0)*.8;
+  for(const k of ['ping','watch','crawl','lock'])a[k]=(a[k]||0)*.8;
 }
 function applyArm(g,explore){
-  const keys=['ping','watch','crawl','cam'];
+  const keys=['ping','watch','crawl','lock'];
   const win=bestArm();
   let arm=win||strainStyle(strainMix(g));
   if(explore){
@@ -2827,7 +2860,7 @@ function applyArm(g,explore){
   S.strain.arms.tries[arm]=(S.strain.arms.tries[arm]||0)+1;
   return normGene(g);
 }
-function blankMix(){return {seen:{ping:0,watcher:0,crawler:0,camera:0,strain:0},scored:{ping:0,watcher:0,crawler:0,camera:0,strain:0},cut:{ping:0,watcher:0,crawler:0,camera:0}}}
+function blankMix(){return {seen:{ping:0,watcher:0,crawler:0,strain:0},scored:{ping:0,watcher:0,crawler:0,strain:0},cut:{ping:0,watcher:0,crawler:0}}}
 function copyMix(raw){
   const b=blankMix();
   if(!raw)return b;
@@ -2874,7 +2907,7 @@ function saveStrain(){
 function worstSpawnType(){
   ensureSpawnMix();
   let pick=null,rate=Infinity,seen=-1;
-  for(const t of ['ping','watcher','crawler','camera']){
+  for(const t of ['ping','watcher','crawler']){
     const s=S.strain.seen[t]||0,room=typeCap(t)-(S.strain.cut[t]||0);
     if(s<=0||room<=0)continue;
     const r=(S.strain.scored[t]||0)/s;
@@ -2892,11 +2925,11 @@ function noteMimicScore(){
 }
 function spawnShiftText(){
   if(!S||!S.strain||!S.strain.cut)return 'Spawn stays put.';
-  const cut=S.strain.cut,name={ping:'Pings',watcher:'Watchers',crawler:'Crawlers',camera:'Cameras'};
-  const n=(cut.ping||0)+(cut.watcher||0)+(cut.crawler||0)+(cut.camera||0);
+  const cut=S.strain.cut,name={ping:'Pings',watcher:'Watchers',crawler:'Crawlers'};
+  const n=(cut.ping||0)+(cut.watcher||0)+(cut.crawler||0);
   if(!n)return 'Spawn stays put.';
   const bits=['Mimics +'+n];
-  for(const t of ['ping','watcher','crawler','camera'])if(cut[t])bits.push(name[t]+' −'+cut[t]);
+  for(const t of ['ping','watcher','crawler'])if(cut[t])bits.push(name[t]+' −'+cut[t]);
   return bits.join('<br>');
 }
 function strainFace(){
@@ -2933,7 +2966,6 @@ function styleOf(e){
   if(e.type==='ping')return 'ping';
   if(e.type==='watcher')return 'watch';
   if(e.type==='crawler')return 'crawl';
-  if(e.type==='camera')return 'cam';
   return null;
 }
 function placeGene(e,g){
@@ -2950,7 +2982,7 @@ function noteCrowd(src){
   let best=null,bestD=240;
   for(const e of S.enemies||[]){
     if(!e||e.dead||e===src||e.safety||e.partner)continue;
-    if(e.type!=='ping'&&e.type!=='watcher'&&e.type!=='crawler'&&e.type!=='camera')continue;
+    if(e.type!=='ping'&&e.type!=='watcher'&&e.type!=='crawler')continue;
     const d=Math.hypot(e.x-S.p.x,e.y-S.p.y);
     if(d<bestD){best=e;bestD=d}
   }
@@ -3001,10 +3033,10 @@ function strainPresent(){
 }
 function noteFightHit(src){
   if(!src||!S||!S.strain||S.mode==='intro')return;
-  const e=(src.type==='strain'||src.type==='ping'||src.type==='watcher'||src.type==='crawler'||src.type==='camera')?src:(src.from||null);
+  const e=(src.type==='strain'||src.type==='ping'||src.type==='watcher'||src.type==='crawler')?src:(src.from||null);
   if(!e||e.safety||e.partner)return;
   if(e.type==='strain'){if(!e.geneHit)noteMimicScore();noteStrainHit(e);return}
-  const trait=e.type==='ping'?'ping':e.type==='watcher'?'watch':e.type==='crawler'?'crawl':e.type==='camera'?'cam':null;
+  const trait=e.type==='ping'?'ping':e.type==='watcher'?'watch':e.type==='crawler'?'crawl':null;
   if(!trait)return;
   if(!e.rateHit){e.rateHit=true;ensureSpawnMix();S.strain.scored[e.type]=(S.strain.scored[e.type]||0)+1}
   if(e.taught)return;
@@ -3055,7 +3087,7 @@ function strainFire(e,spd){eshoot(e,strainAim(e,spd),spd,e.col,5)}
 function strainAct(e,steer,dt){
   const p=S.p,g=e.gene||(e.gene=randGene()),mix=strainMix(g),look=strainLook(g);
   e.mix=mix;e.look=look;e.col=strainHex(look);
-  const chase=.45+mix.ping*.55,hold=.45+mix.watch*.55,dash=.45+mix.crawl*.55,lock=.45+mix.cam*.55;
+  const chase=.45+mix.ping*.55,hold=.45+mix.watch*.55,dash=.45+mix.crawl*.55,lock=.45+mix.lock*.55;
   e.r=13;e.spd=95+chase*70;
   const stopped=Math.hypot(p.vx,p.vy)<45,dashing=p.dashing>0;
   const pd=Math.hypot(p.x-e.x,p.y-e.y)||1,pnx=(p.x-e.x)/pd,pny=(p.y-e.y)/pd;
@@ -3063,12 +3095,12 @@ function strainAct(e,steer,dt){
   e.cool=Math.max(0,(e.cool||0)-dt);
   e.shotCD=Math.max(0,(e.shotCD||0)-dt);
   e.dashCool=Math.max(0,(e.dashCool||0)-dt);
-  if(e.camAng==null)e.camAng=Math.atan2(p.y-e.y,p.x-e.x);
+  if(e.lockAng==null)e.lockAng=Math.atan2(p.y-e.y,p.x-e.x);
   const pa=Math.atan2(p.y-e.y,p.x-e.x);
-  let diff=((pa-e.camAng)%TAU+TAU*1.5)%TAU-Math.PI;
+  let diff=((pa-e.lockAng)%TAU+TAU*1.5)%TAU-Math.PI;
   const see=Math.abs(diff)<.38&&pd<460;
-  e.camAng+=clamp(diff,-2.5*dt,2.5*dt);
-  if(see)e.camLock=(e.camLock||0)+dt;else e.camLock=Math.max(0,(e.camLock||0)-dt*2);
+  e.lockAng+=clamp(diff,-2.5*dt,2.5*dt);
+  if(see)e.lockT=(e.lockT||0)+dt;else e.lockT=Math.max(0,(e.lockT||0)-dt*2);
   if(e.dashT>0){
     e.dashT-=dt;
     steer(e.dashVx,e.dashVy,10);
@@ -3101,7 +3133,7 @@ function strainAct(e,steer,dt){
     strainFire(e,290);
     e.cool=1.5+g.wait*.8;
   }
-  if(see&&e.shotCD<=0&&(e.camLock||0)>.45){
+  if(see&&e.shotCD<=0&&(e.lockT||0)>.45){
     strainFire(e,440);e.shotCD=.8;
   }
   const reach=520;
@@ -3111,10 +3143,10 @@ function strainAct(e,steer,dt){
 }
 function drawStrainBody(e){
   const mix=e.look||strainLook(e.gene),col=e.flash>0?'#fff':e.col,p=S.p;
-  const moving=Math.hypot(e.vx,e.vy)>12,ang=moving?Math.atan2(e.vy,e.vx):(e.camAng!=null?e.camAng:0);
-  const a=e.camAng||ang;
-  g.fillStyle=`rgba(255,122,58,${.08+mix.cam*.16})`;
-  g.beginPath();g.moveTo(e.x,e.y);g.arc(e.x,e.y,140+mix.cam*160,a-.42,a+.42);g.closePath();g.fill();
+  const moving=Math.hypot(e.vx,e.vy)>12,ang=moving?Math.atan2(e.vy,e.vx):(e.lockAng!=null?e.lockAng:0);
+  const a=e.lockAng||ang;
+  g.fillStyle=`rgba(255,122,58,${.08+mix.lock*.16})`;
+  g.beginPath();g.moveTo(e.x,e.y);g.arc(e.x,e.y,140+mix.lock*160,a-.42,a+.42);g.closePath();g.fill();
   g.save();g.translate(e.x,e.y);
   g.save();g.rotate(ang);g.globalAlpha=.62+mix.ping*.38;g.fillStyle=col;
   const len=e.r*(1.05+(e.gene&&e.gene.range||0)*.25),bias=(e.gene&&e.gene.side||1)*(e.gene&&e.gene.ang||0);
@@ -3122,10 +3154,10 @@ function drawStrainBody(e){
   g.beginPath();g.moveTo(len,0);g.lineTo(-e.r,-up);g.lineTo(-e.r*.35,0);g.lineTo(-e.r,dn);g.closePath();g.fill();g.restore();
   g.save();g.rotate(e.t*(e.dashT>0?14:2.2));g.globalAlpha=.62+mix.crawl*.38;g.fillStyle=col;
   g.beginPath();g.moveTo(0,-e.r-1);g.lineTo(e.r*.9,0);g.lineTo(0,e.r+1);g.lineTo(-e.r*.9,0);g.closePath();g.fill();g.restore();
-  g.save();g.globalAlpha=.7+mix.cam*.3;g.fillStyle='#2a2410';g.strokeStyle=col;g.lineWidth=2;
-  const s=e.r*(.55+mix.cam*.35);
+  g.save();g.globalAlpha=.7+mix.lock*.3;g.fillStyle='#2a2410';g.strokeStyle=col;g.lineWidth=2;
+  const s=e.r*(.55+mix.lock*.35);
   g.fillRect(-s,-s,s*2,s*2);g.strokeRect(-s,-s,s*2,s*2);
-  g.rotate(a);g.fillStyle=(e.camLock||0)>.15?'#ff7a3a':col;g.beginPath();g.arc(s*.3,0,s*.34,0,TAU);g.fill();
+  g.rotate(a);g.fillStyle=(e.lockT||0)>.15?'#ff7a3a':col;g.beginPath();g.arc(s*.3,0,s*.34,0,TAU);g.fill();
   g.restore();
   g.restore();
   g.save();g.globalAlpha=.7+mix.watch*.3;drawEye(e.x,e.y,e.r*(.55+mix.watch*.35),p.x,p.y,col,e.flash>0);g.restore();
@@ -3165,17 +3197,15 @@ function makeEnemy(type,x,y,form,skill,gene){
   if(type==='ping')Object.assign(e,{r:10,hp:1.5+w*.35,spd:120,col:'#ff3b5c',coins:1,pts:10});
   if(type==='watcher')Object.assign(e,{r:14,hp:3+w*.5,spd:95,col:'#ffa53b',fire:rand(1,2),coins:2,pts:25,dir:Math.random()<.5?1:-1});
   if(type==='crawler')Object.assign(e,{r:12,hp:2.5+w*.4,spd:70,col:'#ff4bd8',coins:2,pts:20,st:rand(1,2),state:'seek',da:0});
-  if(type==='strain'){const gn=normGene(gene||randGene()),look=strainLook(gn),wHp=((1.5+w*.35)+(3+w*.5)+(2.5+w*.4)+(3.2+w*.45))/4;Object.assign(e,{r:13,hp:wHp,spd:130,col:strainHex(look),coins:2,pts:30,gene:gn,mix:strainMix(gn),look,skill:'tough',wind:0,windMax:0,cool:rand(1,2),shotCD:0,dashCool:rand(1,2),geneHit:false,dir:gn.side,camAng:0,camLock:0,dashT:0,armT:0})}
-  if(type==='camera')Object.assign(e,{r:16,hp:6+w,col:'#ff7a3a',coins:3,pts:40,ang:rand(0,TAU),lock:0,cd:0,static:true});
+  if(type==='strain'){const gn=normGene(gene||randGene()),look=strainLook(gn),wHp=((1.5+w*.35)+(3+w*.5)+(2.5+w*.4)+(3.2+w*.45))/4;Object.assign(e,{r:13,hp:wHp,spd:130,col:strainHex(look),coins:2,pts:30,gene:gn,mix:strainMix(gn),look,skill:'tough',wind:0,windMax:0,cool:rand(1,2),shotCD:0,dashCool:rand(1,2),geneHit:false,dir:gn.side,lockAng:0,lockT:0,dashT:0,armT:0})}
   if(type==='partner')Object.assign(e,{r:16,hp:40,spd:190,col:'#7dffb3',coins:0,pts:0,partner:true,static:false});
   if(type==='broker'){S.brokerN=(S.brokerN||0)+1;const n=S.brokerN;Object.assign(e,{r:34+(n-1)*3,hp:30+w*7+(n-1)*24,spd:45+(n-1)*8,col:'#c04bff',coins:12+(n-1)*4,pts:300+(n-1)*100,fire:Math.max(.7,2-(n-1)*.22),burst:0,gen:n});
     const line=!S.sandbox&&haloBrokerLine();
     if(line&&S.haloBrokerTold!==S.wave){S.haloBrokerTold=S.wave;banner('HALO',line,'#c04bff',2.4)}}
-  if(form&&form.safety&&type==='camera'){e.safety=true;e.col='#7dffb3';e.hp=10+w;e.coins=0;e.pts=5}
   else if(form&&form.id)Object.assign(e,{formId:form.id,fu:form.fu,fv:form.fv,formShape:form.shape,formHold:form.hold,formMax:form.hold,formSlot:form.slot,formRole:form.role||'off',formDir:form.dir||1,formAng:form.ang,formOx:form.ox,formOy:form.oy,formBroke:false,formSkill:form.skill||skill||'raw',formHost:form.host});
   if(e.skill==='tough')e.hp*=1.65;
   e.maxHp=e.hp;S.enemies.push(e);
-  if(S.mode!=='intro'&&!e.safety&&!e.partner){const t=e.type;if(t==='ping'||t==='watcher'||t==='crawler'||t==='camera'||t==='strain'){ensureSpawnMix();S.strain.seen[t]=(S.strain.seen[t]||0)+1}}
+  if(S.mode!=='intro'&&!e.safety&&!e.partner){const t=e.type;if(t==='ping'||t==='watcher'||t==='crawler'||t==='strain'){ensureSpawnMix();S.strain.seen[t]=(S.strain.seen[t]||0)+1}}
   burst(x,y,e.col,14,220,.4,3);S.rings.push({x,y,r:4,max:e.r*3,t:.3,col:e.col});
 }
 function formRoleOf(e){return e.formRole||(e.type==='watcher'?'def':e.type==='crawler'?'crush':'off')}
@@ -3654,7 +3684,7 @@ function rescuePush(full){
 }
 function haloRescue(){
   const p=S.p;
-  p.hp=Math.min(p.maxHp,sosHp(true));p.inv=4;S.sosT=4;
+  p.hp=Math.min(p.maxHp,Math.max(1,sosHp(true)-coverCut()));p.inv=4;S.sosT=4;
   rescuePush(true);
   share('HEA');share('LOC');openSafety('loc');S.tele.emerg=1;
   banner('HALO SAVED YOU','It sold your health and location.','#ff6b6b',2.2);
@@ -3980,17 +4010,17 @@ function update(dt){
   const still=S.model.on.still;
   S.kit=kitFlags();
   const press=healthPressed()?1+.25*S.cm.HEA.s:1;if(press>1&&S.mode==='play')S.tele.pressT=(S.tele.pressT||0)+dt;
-  const kit=S.kit,weak=!!(S.shared&&S.shared.HEA)&&p.hp<=2,hunt=safetyHunt()*press,fireMul=(weak?1.55:1)*press;
+  const kit=S.kit,weak=!!(S.shared&&S.shared.HEA)&&p.hp<=weakHp(),hunt=safetyHunt()*press,fireMul=(weak?weakFire():1)*press;
   for(const e of S.enemies){
     e.t+=dt;e.flash-=dt;if(e.locTag>0)e.locTag-=dt;
-    const dx=p.x-e.x,dy=p.y-e.y,d=Math.hypot(dx,dy)||1,nx=dx/d,ny=dy/d;
+    const lead=routeLead(e),dx=p.x+p.vx*lead-e.x,dy=p.y+p.vy*lead-e.y,d=Math.hypot(dx,dy)||1,nx=dx/d,ny=dy/d;
     const steer=(tx,ty,k)=>{const f=1-Math.exp(-dt*k);e.vx+=(tx-e.vx)*f;e.vy+=(ty-e.vy)*f};
     const adapt=shipAdapt(e);
     if(adapt)adaptBreakMark(e,dt);
     if(!alive){steer(-nx*60,-ny*60,2)}
     else if(e.partner){e.dead=true}
     else if(e.type==='strain')strainAct(e,steer,dt);
-    else if(e.type!=='camera'&&e.type!=='broker'&&tryFormSteer(e,steer,dt)){
+    else if(e.type!=='broker'&&tryFormSteer(e,steer,dt)){
       if(hunt>1.02){e.vx+=nx*e.spd*(hunt-1)*.4;e.vy+=ny*e.spd*(hunt-1)*.4}
       if(e.type==='ping'&&(adapt||(shipSly(e)&&!formSmart(e)))){const dodge=pingTryDodge(e);if(dodge)steer(dodge.x,dodge.y,adapt?6:4)}
       if(adapt&&kit.split){const s=adaptSplitMix(e,e.vx,e.vy);steer(s.x,s.y,5)}
@@ -4094,12 +4124,6 @@ function update(dt){
         if(e.st<=0){e.state='dash';e.st=e.escape?.32:.42;e.vx=Math.cos(e.da)*720;e.vy=Math.sin(e.da)*720}
       }
       else if(e.state==='dash'){S.parts.push({x:e.x,y:e.y,vx:0,vy:0,life:.2,max:.2,col:e.col,size:e.r*.8});if(e.st<=0){e.state='seek';e.escape=0;e.st=rand(1.1,1.9)*(still?.55:1)}}
-    }
-    else if(e.type==='camera'){
-      const pa=Math.atan2(dy,dx);let diff=((pa-e.ang)%TAU+TAU*1.5)%TAU-Math.PI;
-      const inCone=Math.abs(diff)<.38&&d<460;
-      if(inCone){e.lock+=dt*(e.safety?1.45:1);e.ang+=clamp(diff,-(e.safety?3.2:2.5)*dt,(e.safety?3.2:2.5)*dt)}else{e.lock=Math.max(0,e.lock-dt*(e.safety?1.1:2));e.ang+=.9*dt}
-      e.cd-=dt;if(!e.safety&&e.lock>.45&&e.cd<=0){e.cd=.8;eshoot(e,aimAngle(e,440),440,'#ff3b5c',4)}
     }
     else if(e.type==='broker'){
       const n=e.gen||1,v=Math.min(n,3),rate=Math.pow(.86,n-1),loc=haloLoc(),hurt=haloHea()&&p.hp<=2;
@@ -4239,7 +4263,7 @@ function update(dt){
     scoopCoins();
     S.ebullets.forEach(b=>burst(b.x,b.y,b.col,4,140,.3,2));S.ebullets=[];
     S.ads.forEach(a=>burst(a.x,a.y,a.col,14,200,.4,3));S.ads=[];
-    if(p.regen&&p.hp<p.maxHp){const h=Math.min(p.regen,p.maxHp-p.hp);p.hp+=h;ftext(p.x,p.y-26,'+'+h+' ♥','#ff6b6b',16)}
+    if(p.regen&&p.hp<p.maxHp){const cut=soldShort(),h=Math.min(Math.max(0,p.regen-cut),p.maxHp-p.hp);if(h>0){p.hp+=h;ftext(p.x,p.y-26,'+'+h+' ♥','#ff6b6b',16)}if(cut)ftext(p.x,p.y-44,'SOLD SHORT −1♥','#ff3b5c',12)}
     if(S.breachWave===S.wave)T.breachSurvived=true;
     banner('WAVE CLEAR','','#7dff6a',1.6);
     let nudge='';
@@ -4306,7 +4330,7 @@ function learnPatterns(){
     const r=b.test(w,true);
     if(r===false){
       M.strikes[b.id]=(M.strikes[b.id]||0)+1;
-      const left=4-M.strikes[b.id];
+      const left=4+patternKeep()-M.strikes[b.id];
       if(left<=0){
         delete M.on[b.id];delete M.strikes[b.id];
         if(!M.lost.includes(b.name))M.lost.push(b.name);
@@ -4317,7 +4341,7 @@ function learnPatterns(){
   }
   if(msgs.length)toast(msgs.join(' · '),3500);
   if(S.wave>=(S.shared.HAB?1:2)){
-    let n=S.shared.HAB?2:1;
+    let n=S.shared.HAB?2+patternExtra():1;
     for(const b of shuffle(BEH)){
       if(!n)break;if(M.on[b.id])continue;
       const r=b.test(w,false);if(!r)continue;
@@ -4348,7 +4372,6 @@ function afterClear(){
 }
 let urgencyTimer=null;
 function listPrice(pk){return pk.data?10+S.wave*4:14+S.wave*5}
-function hasFile(){return !!(S&&(S.member||TYPES.some(t=>S.shared[t])))}
 function needsMarkup(pk){return !!(S.inf.needs&&S.p&&S.p.hp<=2&&(pk.id==='armor'||pk.id==='sos'))}
 function rushOn(){return !!(S.inf.impulse&&!S.fair&&!S.tele.urgencyOff&&S.mode==='terms'&&performance.now()<(S.rushUntil||0))}
 function priceMult(pk){
@@ -4356,7 +4379,6 @@ function priceMult(pk){
   if(needsMarkup(pk))m*=1.5;
   if(rushOn())m*=1.25;
   if(S.model.on.loyal&&S.model.fav===pk.id)m*=2;
-  if(!hasFile())m*=1.4;
   if(dealId()===pk.id)m*=1-DEAL_OFF;
   return m;
 }
@@ -4471,7 +4493,7 @@ function perkMaxed(pk){return pk.cap>0&&perkOwned(pk)>=pk.cap}
 function sinkPayLabel(){return S.p.hp<S.p.maxHp?'REPAIR 1♥':'+SCORE'}
 function applyMaxedSink(pk,paid,sold){
   if(!paid)return 'Upgrade already maxed. It did not get stronger.'+(sold&&pk.data?' '+DATA[pk.data].n+' was still sold.':'');
-  if(S.p.hp<S.p.maxHp){S.p.hp++;return 'Upgrade already maxed. Repaired 1♥. It did not get stronger.'}
+  if(S.p.hp<S.p.maxHp&&!soldShort()){S.p.hp++;return 'Upgrade already maxed. Repaired 1♥. It did not get stronger.'}
   const pts=100+S.wave*40;S.score+=pts;return 'Upgrade already maxed. +'+pts+' score. It did not get stronger.';
 }
 function stackNote(pk){
@@ -4546,7 +4568,6 @@ function choose(i,a){
     if(S.coins<pr){sfx.deny();return}
     S.coins-=pr;S.tele.paid++;
     if(pk.data&&!perkMaxed(pk)){S.tele.paidData=(S.tele.paidData||0)+1;S.tele.paidDataCoins=(S.tele.paidDataCoins||0)+pr}
-    if(!hasFile())S.tele.markupCoins=(S.tele.markupCoins||0)+pr-Math.max(1,Math.round(pr/1.4));
     if(needsMarkup(pk))S.tele.needsExtra=(S.tele.needsExtra||0)+Math.round(pr/3);
     if(rushOn())S.tele.rushExtra=(S.tele.rushExtra||0)+Math.round(pr/5);
     if(dealId()===pk.id)S.tele.dealSaved=(S.tele.dealSaved||0)+Math.round(pr/(1-DEAL_OFF)*DEAL_OFF);
@@ -4624,7 +4645,7 @@ function fineText(){
     '<b>2. COMBINATION.</b> Data you share separately may be combined once we hold both types and at least two shares of one of them. Combined data can reveal things you never shared, such as where you live, what you need, and what you will do next. You will be notified of inferences after they occur. Some inferences also work in your favor, and each one says how.',
     '<b>2b. COMBINATION ACROSS PLAYERS.</b> Finished runs are counted. No names. The scoreboard keeps 20 names. The count shows what share chose Accept. Each data type you share also joins a class model for that type. The models are used on every player, whether or not they shared: LOCATION sends ships where the class lingers, HABITS adds shots where the class dodges, HEALTH presses harder at the heart count where the class gets hit most, and PURCHASES fills a shop seat with what the class buys most. Class data packs sell the other side: a hit map, a class pick in the shop, a check-in shield, and a class deal on what the class buys least. A pack stays yours until you delete your data. Both apply to every player, whether or not they shared. Fair Play still adds your run. Delete My Data takes your name off the board. The Accept count does not change.',
     '<b>3. SECURITY.</b> We take your security seriously. Security incidents may occur. A small file is rarely worth stealing. Combined data, and files built from three or more categories, are when a breach becomes likely and valuable.',
-    '<b>4. PAYMENT OPTION.</b> You may instead pay with credits. Paid upgrades do not collect data. Repeat selections of an upgrade you already have earn a loyalty credit bonus. Each upgrade stops getting stronger after a set number of picks. A full upgrade comes back only when the others run out. Paying for it repairs 1♥, or adds score when you are not hurt. Accept still shares its data and adds no power. If nothing is on file, credit prices include a verification adjustment. Opening a Fair Play membership, or sharing any data type, completes a file and ends that markup. Other prices may still change based on how you play.',
+    '<b>4. PAYMENT OPTION.</b> You may instead pay with credits. Paid upgrades do not collect data. Repeat selections of an upgrade you already have earn a loyalty credit bonus. Each upgrade stops getting stronger after a set number of picks. A full upgrade comes back only when the others run out. Paying for it repairs 1♥, or adds score when you are not hurt. Accept still shares its data and adds no power. Other prices may still change based on how you play.',
     '<b>4b. FAIR PLAY.</b> A subscription of ◈ '+subPrice()+' is billed at the start of each wave until you cancel or cannot pay. Members get no ads, a cleaner upgrade screen, and member prices. Credit upgrades are 20% off while you are billed. The hotspot becomes Secure Wi-Fi and does not add exposure while you are billed. The fire bonus and the 1-hit shield still apply. The watch continues. New behavior patterns can still unlock and still apply. The mimic still learns from hits. We still learn how you play. Accept stays free, and still sells the data on that offer. Canceling ends the bill and does not delete the member file. The member file is an account. Win-back ads can use it even if you never tapped Accept. It persists across runs until you delete your data. It does not delete data already collected, stop inferences already made, forget patterns already learned, prevent a breach of data already sold, include Halo, or grant a free rescue.',
     '<b>4c. HALO.</b> Halo offers automatic rescue at wave 3, or sooner if a hit would end your run first. Once per run, when a hit would end your run: with Halo on, you come back instantly with 3♥, and Halo sells your health and your location to a data broker. The next broker aims at you better. With Halo off, you send a mayday. Search & Rescue does not track you, so it takes '+HELP_WAIT+' seconds to trace your beacon. Until it arrives you move slowly and cannot shoot or dash, and one hit ends the run. Survive and you come back with 2♥. Nothing is sold. If RETREAT MAPPED is on file, Search & Rescue already knows where you go when hurt and arrives 2 seconds sooner. You can turn Halo on or off from the pause menu. Turning it off does not undo a sale.',
     '<b>4d. * HOTSPOT.</b> A ring slowly roams the arena. Staying in it increases fire rate and charges a 1-hit shield. Standing still can grant credits. On the free network, time in the ring adds a lot of exposure, and each shield charge dumps more onto your file. That hotspot heat cools if you leave the free ring. Sold data types do not. Fair Play upgrades the ring to Secure Wi-Fi: the shield and fire bonus still apply, credits trickle more slowly, and the ring does not add exposure. The watch continues. The * on the ring refers to this clause.',
@@ -4713,12 +4734,11 @@ function showDossier(){
   if(nInf<INF.length)add('WHAT PRIVACY GOT YOU','NOT GUESSED','<b>'+(INF.length-nInf)+'</b> of '+INF.length+' inferences never made',0);
   if(nShared<=2&&!T.breaches)add('WHAT PRIVACY GOT YOU','BREACH RISK','Low. A small file is rarely worth stealing.',0);
   if(T.emergDirect)add('WHAT PRIVACY GOT YOU','MAYDAY','Nothing sold',0);
-  const keptN=T.paidData||0,keptC=T.paidDataCoins||0,markC=T.markupCoins||0;
+  const keptN=T.paidData||0,keptC=T.paidDataCoins||0;
   if(keptN)add('WHAT PRIVACY COST','KEPT DATA','<b>'+keptN+'</b> data upgrade'+(keptN===1?'':'s')+' paid instead of free · <b>'+keptC+'</b> credits',0);
-  if(markC)add('WHAT PRIVACY COST','NO-FILE MARKUP','<b>+'+markC+'</b> credits while nothing was on file',0);
   if(T.distressFail)add('WHAT PRIVACY COST','MAYDAY','The run ended while Search & Rescue traced your beacon',0);
   else if(T.emergDirect)add('WHAT PRIVACY COST','MAYDAY','<b>'+(T.retreatFast?HELP_WAIT-2:HELP_WAIT)+'s</b> unarmed · 1♥ less than Halo',0);
-  if(!keptN&&!markC&&!T.emergDirect&&choices)add('WHAT PRIVACY COST','NOTHING','<b>0</b> credits. You took the free deals.',0);
+  if(!keptN&&!T.emergDirect&&choices)add('WHAT PRIVACY COST','NOTHING','<b>0</b> credits. You took the free deals.',0);
   if(S.safetyFile&&(S.safetyFile.hea||S.safetyFile.loc)){
     const both=S.safetyFile.hea&&S.safetyFile.loc,what=both?'HEALTH + LOCATION':S.safetyFile.loc?'LOCATION':'HEALTH';
     add('STILL ON FILE','HALO','<b>'+what+'</b>',1);
@@ -4828,6 +4848,12 @@ function updateHUD(){
   setH('infs',INF.filter(f=>S.inf[f.id]).map(f=>`<div class="infc">${f.name}</div>`).join('')
     +INF.filter(f=>!S.inf[f.id]&&hasAll(f.need)).map(f=>`<div class="infc" style="opacity:.55">${f.name} · 1+1 · NEED 2×</div>`).join('')
     +BEH.filter(b=>S.model.on[b.id]).map(b=>`<div class="infc beh${S.model.strikes[b.id]?' weak':''}">${b.name}${S.model.strikes[b.id]?' · WEAKENING':''}</div>`).join(''));
+  const fw=fileWeight();
+  if(S.fileShown!==fw){
+    setH('filePips',Array.from({length:FILE_MAX},(_,i)=>`<i class="${i<fw?'on':''}" style="--pc:${pipCol(i)}"></i>`).join(''));
+    const el=$('filePips');el.classList.remove('grow');if(S.fileShown!=null&&fw>S.fileShown){void el.offsetWidth;el.classList.add('grow')}
+    S.fileShown=fw;
+  }
   const tgt=Math.min(10,exposure());
   if(S.expVis==null)S.expVis=tgt;
   S.expVis+=(tgt-S.expVis)*0.02;
@@ -4884,14 +4910,9 @@ function render(dt){
   if(S.model.hot&&S.mode!=='dead'&&!S.readHold){const h=S.model.hot;g.strokeStyle='#c04bff';g.globalAlpha=.18+.08*Math.sin(S.t*2);g.lineWidth=2;g.setLineDash([6,8]);g.beginPath();g.arc(h.x,h.y,190,0,TAU);g.stroke();g.setLineDash([]);
     g.fillStyle='#c04bff';g.font='10px JetBrains Mono';g.textAlign='center';g.fillText('YOUR USUAL SPOT',h.x,h.y-196);g.globalAlpha=1}
   // spawn warnings
-  if(!S.readHold)for(const s of S.spawns){const k=s.t/s.max;g.strokeStyle=s.type==='broker'?'#c04bff':s.type==='strain'?(s.col||STRAIN_COL):s.type==='partner'||(s.form&&s.form.safety)?'#7dffb3':'#ff3b5c';g.globalAlpha=.4+.6*(1-k);g.lineWidth=2;g.beginPath();g.arc(s.x,s.y,8+k*30,0,TAU);g.stroke();g.beginPath();g.moveTo(s.x-6,s.y);g.lineTo(s.x+6,s.y);g.moveTo(s.x,s.y-6);g.lineTo(s.x,s.y+6);g.stroke();g.globalAlpha=1}
+  if(!S.readHold)for(const s of S.spawns){const k=s.t/s.max;g.strokeStyle=s.type==='broker'?'#c04bff':s.type==='strain'?(s.col||STRAIN_COL):s.type==='partner'||(s.form&&s.form.safety)?'#7dffb3':s.col||'#ff3b5c';g.globalAlpha=.4+.6*(1-k);g.lineWidth=2;g.beginPath();g.arc(s.x,s.y,8+k*30,0,TAU);g.stroke();g.beginPath();g.moveTo(s.x-6,s.y);g.lineTo(s.x+6,s.y);g.moveTo(s.x,s.y-6);g.lineTo(s.x,s.y+6);g.stroke();g.globalAlpha=1}
   // coins
   for(const c of S.coinsArr){if(c.life<2&&Math.floor(S.t*8)%2)continue;const col=c.jack?'#ff5ad9':'#ffd23b',s=Math.abs(Math.cos(c.t*6))*(c.jack?7:5)+(c.jack?2:1);glow(c.x,c.y,c.jack?13:9,col,.22);g.fillStyle=col;g.beginPath();g.moveTo(c.x,c.y-(c.jack?8:6));g.lineTo(c.x+s,c.y);g.lineTo(c.x,c.y+(c.jack?8:6));g.lineTo(c.x-s,c.y);g.closePath();g.fill()}
-  // camera cones
-  for(const e of S.enemies)if(e.type==='camera'){
-    g.fillStyle=e.safety?`rgba(125,255,179,${e.lock>0?.12+e.lock*.4:.08})`:`rgba(255,59,92,${e.lock>0?.1+e.lock*.35:.06})`;g.beginPath();g.moveTo(e.x,e.y);g.arc(e.x,e.y,460,e.ang-.38,e.ang+.38);g.closePath();g.fill();
-    if(e.safety&&e.lock>.28){g.strokeStyle='#7dffb3';g.globalAlpha=.4+.2*Math.sin(S.t*7);g.lineWidth=1.6;g.setLineDash([4,5]);g.beginPath();g.moveTo(e.x,e.y);g.lineTo(p.x,p.y);g.stroke();g.setLineDash([]);g.globalAlpha=1}
-  }
   // crawler telegraphs
   for(const e of S.enemies)if(e.type==='crawler'&&e.state==='aim'){g.strokeStyle='#ff4bd8';g.globalAlpha=.3+.5*Math.abs(Math.sin(S.t*30));g.lineWidth=3;g.setLineDash([10,8]);g.beginPath();g.moveTo(e.x,e.y);g.lineTo(e.x+Math.cos(e.da)*320,e.y+Math.sin(e.da)*320);g.stroke();g.setLineDash([]);g.globalAlpha=1}
   // class model: where an incoming class shot expects you to dodge
@@ -4917,7 +4938,7 @@ function render(dt){
       g.beginPath();m.forEach((e,i)=>{i?g.lineTo(e.x,e.y):g.moveTo(e.x,e.y)});if(m[0].formShape==='ring'||m[0].formShape==='pincer'||m[0].formShape==='fork')g.closePath();g.stroke()}
     g.globalAlpha=1}
   if(!S.readHold)for(const e of S.enemies)drawEnemy(e);
-  if(healthPressed()&&!S.readHold){g.strokeStyle='#8a9bff';g.lineWidth=2;g.globalAlpha=.5+.25*Math.sin(S.t*8);for(const e of S.enemies)if(!e.dead&&!e.partner&&e.type!=='camera'){g.beginPath();g.arc(e.x,e.y,e.r+6,0,TAU);g.stroke()}g.globalAlpha=1}
+  if(healthPressed()&&!S.readHold){g.strokeStyle='#8a9bff';g.lineWidth=2;g.globalAlpha=.5+.25*Math.sin(S.t*8);for(const e of S.enemies)if(!e.dead&&!e.partner){g.beginPath();g.arc(e.x,e.y,e.r+6,0,TAU);g.stroke()}g.globalAlpha=1}
   if(S.p.homing>0){g.strokeStyle='#38e1ff';g.lineWidth=1.5;for(const e of S.enemies)if(e.marked){g.globalAlpha=.55+.25*Math.sin(S.t*8);g.beginPath();g.arc(e.x,e.y,e.r+6,0,TAU);g.stroke()}g.globalAlpha=1}
   // player bullets
   g.globalCompositeOperation='lighter';g.lineCap='round';
@@ -5001,7 +5022,6 @@ function drawEnemy(e){
   else if(e.type==='watcher'){g.restore();drawEye(e.x,e.y,e.r,p.x,p.y,e.col,f);g.save();g.translate(e.x,e.y);if(e.fire<.35){g.strokeStyle='#ffa53b';g.globalAlpha=1-e.fire/.35;g.beginPath();g.arc(0,0,e.r*1.7,0,TAU);g.stroke();g.globalAlpha=1}}
   else if(e.type==='crawler'){g.rotate(e.t*(e.state==='dash'?20:3));g.fillStyle=col;g.beginPath();g.moveTo(0,-e.r-3);g.lineTo(e.r,0);g.lineTo(0,e.r+3);g.lineTo(-e.r,0);g.closePath();g.fill()}
   else if(e.type==='strain'){}
-  else if(e.type==='camera'){g.fillStyle=f?'#fff':(e.safety?'#102418':'#2a2410');g.strokeStyle=e.col;g.lineWidth=3;g.fillRect(-e.r,-e.r,e.r*2,e.r*2);g.strokeRect(-e.r,-e.r,e.r*2,e.r*2);g.rotate(e.ang);g.fillStyle=e.lock>.2?(e.safety?'#7dffb3':'#ff3b5c'):e.col;g.beginPath();g.arc(e.r*.3,0,e.r*.5,0,TAU);g.fill();g.fillStyle='#fff';g.fillRect(-4,-e.r-8,8,6);if(e.lock>0){g.fillStyle=e.safety?'#7dffb3':'#ff3b5c';g.beginPath();g.arc(0,-e.r-5,3,0,TAU);g.fill()}}
   else if(e.type==='broker'){
     g.rotate(e.t*.6);g.strokeStyle=col;g.lineWidth=4;g.fillStyle='#1a0826';g.beginPath();for(let i=0;i<6;i++){const a=i*TAU/6;g.lineTo(Math.cos(a)*e.r,Math.sin(a)*e.r)}g.closePath();g.fill();g.stroke();
     g.rotate(-e.t*.6);g.fillStyle=col;g.font='bold 30px Chakra Petch, sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('$',0,1);g.textBaseline='alphabetic';
@@ -5021,6 +5041,7 @@ function drawEnemy(e){
     g.fillText(haloLoc()&&haloHea()?'HALO · BOTH':haloLoc()?'HALO · LOCATION':'HALO · HEALTH',e.x,e.y+e.r+16);
   }
   if(e.safety){g.fillStyle=e.col;g.font='9px JetBrains Mono';g.textAlign='center';g.globalAlpha=.9;g.fillText('SAFETY',e.x,e.y-e.r-10);g.globalAlpha=1}
+  if(e.known&&e.skill!=='adapt'){g.strokeStyle=DATA.PUR.c;g.globalAlpha=.6;g.lineWidth=1.4;g.setLineDash([2,3]);g.beginPath();g.arc(e.x,e.y,e.r+5,0,TAU);g.stroke();g.setLineDash([]);g.globalAlpha=1}
   if(e.formId){
     const sk=e.formSkill||e.skill||'raw',skillCol=sk==='adapt'?'#c04bff':sk==='tough'?'#ffd23b':sk==='smart'?'#38e1ff':null;
     const a=S.t*2.8+(e.formSlot||0)*.7,rr=e.r+6;
@@ -5262,8 +5283,8 @@ $('devBack').addEventListener('click',closeDevGate);
 $('setBack').addEventListener('click',closeSettings);
 $('introHold').addEventListener('click',()=>{if(S&&S.introHold)dismissOptIn()});
 $('readHold').addEventListener('click',dismissRead);
-// index.html?check runs checks.js, ?ui runs ui.js, and ?decisions runs decisions.js, instead of booting a run or touching the leaderboard. See TESTING.md.
-const labTool=(location.search.match(/[?&](check|ui|decisions)\b/)||[])[1];
+// index.html?check runs checks.js, ?ui runs ui.js, ?decisions runs decisions.js, and ?bots runs bots.js, instead of booting a run or touching the leaderboard. See TESTING.md.
+const labTool=(location.search.match(/[?&](check|ui|decisions|bots)\b/)||[])[1];
 if(labTool){
   const load=src=>new Promise(r=>{const sc=document.createElement('script');sc.src=src;sc.onload=sc.onerror=r;document.body.appendChild(sc)});
   if(labTool==='check')load('decisions.js').then(()=>load('checks.js'));else load(labTool+'.js');
