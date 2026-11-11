@@ -144,6 +144,17 @@
   star('IMPULSE PROFILED: buying an upgrade again returns 70%',()=>{
     fresh({shared:{LOC:1},inf:['impulse']});S.tele.picks.heavy=1;shopWith(['heavy','armor','route']);S.rushUntil=0;
     const pr=price(perk('heavy')),c0=S.coins;choose(0,'pay');eq(c0-S.coins,pr-Math.max(5,Math.round(pr*.7)))});
+  const maxAll=()=>{for(const p of PERKS)S.tele.picks[p.id]=p.cap};
+  star('A maxed upgrade is never offered again',()=>{
+    fresh({wave:30});S.tele.picks.heavy=perk('heavy').cap;for(let i=0;i<100;i++)ok(!seatOffer().some(p=>p.id==='heavy'),'PAYLOAD offered while maxed')});
+  star('Upgrades run out: one REPAIR while hurt, nothing at full health',()=>{
+    fresh({wave:30,hp:2});maxAll();let o=seatOffer();eq(o.map(p=>p.id).join(),'fix','hurt');
+    fresh({wave:30});maxAll();eq(seatOffer().length,0,'full health')});
+  star('REPAIR heals 1♥ for credits, with no loyalty bonus and no data',()=>{
+    fresh({wave:10,hp:2});maxAll();S.offer=seatOffer();S.taken=[];S.mode='terms';S.tele.picks.fix=3;
+    const pr=price(REPAIR),c0=S.coins;choose(0,'pay');eq(S.p.hp,3,'hearts');eq(c0-S.coins,pr,'credits');eq(TYPES.filter(t=>S.shared[t]).length,0,'types shared')});
+  check('NEEDS PREDICTED: REPAIR costs 50% more at 2♥',()=>{
+    fresh({shared:{LOC:1},inf:['needs'],hp:2});eq(price(REPAIR),Math.round(listPrice(REPAIR)*1.5))});
   check('Without IMPULSE PROFILED, buying again returns 40%',()=>{
     fresh({shared:{LOC:1}});S.tele.picks.heavy=1;shopWith(['heavy','armor','route']);
     const pr=price(perk('heavy')),c0=S.coins;choose(0,'pay');eq(c0-S.coins,pr-Math.max(5,Math.round(pr*.4)))});
@@ -199,7 +210,7 @@
     fresh({hp:1,shared:{LOC:1},inf:['risk']});S.tele.hits=99;S.mode='play';S.safetyAsked=true;S.safetyOn=true;S.p.inv=0;hurtPlayer();eq(S.p.hp,2,'hearts')});
   star('RISK SCORE: high-risk, a mayday takes 2 seconds longer',()=>{
     fresh({shared:{LOC:1},inf:['risk']});S.tele.hits=99;eq(helpWait(),HELP_WAIT+2,'high-risk');S.tele.hits=0;eq(helpWait(),HELP_WAIT,'careful')});
-  star('NEEDS PREDICTED: hurt, PLATING and maxed repairs heal 1♥ less',()=>{
+  star('NEEDS PREDICTED: hurt, PLATING heals 1♥ less',()=>{
     fresh({shared:{LOC:1},inf:['needs'],hp:2});const m=S.p.maxHp;perk('armor').apply(S.p);eq(S.p.hp,2,'PLATING heal');eq(S.p.maxHp,m+1,'PLATING max');
     fresh({shared:{LOC:1},inf:['needs'],hp:4});perk('armor').apply(S.p);eq(S.p.hp,5,'PLATING heal at 4♥')});
 

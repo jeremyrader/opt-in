@@ -252,8 +252,6 @@ button{font-family:inherit;cursor:pointer;border:none}
 .cacts .pay{height:100%;display:flex;align-items:center;justify-content:center;padding:0 4px}
 .stack{font-size:12px;font-weight:700;color:#ffe7a3;background:#2a220c;border:1px solid #6a5200;padding:6px 8px;margin:-4px 0 10px;line-height:1.35;width:100%}
 .stack b{display:block;font-size:10px;letter-spacing:1px;color:#ffd23b;margin-bottom:2px}
-.stack.maxed{background:#240c14;color:#ffd0d8;border-color:#6a2236}
-.stack.maxed b{color:#ff8fa3}
 .accept{width:100%;background:linear-gradient(180deg,#2bd46b,#14a44e);color:#fff;font-size:20px;font-weight:700;padding:12px;box-shadow:0 4px 0 #0c7a39;letter-spacing:1px}
 .accept span{font-size:13px;background:rgba(0,0,0,.22);padding:1px 6px;margin-left:4px}
 .accept:hover{filter:brightness(1.08)}
@@ -1269,15 +1267,19 @@ function perkMark(id){
     armor:'<path d="M24 7 L39 15 V27 L24 41 L9 27 V15 Z"/><path d="M24 16 L32 20 V26 L24 32 L16 26 V20 Z"/>',
     heavy:'<path d="M8 15 H22 L40 24 L22 33 H8 Z"/><path d="M16 15 V33"/>',
     blank:'<circle cx="24" cy="24" r="3.2" fill="currentColor" stroke="none"/><circle cx="24" cy="24" r="9"/><circle cx="24" cy="24" r="16" stroke-dasharray="2.5 3.5"/>',
+    fix:'<path d="M14 34 L30 18"/><path d="M28 12 A7 7 0 1 0 36 20 L32 20 L28 16 Z"/><path d="M10 38 L16 32"/>',
     split:'<path d="M12 24 L30 12"/><path d="M12 24 L36 24"/><path d="M12 24 L30 36"/><circle cx="33" cy="10" r="2.5" fill="currentColor" stroke="none"/><circle cx="40" cy="24" r="2.5" fill="currentColor" stroke="none"/><circle cx="33" cy="38" r="2.5" fill="currentColor" stroke="none"/>'
   };
   return `<svg class="mark" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${d[id]||''}</svg>`;
 }
 function coinMark(){return `<svg class="mark gem" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M24 8 L38 24 L24 40 L10 24 Z"/></svg>`}
+// REPAIR: not an upgrade. Fills an empty shop seat once the upgrades run out, only while you are hurt.
+const REPAIR={id:'fix',name:'REPAIR',data:null,tag:'HULL',cap:0,repair:true,desc:'Heal 1♥. Not an upgrade.',apply:p=>{p.hp=Math.min(p.maxHp,p.hp+1)}};
+function offerCard(id){return id===REPAIR.id?REPAIR:PERKS.find(p=>p.id===id)}
 const INF=[
   {id:'retreat',need:['LOC','HEA'],name:'RETREAT MAPPED',desc:'They know where you go when you\'re hurt. At 2♥ or less, about half of new ships spawn near that spot, more on a bigger file. Search & Rescue knows it too, so a mayday brings help 2 seconds sooner.',why:'Location plus health shows when you visit a clinic or pharmacy. Where you go when you\'re hurt can reveal a condition you never shared.',
     good:'The same data lets a watch that detects a hard fall send help to exactly where you are.'},
-  {id:'needs',need:['HEA','PUR'],name:'NEEDS PREDICTED',desc:'They know what you need when you\'re hurt. At 2♥ or less, PLATING and RESERVE cost 50% more, and every repair heals 1♥ less. At 2♥ or less, the shop always stocks one of them.',why:'Purchases plus health data can predict a need before you say it. One store guessed a customer was pregnant from what she bought.',
+  {id:'needs',need:['HEA','PUR'],name:'NEEDS PREDICTED',desc:'They know what you need when you\'re hurt. At 2♥ or less, PLATING, RESERVE, and REPAIR cost 50% more, and PLATING and RESERVE heal 1♥ less. At 2♥ or less, the shop always stocks one of them.',why:'Purchases plus health data can predict a need before you say it. One store guessed a customer was pregnant from what she bought.',
     good:'Pharmacies use the same data to remind you to refill a prescription before it runs out.'},
   {id:'impulse',need:['HAB','PUR'],name:'IMPULSE PROFILED',desc:'They know when you buy fast. Offer timers drop to 5 seconds, and anything you buy before the timer ends costs 25% more. Buying an upgrade again earns a bigger loyalty bonus.',why:'Habits plus purchases show when you buy without thinking. Countdown timers are built for those moments, and rushed buyers pay more.',
     good:'Loyalty programs use the same history to reward the things you really do buy again.'},
@@ -1653,7 +1655,7 @@ function restoreRun(snap){
   s.shared=keepTypes(snap.shared);s.inf=keepInfs(snap.inf);
   s.carriedShared=snap.carriedShared||[];s.carriedInf=snap.carriedInf||[];
   s.revealQ=snap.revealQ||[];
-  s.offer=(snap.offerIds||[]).map(id=>PERKS.find(p=>p.id===id)).filter(Boolean);
+  s.offer=(snap.offerIds||[]).map(offerCard).filter(Boolean);
   s.taken=snap.taken||[];
   s.breachNext=!!snap.breachNext;s.breachWave=snap.breachWave==null?-1:snap.breachWave;s.breachLine=snap.breachLine||'';
   s.adT=snap.adT==null?6:snap.adT;s.adRecent=snap.adRecent||[];
@@ -2621,7 +2623,7 @@ function routeLead(e){if(!HARM.on||!S.inf.predict)return 0;if(e.leadOn==null)e.l
 function retreatChance(){return Math.min(.9,.5*harmScale())}
 // RISK SCORE · rated high-risk, rescue covers you less.
 function coverCut(){if(!HARM.on||!S.inf.risk||riskCareful())return 0;harmTally('hCut');return 1}
-// NEEDS PREDICTED · hurt, every repair heals 1♥ less.
+// NEEDS PREDICTED · hurt, PLATING and RESERVE heal 1♥ less.
 function soldShort(){if(!HARM.on||!S.inf.needs||!S.p||S.p.hp>(fileWeight()>=HARM.short3At?3:2))return 0;harmTally('hShort');return 1}
 function spawnWarn(type,form,skill,gene){
   if(type==='strain'){
@@ -4372,7 +4374,7 @@ function afterClear(){
 }
 let urgencyTimer=null;
 function listPrice(pk){return pk.data?10+S.wave*4:14+S.wave*5}
-function needsMarkup(pk){return !!(S.inf.needs&&S.p&&S.p.hp<=2&&(pk.id==='armor'||pk.id==='sos'))}
+function needsMarkup(pk){return !!(S.inf.needs&&S.p&&S.p.hp<=2&&(pk.id==='armor'||pk.id==='sos'||pk.repair))}
 function rushOn(){return !!(S.inf.impulse&&!S.fair&&!S.tele.urgencyOff&&S.mode==='terms'&&performance.now()<(S.rushUntil||0))}
 function priceMult(pk){
   let m=S.inf.risk?(riskCareful()?.8:1.5):1;
@@ -4443,9 +4445,8 @@ function seatOffer(){
   if(sold)S.tele.bestSeats=(S.tele.bestSeats||0)+1;
   const wild=sold||take(all);
   const out=[pressure,survive,wild].filter(Boolean);
-  // Once upgrades run out, full ones fill the empty seats: paying repairs or scores, and Accept still shares data.
-  const full=shuffle(PERKS.filter(p=>perkOpen(p)&&!used.has(p.id)));
-  while(out.length<3&&full.length)out.push(full.shift());
+  // Maxed upgrades never come back. Once upgrades run out, an empty seat offers a REPAIR, only while you are hurt.
+  if(out.length<3&&S.p&&S.p.hp<S.p.maxHp)out.push(REPAIR);
   return shuffle(out);
 }
 function openTerms(){
@@ -4490,19 +4491,8 @@ function amendText(A){
 }
 function perkOwned(pk){return S.tele.picks[pk.id]||0}
 function perkMaxed(pk){return pk.cap>0&&perkOwned(pk)>=pk.cap}
-function sinkPayLabel(){return S.p.hp<S.p.maxHp?'REPAIR 1♥':'+SCORE'}
-function applyMaxedSink(pk,paid,sold){
-  if(!paid)return 'Upgrade already maxed. It did not get stronger.'+(sold&&pk.data?' '+DATA[pk.data].n+' was still sold.':'');
-  if(S.p.hp<S.p.maxHp&&!soldShort()){S.p.hp++;return 'Upgrade already maxed. Repaired 1♥. It did not get stronger.'}
-  const pts=100+S.wave*40;S.score+=pts;return 'Upgrade already maxed. +'+pts+' score. It did not get stronger.';
-}
 function stackNote(pk){
-  const n=perkOwned(pk);if(!n)return '';
-  if(perkMaxed(pk)){
-    const D=pk.data&&DATA[pk.data];
-    const pay=S.p.hp<S.p.maxHp?'Paying spends credits to repair 1♥.':'Paying spends credits for score because you are already full.';
-    return `<div class="stack maxed"><b>MAXED ${n}/${pk.cap}</b>This will not get stronger. ${pay}${!S.fair&&D?' Accept is still free and still shares '+D.n+'.':''} Loyalty still returns some credits.</div>`;
-  }
+  const n=pk.repair?0:perkOwned(pk);if(!n)return '';
   const last=pk.cap&&n+1>=pk.cap;
   return `<div class="stack"><b>YOU HAVE THIS ×${n}${pk.cap?' / '+pk.cap:''}</b>${last?'Last stack: '+pk.again+' Then it caps.':'Next pick: '+pk.again} Loyalty bonus: credits back.</div>`;
 }
@@ -4516,29 +4506,29 @@ function renderCards(){
   termsFoot();
   $('cards').innerHTML=S.offer.map((pk,i)=>{
     if(S.taken&&S.taken.includes(i))return '';
-    const pr=price(pk),list=markedPrice(pk),afford=S.coins>=pr,owned=stackNote(pk),maxed=perkMaxed(pk),sink=sinkPayLabel();
+    const pr=price(pk),list=markedPrice(pk),afford=S.coins>=pr&&!(pk.repair&&S.p.hp>=S.p.maxHp),owned=stackNote(pk);
     const gem=coinMark();
     const deal=S.fair&&pr<list?`<span class="was">${gem} ${list}</span><span class="mem">−20%</span>`:'';
-    const hot=maxed?`<div class="chot" style="background:#ff3b5c;color:#fff">MAXED</div>`:!S.fair&&S.hotI===i?`<div class="chot">${S.hotBadge||'POPULAR'}</div>`:S.fair?`<div class="chot" style="background:#7dff6a">MEMBER</div>`:'';
-    const buySub=[deal,maxed?`<span class="sink">${sink}</span>`:''].filter(Boolean).join('');
+    const hot=!S.fair&&S.hotI===i?`<div class="chot">${S.hotBadge||'POPULAR'}</div>`:S.fair?`<div class="chot" style="background:#7dff6a">MEMBER</div>`:'';
+    const buySub=deal;
     const buyTxt=`<span class="buyMain">BUY ${gem} ${pr}</span>${buySub?`<span class="buySub">${buySub}</span>`:''}`;
     const labs=[cmOn('HAB')&&hasPack('HAB')&&S.cm.HAB.pick===pk.id?'CLASS PICK':'',classBest()===pk.id?'CLASS BESTSELLER':'',dealId()===pk.id?'CLASS DEAL −30%':''].filter(Boolean);
     const cpick=labs.length?'<div class="cpick">'+labs.join(' · ')+'</div>':'';
     const head=(desc)=>`${cpick}<div class="ctag">${pk.tag}</div>${hot}<div class="cbody"><div class="ctop"><div class="cicon" style="color:${pk.data?DATA[pk.data].c:'#7fdfff'}">${perkMark(pk.id)}</div><div class="cname">${pk.name}</div><div class="cdesc">${desc}</div>${owned}</div></div>`;
-    if(!pk.data)return `<div class="card${S.fair?' fairBuy':''}">${head(maxed?'Already at its cap. Buying will not add power.':pk.desc)}<div class="cacts">
-      <button class="buy" data-i="${i}" data-a="pay" ${afford?'':'disabled'}>${buyTxt}</button><div class="req">${maxed?'Spend credits to '+ (S.p.hp<S.p.maxHp?'repair 1♥':'add score')+'. No extra upgrade.':'No data required.'}</div>${S.fair?'<div class="fairSkip" aria-hidden="true"></div>':'<div class="payHold" aria-hidden="true"></div>'}</div></div>`;
+    if(!pk.data)return `<div class="card${S.fair?' fairBuy':''}">${head(pk.desc)}<div class="cacts">
+      <button class="buy" data-i="${i}" data-a="pay" ${afford?'':'disabled'}>${buyTxt}</button><div class="req">No data required.</div>${S.fair?'<div class="fairSkip" aria-hidden="true"></div>':'<div class="payHold" aria-hidden="true"></div>'}</div></div>`;
     const D=DATA[pk.data];
     const again=S.shared[pk.data]?' (again)':'';
     const am=amendText(S.amend&&S.amend.i===i?S.amend:null);
     const access=`<b style="color:${D.c}">${D.i} ${D.n}</b>`;
-    if(S.fair)return `<div class="card fairBuy">${head(maxed?'Already at its cap. Buying will not add power.':pk.desc)}<div class="cacts">
+    if(S.fair)return `<div class="card fairBuy">${head(pk.desc)}<div class="cacts">
       <button class="buy" data-i="${i}" data-a="pay" ${afford?'':'disabled'}>${buyTxt}</button>
-      <div class="req">${maxed?'Pay = '+(S.p.hp<S.p.maxHp?'repair 1♥':'score')+'. No extra power.':'You have '+S.coins+' '+gem+'.'}</div>
+      <div class="req">You have ${S.coins} ${gem}.</div>
       <button class="accept" data-i="${i}" data-a="free">or Accept free</button></div></div>`;
-    return `<div class="card">${head(maxed?'Already at its cap. Accept still shares '+D.n+' and does not add power.':pk.desc)}<div class="cacts">
-      <button class="accept" data-i="${i}" data-a="free">${maxed?'ACCEPT<span>STILL SHARES '+D.n+'</span>':'ACCEPT<span>FREE</span>'}</button>
-      <div class="req">${maxed?'No extra power. Still allows access to your '+access+again+am+'.':'Allows access to your '+access+again+am+'.'}</div>
-      <button class="pay" data-i="${i}" data-a="pay" ${afford?'':'disabled'}>${maxed?'or pay '+gem+' '+pr+' to '+(S.p.hp<S.p.maxHp?'repair 1♥':'add score')+' (you have '+S.coins+')':'or pay '+gem+' '+pr+' (you have '+S.coins+')'}</button></div></div>`;
+    return `<div class="card">${head(pk.desc)}<div class="cacts">
+      <button class="accept" data-i="${i}" data-a="free">ACCEPT<span>FREE</span></button>
+      <div class="req">Allows access to your ${access}${again}${am}.</div>
+      <button class="pay" data-i="${i}" data-a="pay" ${afford?'':'disabled'}>or pay ${gem} ${pr} (you have ${S.coins})</button></div></div>`;
   }).join('');
   renderPacks();
 }
@@ -4562,12 +4552,20 @@ $('fineBox').addEventListener('toggle',()=>{if($('fineBox').open)S.tele.fineOpen
 function termsHotkey(i){const left=S.offer.map((pk,j)=>j).filter(j=>!(S.taken&&S.taken.includes(j)));const j=left[i];if(j==null)return;const pk=S.offer[j];choose(j,!pk.data||S.fair?'pay':'free')}
 function choose(i,a){
   if(S.mode!=='terms')return;const pk=S.offer[i];if(!pk||(S.taken&&S.taken.includes(i)))return;
+  if(pk.repair){
+    const pr=price(pk);if(S.coins<pr||S.p.hp>=S.p.maxHp){sfx.deny();return}
+    S.coins-=pr;S.tele.paid++;S.tele.repairs=(S.tele.repairs||0)+1;
+    if(needsMarkup(pk))S.tele.needsExtra=(S.tele.needsExtra||0)+Math.round(pr/3);
+    pk.apply(S.p);S.taken.push(i);
+    if(S.taken.length>=S.offer.length)closeTerms();else{renderCards();maybeSaveShop()}
+    return;
+  }
   const again=S.tele.picks[pk.id]||0,pr=price(pk);
   let note='',sold=false;
   if(a==='pay'){
     if(S.coins<pr){sfx.deny();return}
     S.coins-=pr;S.tele.paid++;
-    if(pk.data&&!perkMaxed(pk)){S.tele.paidData=(S.tele.paidData||0)+1;S.tele.paidDataCoins=(S.tele.paidDataCoins||0)+pr}
+    if(pk.data){S.tele.paidData=(S.tele.paidData||0)+1;S.tele.paidDataCoins=(S.tele.paidDataCoins||0)+pr}
     if(needsMarkup(pk))S.tele.needsExtra=(S.tele.needsExtra||0)+Math.round(pr/3);
     if(rushOn())S.tele.rushExtra=(S.tele.rushExtra||0)+Math.round(pr/5);
     if(dealId()===pk.id)S.tele.dealSaved=(S.tele.dealSaved||0)+Math.round(pr/(1-DEAL_OFF)*DEAL_OFF);
@@ -4575,7 +4573,7 @@ function choose(i,a){
   }
   else{
     const A=S.amend&&S.amend.i===i?S.amend:null;S.tele.free++;
-    if(!perkMaxed(pk))S.tele.freeValue=(S.tele.freeValue||0)+pr;
+    S.tele.freeValue=(S.tele.freeValue||0)+pr;
     if(A&&A.kind==='local'){S.tele.honest++;note='Processed on-device. Nothing was shared. Reading paid off.'}
     else{
       share(pk.data);sold=true;
@@ -4584,9 +4582,8 @@ function choose(i,a){
     }
   }
   if(again){const bonus=Math.max(5,Math.round(pr*(S.inf.impulse?.7:.4)));if(S.inf.impulse)S.tele.loyalExtra=(S.tele.loyalExtra||0)+bonus-Math.max(5,Math.round(pr*.4));S.coins+=bonus;note=(note?note+' ':'')+'Loyalty bonus +'+bonus+' ◈.';}
-  if(perkMaxed(pk))note=(note?note+' ':'')+applyMaxedSink(pk,a==='pay',sold);
-  else pk.apply(S.p);
-  if(note)toast(note,perkMaxed(pk)?2800:1600);
+  pk.apply(S.p);
+  if(note)toast(note,1600);
   S.tele.lastBuy=pk.id;if(S.shared.PUR&&!S.fair)musicPush(10,.1,1.6);
   S.tele.picks[pk.id]=(S.tele.picks[pk.id]||0)+1;if(!S.tele.firstPick){S.tele.firstPick=pk.id;noteFirstPick(pk.id)}
   S.taken.push(i);
@@ -4645,7 +4642,7 @@ function fineText(){
     '<b>2. COMBINATION.</b> Data you share separately may be combined once we hold both types and at least two shares of one of them. Combined data can reveal things you never shared, such as where you live, what you need, and what you will do next. You will be notified of inferences after they occur. Some inferences also work in your favor, and each one says how.',
     '<b>2b. COMBINATION ACROSS PLAYERS.</b> Finished runs are counted. No names. The scoreboard keeps 20 names. The count shows what share chose Accept. Each data type you share also joins a class model for that type. The models are used on every player, whether or not they shared: LOCATION sends ships where the class lingers, HABITS adds shots where the class dodges, HEALTH presses harder at the heart count where the class gets hit most, and PURCHASES fills a shop seat with what the class buys most. Class data packs sell the other side: a hit map, a class pick in the shop, a check-in shield, and a class deal on what the class buys least. A pack stays yours until you delete your data. Both apply to every player, whether or not they shared. Fair Play still adds your run. Delete My Data takes your name off the board. The Accept count does not change.',
     '<b>3. SECURITY.</b> We take your security seriously. Security incidents may occur. A small file is rarely worth stealing. Combined data, and files built from three or more categories, are when a breach becomes likely and valuable.',
-    '<b>4. PAYMENT OPTION.</b> You may instead pay with credits. Paid upgrades do not collect data. Repeat selections of an upgrade you already have earn a loyalty credit bonus. Each upgrade stops getting stronger after a set number of picks. A full upgrade comes back only when the others run out. Paying for it repairs 1♥, or adds score when you are not hurt. Accept still shares its data and adds no power. Other prices may still change based on how you play.',
+    '<b>4. PAYMENT OPTION.</b> You may instead pay with credits. Paid upgrades do not collect data. Repeat selections of an upgrade you already have earn a loyalty credit bonus. Each upgrade stops getting stronger after a set number of picks. A full upgrade is not offered again. Once the upgrades run out, a REPAIR heals 1♥ for credits while you are hurt. Other prices may still change based on how you play.',
     '<b>4b. FAIR PLAY.</b> A subscription of ◈ '+subPrice()+' is billed at the start of each wave until you cancel or cannot pay. Members get no ads, a cleaner upgrade screen, and member prices. Credit upgrades are 20% off while you are billed. The hotspot becomes Secure Wi-Fi and does not add exposure while you are billed. The fire bonus and the 1-hit shield still apply. The watch continues. New behavior patterns can still unlock and still apply. The mimic still learns from hits. We still learn how you play. Accept stays free, and still sells the data on that offer. Canceling ends the bill and does not delete the member file. The member file is an account. Win-back ads can use it even if you never tapped Accept. It persists across runs until you delete your data. It does not delete data already collected, stop inferences already made, forget patterns already learned, prevent a breach of data already sold, include Halo, or grant a free rescue.',
     '<b>4c. HALO.</b> Halo offers automatic rescue at wave 3, or sooner if a hit would end your run first. Once per run, when a hit would end your run: with Halo on, you come back instantly with 3♥, and Halo sells your health and your location to a data broker. The next broker aims at you better. With Halo off, you send a mayday. Search & Rescue does not track you, so it takes '+HELP_WAIT+' seconds to trace your beacon. Until it arrives you move slowly and cannot shoot or dash, and one hit ends the run. Survive and you come back with 2♥. Nothing is sold. If RETREAT MAPPED is on file, Search & Rescue already knows where you go when hurt and arrives 2 seconds sooner. You can turn Halo on or off from the pause menu. Turning it off does not undo a sale.',
     '<b>4d. * HOTSPOT.</b> A ring slowly roams the arena. Staying in it increases fire rate and charges a 1-hit shield. Standing still can grant credits. On the free network, time in the ring adds a lot of exposure, and each shield charge dumps more onto your file. That hotspot heat cools if you leave the free ring. Sold data types do not. Fair Play upgrades the ring to Secure Wi-Fi: the shield and fire bonus still apply, credits trickle more slowly, and the ring does not add exposure. The watch continues. The * on the ring refers to this clause.',

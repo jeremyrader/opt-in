@@ -146,14 +146,20 @@ Add a test to `PRESETS` in `bots.js` to give it a button.
 - All-in 28.3 waves (54% reach 30). Location + Habits beats all-in 74%. Non-sharer 56%. Careful non-sharer (expert) 64%. Careless sharer (novice) 18%, 13% reach 30.
 - No early deaths (before wave 20) except one careless-sharer run. Matches the what-if within 2 points.
 
+**No maxed cards (2026-11-07; REPAIR replaces maxed upgrades, same seeds, 24 runs, stop at wave 30).** Maxed cards used to pay score when you were full, and Accept on them kept sharing data.
+- Scores fell for everyone (all-in 143,471 → 121,769) because the score payout is gone.
+- Selective sharers now end with fewer types (2.5, was 3.7), since maxed data cards no longer re-share.
+- Location + Habits beats all-in 60% (target 60%). Non-sharer 39% (target 40%). Careful non-sharer 55% (target 50%). Careless sharer 16%, 4% reach wave 30.
+- All three are at or within a point of their targets. The ranges are wide at 24 runs; rerun with more runs before tuning.
+
 **What the bot does not do:** read the fine print, shoot ads, change Halo mid-run, or play like a student. Use it to compare choices, not to judge difficulty.
 
 **Balance targets (fill these in):**
 
 - [ ] **How much to share.** Students judge sharing from the leaderboard: scores next to what each player shared. Selective sharers (one or two types) should do best. Non-sharers should be able to beat all-in sharers, who share every type. Use the **How much to share** test; "Beats" is the chance a run out-scores an all-in run.
-  - At the same skill, a selective sharer beats an all-in sharer in at least 60% of pairings. Now 74%.
-  - At the same skill, a non-sharer beats an all-in sharer in at least 40% of pairings. Now 56%.
-  - A careful non-sharer (expert) beats an average all-in sharer in at least 50% of pairings. Now 64%.
+  - At the same skill, a selective sharer beats an all-in sharer in at least 60% of pairings. Now 60% (74% before REPAIR replaced maxed cards).
+  - At the same skill, a non-sharer beats an all-in sharer in at least 40% of pairings. Now 39% (56% before).
+  - A careful non-sharer (expert) beats an average all-in sharer in at least 50% of pairings. Now 55% (64% before).
 - [ ] A share-nothing player can afford at least ___ upgrades by wave 5.
 - [ ] No single upgrade is bought in more than ___% of shops.
 - [ ] Each inference's harm and upside are both used in at least ___% of runs that have it.
@@ -215,7 +221,7 @@ For each area: load the setup, watch for the effect on screen, check the matchin
   - Class deal ×0.7
   - Fair Play ×0.8
 - [ ] ★ Worst-case stack is still payable, and nothing drops to 0.
-- [ ] Maxed upgrades: paying repairs 1♥ or adds score; Accept still shares.
+- [ ] Maxed upgrades never come back. Once upgrades run out, a REPAIR card (heal 1♥, credits only) fills an empty seat while you are hurt; at full health the shop shows fewer cards, or is skipped.
 - [ ] Amended offers: on-device (nothing shared), bundled (shares a second type), resold (counts double).
 - [ ] Loyalty bonus 40%, or 70% with IMPULSE PROFILED.
 - [ ] Offer timer: 10s, or 5s with IMPULSE PROFILED; turns off after reading slowly twice.
@@ -235,7 +241,7 @@ For each, check: unlock rule (both types shared, one of them at least twice), re
 - [ ] RISK SCORE (Health + Habits): when hit often, +50% prices, Halo returns 1♥ less, mayday 2s slower · 20% off when careful.
 - [ ] ★ RETREAT MAPPED (Location + Health): at 2♥ or less, about half of new ships spawn near your usual hurt spot, more on a bigger file · mayday 2s sooner.
 - [ ] ★ HOME INFERRED (Location + Purchases): ships spawn closer, with less warning on a bigger file · shield every 3rd wave.
-- [ ] ★ NEEDS PREDICTED (Health + Purchases): when hurt, repairs +50% and every repair heals 1♥ less · repair always stocked when hurt.
+- [ ] ★ NEEDS PREDICTED (Health + Purchases): when hurt, PLATING, RESERVE, and REPAIR +50%, and PLATING and RESERVE heal 1♥ less · repair always stocked when hurt.
 - [ ] ★ IMPULSE PROFILED (Habits + Purchases): 5s timer, +25% before it ends · 70% loyalty bonus.
 - [ ] RETREAT and HOME together: retreat spawns still happen when hurt.
 

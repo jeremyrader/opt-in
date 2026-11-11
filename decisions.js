@@ -46,7 +46,7 @@
     risk:{neg:'Take more than 1 hit a wave and prices are 50% higher, Halo brings you back with 1♥ less, and a mayday takes 2 seconds longer.',pos:'Prices are 20% lower if you take 1 hit or less a wave.'},
     retreat:{neg:'At 2♥ or less, about half of new ships spawn near the spot you go when hurt, more on a bigger file.',pos:'A mayday brings help 2 seconds sooner.'},
     home:{neg:'Ships spawn closer to you, with less warning. Even less on a bigger file.',pos:'Every 3rd wave starts with a 1-hit shield.'},
-    needs:{neg:'At 2♥ or less, PLATING and RESERVE cost 50% more, and every repair heals 1♥ less (from 3♥ on a big file).',pos:'At 2♥ or less, the shop always stocks one of them.'},
+    needs:{neg:'At 2♥ or less, PLATING, RESERVE, and REPAIR cost 50% more. Hurt, PLATING and RESERVE heal 1♥ less (from 3♥ on a big file).',pos:'At 2♥ or less, the shop always stocks one of them.'},
     impulse:{neg:'Offer timers drop to 5 seconds, and buying before one ends costs 25% more.',pos:'Buying an upgrade again returns 70% of its price instead of 40%.'}
   };
 
@@ -88,9 +88,9 @@
       {label:'REPEAT IT',pos:['40% of the price comes back as credits (70% with IMPULSE PROFILED).','Stronger again.'],
         neg:['Each upgrade stops getting stronger after a set number of picks.','If you always pick the same one first, NEXT MOVE PREDICTED makes it cost 2×.']},
       {label:'SPREAD YOUR PICKS',pos:['Keeps the game from predicting your first pick.','More kinds of power.'],neg:['No loyalty bonus.']}]);
-    add('maxed','Shop · other choices','An upgrade that is already full','Offered again only when the others run out.',['fn:applyMaxedSink','fine:4'],[
-      {label:'PAY CREDITS',pos:['Repairs 1♥ (none while hurt with NEEDS PREDICTED), or adds score if you are already full.'],neg:['Costs credits.','No extra power.']},
-      {label:'ACCEPT · FREE',pos:['Costs no credits.'],neg:['Still shares its data.','No extra power.']}]);
+    add('repair','Shop · other choices','REPAIR','Once the upgrades run out, an empty seat offers it while you are hurt. A full upgrade is never offered again.',['fn:seatOffer','const:REPAIR','fine:4'],[
+      {label:'BUY · CREDITS',pos:['Heals 1♥.','No data collected.'],neg:['Costs credits, and prices rise each wave.','Not an upgrade: no power, no loyalty bonus.','With NEEDS PREDICTED, costs 50% more at 2♥ or less.']},
+      {label:'PASS',pos:['Keeps your credits.'],neg:['You stay hurt.']}]);
     add('amend','Shop · other choices','Fine print on the card','Data offers from wave 2, about half the time. Read the card before you accept.',['fn:pickAmendment','fn:amendText'],[
       {label:'"…AND YOUR (OTHER TYPE)"',pos:['The upgrade is free.'],neg:['Accepting shares a second type too, which can complete an inference.']},
       {label:'"MAY BE RESOLD"',pos:['The upgrade is free.'],neg:['Brokers may resell it. It counts double toward breaches.']},
@@ -237,20 +237,20 @@ const STAMPS={
   'const:HELP_WAIT':'3t22',
   'const:PACKS':'mcbuza',
   'const:PACK_PRICE':'3hmw9',
+  'const:REPAIR':'1tp6xgf',
   'const:START_COINS':'3hmw9',
   'fine:2':'1rhwqy',
   'fine:2b':'1bdcelg',
   'fine:3':'1hoyhbx',
-  'fine:4':'ofx4ae',
+  'fine:4':'1dmm43j',
   'fine:4b':'109eilj',
   'fine:4c':'1ms24e9',
   'fine:4d':'yghvdz',
   'fine:5':'1whgpvz',
   'fn:amendText':'1txz4kx',
-  'fn:applyMaxedSink':'woxo4t',
   'fn:buildKnown':'1ujogeh',
   'fn:checkSecret':'4k1174',
-  'fn:choose':'1175ef1',
+  'fn:choose':'131ad8',
   'fn:closeTerms':'160zcxw',
   'fn:confirmFair':'kn7d0p',
   'fn:coverCut':'1souutp',
@@ -268,17 +268,18 @@ const STAMPS={
   'fn:rescueArrives':'ocj9n4',
   'fn:retreatChance':'hv52jf',
   'fn:routeLead':'z4vzuk',
+  'fn:seatOffer':'7xu2u8',
   'fn:sendMayday':'13zs9f1',
   'fn:shareExp':'m44azz',
   'fn:soldShort':'12toxwi',
-  'fn:stackNote':'1v9rrak',
+  'fn:stackNote':'1rngbkc',
   'fn:startUrgency':'zzfdgc',
   'fn:subPrice':'3114sm',
   'fn:tryChargeFair':'y539bc',
   'fn:weakHp':'1b5ynaj',
   'inf:home':'l9tuzh',
   'inf:impulse':'1m35mfn',
-  'inf:needs':'hm52i0',
+  'inf:needs':'u5uu0w',
   'inf:predict':'qncspw',
   'inf:retreat':'2hdbtu',
   'inf:risk':'1jjhrdn',

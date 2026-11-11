@@ -234,7 +234,7 @@
   item('Shop · extra data on the card (bundle)',()=>shop({amend:{i:0,kind:'bundle',extra:'HAB'}}),'#terms:not(.hidden)');
   item('Shop · may be resold',()=>shop({amend:{i:0,kind:'resell'}}),'#terms:not(.hidden)');
   item('Shop · processed on-device',()=>shop({amend:{i:0,kind:'local'}}),'#terms:not(.hidden)');
-  item('Shop · upgrade already maxed',()=>shop({picks:{route:3}}),'#terms:not(.hidden)');
+  item('Shop · upgrades run out (REPAIR)',()=>{run({wave:22,hp:2,coins:300});for(const p of PERKS)S.tele.picks[p.id]=p.cap;S.tele.picks.reply=1;S.tele.picks.heavy=2;openTerms()},'#terms:not(.hidden)');
   item('Shop · Fair Play member',()=>shop({fair:true}),'#terms:not(.hidden)');
   item('Shop · class bestseller, deal, and packs',()=>shop({crowd:CROWD,packs:['PUR','HAB'],coins:120}),'#terms:not(.hidden)');
   item('Shop · hurt (NEEDS PREDICTED)',()=>shop({shared:ALL2,inf:['needs'],hp:2},['armor','sos','heavy']),'#terms:not(.hidden)');
