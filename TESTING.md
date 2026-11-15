@@ -152,14 +152,28 @@ Add a test to `PRESETS` in `bots.js` to give it a button.
 - Location + Habits beats all-in 60% (target 60%). Non-sharer 39% (target 40%). Careful non-sharer 55% (target 50%). Careless sharer 16%, 4% reach wave 30.
 - All three are at or within a point of their targets. The ranges are wide at 24 runs; rerun with more runs before tuning.
 
+**60-run check (2026-11-14; commit 5116d28, seeds 1000–1059, average bot with hotspot, stop at wave 30, no errors).** "Beats" ± is a 95% range.
+
+| Player | Waves | Reach 30 | Score | Beats all-in |
+|---|---|---|---|---|
+| All-in | 28.2 | 57% | 120,345 | — |
+| Selective · Location + Habits | 29.1 | 75% | 128,297 | 63% ±10 |
+| Non-sharer | 29.1 | 88% | 118,095 | 44% ±10 |
+| Careful non-sharer (expert) | 29.5 | 95% | 125,288 | 56% ±10 |
+| Careless sharer (novice) | 25.8 | 10% | 97,607 | 18% ±8 |
+
+- All three targets are met. The 24-run dip to 39% was noise.
+- Selective sharers have the highest average score. A careful non-sharer beats a careless sharer 91% of the time.
+- Non-sharers reach wave 30 more often than all-in sharers (88% against 57%) but score a little less per run, so they win 44% of pairings.
+
 **What the bot does not do:** read the fine print, shoot ads, change Halo mid-run, or play like a student. Use it to compare choices, not to judge difficulty.
 
 **Balance targets (fill these in):**
 
 - [ ] **How much to share.** Students judge sharing from the leaderboard: scores next to what each player shared. Selective sharers (one or two types) should do best. Non-sharers should be able to beat all-in sharers, who share every type. Use the **How much to share** test; "Beats" is the chance a run out-scores an all-in run.
-  - At the same skill, a selective sharer beats an all-in sharer in at least 60% of pairings. Now 60% (74% before REPAIR replaced maxed cards).
-  - At the same skill, a non-sharer beats an all-in sharer in at least 40% of pairings. Now 39% (56% before).
-  - A careful non-sharer (expert) beats an average all-in sharer in at least 50% of pairings. Now 55% (64% before).
+  - At the same skill, a selective sharer beats an all-in sharer in at least 60% of pairings. Now 63% ±10 (60 runs).
+  - At the same skill, a non-sharer beats an all-in sharer in at least 40% of pairings. Now 44% ±10 (60 runs).
+  - A careful non-sharer (expert) beats an average all-in sharer in at least 50% of pairings. Now 56% ±10 (60 runs).
 - [ ] A share-nothing player can afford at least ___ upgrades by wave 5.
 - [ ] No single upgrade is bought in more than ___% of shops.
 - [ ] Each inference's harm and upside are both used in at least ___% of runs that have it.
