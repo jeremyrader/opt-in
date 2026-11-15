@@ -85,6 +85,13 @@
   star('Fair Play costs a third of a regular upgrade, so it rises each wave',()=>{
     for(const [w,want] of [[1,6],[5,13],[10,21],[20,38],[30,55]]){fresh({wave:w});eq(subPrice(),want,'wave '+w);eq(subPrice(),Math.round(listPrice(perk('armor'))/3),'vs list at wave '+w)}
   });
+  check('The shop button shows the Fair Play price: now, or the next bill once subscribed',()=>{
+    fresh({wave:10});shopWith(['route','armor','heavy']);presentTerms();
+    const t=()=>$('subBtn').textContent.replace(/\s+/g,' ').trim();
+    eq(t(),'SUBSCRIBE · '+subPrice(),'not subscribed');
+    confirmFair();paintSubBtns();eq(t(),'CANCEL · '+subPriceAt(12)+'/WAVE','just paid for wave 11');
+    S.fairPaidWave=10;paintSubBtns();eq(t(),'CANCEL · '+subPriceAt(11)+'/WAVE','bill due next wave');
+  });
   star('Fair Play: 20% off',()=>{
     fresh({shared:{LOC:1}});S.fair=true;const p=perk('heavy');eq(price(p),Math.round(listPrice(p)*.8))});
   star('Class deal: 30% off the least-bought offered upgrade',()=>{
@@ -341,6 +348,17 @@
     eq(getCrowd().models.PUR.k,5,'class model kept')});
 
   // =====================================================================
+  group('Mimic');
+  star('A new run starts a new mimic: gen 1, no spawn shifts, nothing saved',()=>{
+    fresh({wave:22});S.formTier=4;S.hiveWave=18;
+    S.strain.gen=6;S.strain.cut={ping:3,watcher:1,crawler:0};S.strain.scored.strain=4;
+    S.strain.hits.push(randGene());breedStrain();
+    eq(store.get('strain',null),null,'saved to the device');
+    beginRun();eq(S.strain.gen,1,'gen');eq(S.strain.best,null,'best');
+    eq(S.strain.cut.ping+S.strain.cut.watcher+S.strain.cut.crawler,0,'spawn shifts');
+    eq(S.strain.scored.strain,0,'mimic hits');
+  });
+
   group('Saves');
   star('A saved run comes back with the same wave, credits, and file',()=>{
     fresh({shared:{LOC:2,PUR:1}});S.wave=4;S.coins=37;S.checkpoint='live';saveGame();

@@ -128,7 +128,7 @@
       {label:'SHARE MORE',pos:['More free upgrades.','More inferences, each with an upside.'],neg:['Each type or inference added makes every harm from your file stronger.','Higher exposure. After a wave a breach can leak what you shared to brokers.','Files with three or more types are the likeliest to be breached.','Everything stays on file until you delete your data.']},
       {label:'SHARE LITTLE',pos:['Low breach risk. A small file is rarely worth stealing.','Each harm stays small.','Fewer inferences made about you.'],neg:['You pay credits for upgrades.']}]);
     add('delete','Delete My Data','Delete My Data','The small button on the title screen.',['fn:deleteMyData','fine:5'],[
-      {label:'DELETE',pos:['Removes your name, saved run, shared data, inferences, behavior patterns, the mimic, your data packs, your high score, and your leaderboard rows.','You choose a new name next time.'],
+      {label:'DELETE',pos:['Removes your name, saved run, shared data, inferences, behavior patterns, your data packs, your high score, and your leaderboard rows.','You choose a new name next time.'],
         neg:['Copies already taken stay out there.','The class Accept count does not change.','You lose your high score, your packs, and your progress.']},
       {label:'KEEP IT',pos:['Your packs, high score, and progress stay.'],neg:['Everything shared stays on file across sessions, and keeps being used.']}]);
 
@@ -246,7 +246,7 @@ const STAMPS={
   'fine:4b':'1hqvv9y',
   'fine:4c':'1ms24e9',
   'fine:4d':'yghvdz',
-  'fine:5':'1whgpvz',
+  'fine:5':'1ecr777',
   'fn:amendText':'1txz4kx',
   'fn:buildKnown':'1ujogeh',
   'fn:checkSecret':'4k1174',
@@ -254,7 +254,7 @@ const STAMPS={
   'fn:closeTerms':'160zcxw',
   'fn:confirmFair':'29sxr1',
   'fn:coverCut':'1souutp',
-  'fn:deleteMyData':'1lc1vlw',
+  'fn:deleteMyData':'6miui0',
   'fn:exposure':'1j1tq0z',
   'fn:fileWeight':'1nd8z6y',
   'fn:haloRescue':'1fs6pla',
@@ -274,7 +274,7 @@ const STAMPS={
   'fn:soldShort':'12toxwi',
   'fn:stackNote':'1rngbkc',
   'fn:startUrgency':'zzfdgc',
-  'fn:subPrice':'1w6mg01',
+  'fn:subPrice':'iskzaf',
   'fn:tryChargeFair':'y539bc',
   'fn:weakHp':'1b5ynaj',
   'inf:home':'l9tuzh',

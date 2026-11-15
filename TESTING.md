@@ -243,7 +243,7 @@ For each area: load the setup, watch for the effect on screen, check the matchin
 - [ ] Opt-in intro, and "skip intro" on later runs.
 - [ ] Ping, watcher, crawler ships and their formations at each tier.
 - [ ] Broker every 5 waves; breach broker when the file is breached.
-- [ ] MIMIC learns from hits and carries across runs.
+- [ ] MIMIC learns from hits within a run. A new run starts at gen 1 with no spawn shifts; a resumed saved run keeps its own.
 
 ### Mega ships (after the hive mind)
 Three waves after HIVE MIND, some ordinary ships fly together and merge into one big ship. Sizes grow every 3 waves: TRIAD (3 ships) at hive +3, BASTION (5) at +6, COLOSSUS (8) at +9. From then on each wave has one of the largest size so far plus one TRIAD. Mimics and brokers never join. Mimics still come on their own.
