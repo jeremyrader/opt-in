@@ -102,10 +102,10 @@
     // Class data packs, one per class model.
     for(const t of CLASS_TYPES){
       const D=DATA[t],c=CLASS[t]||{neg:'(class wording missing)',pos:'(class wording missing)'};
-      add('pack-'+t,'Class data packs',PACKS[t].name,'In the shop once classmates have shared '+D.n+'. '+PACK_PRICE+' credits, yours until you delete your data.',
-        ['fine:2b','const:PACKS','const:PACK_PRICE','const:DEAL_OFF'],[
-        {label:'BUY THE PACK',pos:[c.pos,'Yours until you delete your data.'],neg:[PACK_PRICE+' credits.','The harm does not go away. The class model still does this to every player: '+c.neg]},
-        {label:'SKIP IT',pos:['Keeps '+PACK_PRICE+' credits.'],neg:['No benefit from the class data.','The harm still reaches you: '+c.neg]}]);
+      add('pack-'+t,'Class data packs',PACKS[t].name,'In the shop once classmates have shared '+D.n+'. Twice an upgrade\'s list price (100 minimum), yours until you delete your data.',
+        ['fine:2b','const:PACKS','fn:packPrice','const:DEAL_OFF'],[
+        {label:'BUY THE PACK',pos:[c.pos,'Yours until you delete your data.'],neg:['100 credits through wave 7, then twice an upgrade\'s list price (128 at wave 10, 228 at wave 20).','The harm does not go away. The class model still does this to every player: '+c.neg]},
+        {label:'SKIP IT',pos:['Keeps the credits.'],neg:['No benefit from the class data.','The harm still reaches you: '+c.neg]}]);
     }
 
     add('halo','Halo and rescue','Halo: automatic rescue, or a mayday','Asked at wave 3, or the first time a hit would end your run. Changeable from the pause menu.',
@@ -236,7 +236,6 @@ const STAMPS={
   'const:HARM':'15iila4',
   'const:HELP_WAIT':'3t22',
   'const:PACKS':'mcbuza',
-  'const:PACK_PRICE':'3hmw9',
   'const:REPAIR':'1tp6xgf',
   'const:START_COINS':'3hmw9',
   'fine:2':'1rhwqy',
@@ -262,6 +261,7 @@ const STAMPS={
   'fn:harmScale':'lb1i75',
   'fn:helpWait':'1hgel1s',
   'fn:learnPatterns':'1lai2fe',
+  'fn:packPrice':'uxdhi',
   'fn:patternKeep':'w67ysl',
   'fn:pickAmendment':'1dg2p71',
   'fn:priceMult':'1jx2221',

@@ -909,7 +909,9 @@ function classRead(){
   return cm;
 }
 // Class data packs sell a model's benefit. A pack stays with the player until Delete My Data.
-const PACKS={LOC:{name:'LOCATION PACK',what:'Hit map'},HAB:{name:'HABITS PACK',what:'Class pick'},HEA:{name:'HEALTH PACK',what:'Check-in shield'},PUR:{name:'PURCHASES PACK',what:'Class deal'}},PACK_PRICE=40;
+const PACKS={LOC:{name:'LOCATION PACK',what:'Hit map'},HAB:{name:'HABITS PACK',what:'Class pick'},HEA:{name:'HEALTH PACK',what:'Check-in shield'},PUR:{name:'PURCHASES PACK',what:'Class deal'}};
+// Twice a regular upgrade's list price, never under 100: a real choice early, still two upgrades' worth late.
+const packPrice=()=>Math.max(100,2*(14+5*(S&&S.wave||1)));
 // The Purchases pack takes 30% off whichever offered upgrade the class buys least.
 const DEAL_OFF=.3;
 function dealId(){
@@ -4774,12 +4776,12 @@ function renderPacks(){
   const el=$('packs');if(!el)return;
   const avail=S.sandbox?[]:CLASS_TYPES.filter(t=>S.cm&&S.cm[t]&&S.cm[t].s>0);
   if(!avail.length){el.innerHTML='';return}
-  el.innerHTML='<div class="packsLab">CLASS DATA</div>'+avail.map(t=>{const D=DATA[t],own=hasPack(t),ok=S.coins>=PACK_PRICE;
-    return `<button type="button" class="pack${own?' own':''}" data-pack="${t}" ${own||!ok?'disabled':''} style="--c:${D.c}"><span class="pkI">${D.i}</span><span class="pkN">${PACKS[t].name}</span><span class="pkW">${PACKS[t].what}</span><span class="pkP">${own?'OWNED':coinMark()+' '+PACK_PRICE}</span></button>`}).join('');
+  el.innerHTML='<div class="packsLab">CLASS DATA</div>'+avail.map(t=>{const D=DATA[t],own=hasPack(t),pr=packPrice(),ok=S.coins>=pr;
+    return `<button type="button" class="pack${own?' own':''}" data-pack="${t}" ${own||!ok?'disabled':''} style="--c:${D.c}"><span class="pkI">${D.i}</span><span class="pkN">${PACKS[t].name}</span><span class="pkW">${PACKS[t].what}</span><span class="pkP">${own?'OWNED':coinMark()+' '+pr}</span></button>`}).join('');
 }
 function buyPack(t){
-  if(!S||S.mode!=='terms'||hasPack(t)||S.coins<PACK_PRICE)return;
-  S.coins-=PACK_PRICE;S.packs=S.packs.concat(t);store.set('packs',S.packs);
+  if(!S||S.mode!=='terms'||hasPack(t)||S.coins<packPrice())return;
+  S.coins-=packPrice();S.packs=S.packs.concat(t);store.set('packs',S.packs);
   S.tele.packsBought=(S.tele.packsBought||0)+1;sfx.select();toast(PACKS[t].name+' · yours until you delete your data',2200);
   renderCards();maybeSaveShop();
 }

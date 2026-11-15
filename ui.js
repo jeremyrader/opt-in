@@ -248,7 +248,7 @@
   item('Shop · processed on-device',()=>shop({amend:{i:0,kind:'local'}}),'#terms:not(.hidden)');
   item('Shop · upgrades run out (REPAIR)',()=>{run({wave:22,hp:2,coins:300});for(const p of PERKS)S.tele.picks[p.id]=p.cap;S.tele.picks.reply=1;S.tele.picks.heavy=2;openTerms()},'#terms:not(.hidden)');
   item('Shop · Fair Play member',()=>shop({fair:true}),'#terms:not(.hidden)');
-  item('Shop · class bestseller, deal, and packs',()=>shop({crowd:CROWD,packs:['PUR','HAB'],coins:120}),'#terms:not(.hidden)');
+  item('Shop · class bestseller, deal, and packs',()=>shop({crowd:CROWD,packs:['PUR','HAB'],coins:200}),'#terms:not(.hidden)');
   item('Shop · hurt (NEEDS PREDICTED)',()=>shop({shared:ALL2,inf:['needs'],hp:2},['armor','sos','heavy']),'#terms:not(.hidden)');
   item('Shop · rush timer (IMPULSE PROFILED)',()=>shop({shared:ALL2,inf:['impulse']}),'#terms:not(.hidden)');
   item('Shop · risk score (careful)',()=>shop({shared:ALL2,inf:['risk']}),'#terms:not(.hidden)');
@@ -300,7 +300,7 @@
   item('Toast · cannot afford Fair Play',()=>{shop({coins:0});confirmFair()},'#toast.show');
   item('Toast · Fair Play ended',()=>{shop({fair:true});endFair()},'#toast.show');
   item('Toast · Fair Play ran out of credits',()=>{shop({fair:true});endFair('Not enough credits. Fair Play ended. The member file stays on. Ads can still find it.')},'#toast.show');
-  item('Toast · bought a class pack',()=>{shop({crowd:CROWD,coins:120});buyPack('PUR')},'#toast.show');
+  item('Toast · bought a class pack',()=>{shop({crowd:CROWD,coins:200});buyPack('PUR')},'#toast.show');
   item('Toast · data deleted',()=>{run();commitDelete()},'#toast.show');
   item('Toast · heart-rate nag (Health shared)',()=>{
     run({shared:{HEA:1},hp:3});S.nagT=0;S.p.inv=0;hurtPlayer();

@@ -329,11 +329,15 @@
   check('Older runs fade as new ones arrive',()=>{
     let c=foldCrowd(blankCrowd(),{accepted:true,models:{PUR:{buy:{route:1}}}});c=foldCrowd(c,{accepted:true,models:{PUR:{buy:{armor:1}}}});
     ok(c.models.PUR.buy.route<c.models.PUR.buy.armor,'route '+c.models.PUR.buy.route+' vs armor '+c.models.PUR.buy.armor)});
-  check('A pack costs 40 and stays bought',()=>{
-    fresh({crowd:seededCrowd(5,{PUR:CLASS_SAMPLE.PUR}),coins:100});S.mode='terms';buyPack('PUR');eq(S.coins,60);ok(hasPack('PUR'),'not owned');
+  star('A pack costs twice an upgrade\'s list price, never under 100',()=>{
+    for(const [w,want] of [[1,100],[5,100],[8,108],[10,128],[20,228]]){fresh({wave:w});eq(packPrice(),want,'wave '+w);ok(packPrice()>=2*listPrice(perk('armor')),'under 2 upgrades at wave '+w)}
+  });
+  check('A pack costs its price and stays bought',()=>{
+    fresh({crowd:seededCrowd(5,{PUR:CLASS_SAMPLE.PUR}),coins:150});S.mode='terms';buyPack('PUR');eq(S.coins,50);ok(hasPack('PUR'),'not owned');
     eq((store.get('packs',[])||[]).join(),'PUR','saved packs')});
-  check('A pack cannot be bought without 40 credits',()=>{
-    fresh({crowd:seededCrowd(5,{PUR:CLASS_SAMPLE.PUR}),coins:39});S.mode='terms';buyPack('PUR');ok(!hasPack('PUR'),'bought anyway')});
+  check('A pack cannot be bought one credit short, or with the starting credits',()=>{
+    fresh({crowd:seededCrowd(5,{PUR:CLASS_SAMPLE.PUR}),coins:99});S.mode='terms';buyPack('PUR');ok(!hasPack('PUR'),'bought at 99');
+    fresh({crowd:seededCrowd(5,{PUR:CLASS_SAMPLE.PUR}),coins:START_COINS});S.mode='terms';buyPack('PUR');ok(!hasPack('PUR'),'bought anyway')});
 
   // =====================================================================
   group('Delete My Data');

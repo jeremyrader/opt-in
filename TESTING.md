@@ -236,7 +236,7 @@ For each area: load the setup, watch for the effect on screen, check the matchin
 ### Title and profile
 - [ ] Name prompt: classroom-safe filter rejects bad names; name shows on the board.
 - [ ] PLAY, CONTINUE (a saved run picks up), and Abandon (drops only that run).
-- [ ] ★ Delete My Data: clears shared types, inferences, packs, the member file, Halo files, the mimic, the retreat record, and the board rows. Does not change the class Accept count.
+- [ ] ★ Delete My Data: clears shared types, inferences, packs, the member file, Halo files, the retreat record, and the board rows. Does not change the class Accept count.
 - [ ] Changelog, settings, keys, mute.
 
 ### Intro and waves
@@ -327,7 +327,7 @@ For each of Location, Habits, Health, Purchases:
 - [ ] ★ Only runs that shared that type add to it; sandbox and dev runs do not count toward the Accept number.
 - [ ] Ramps to full strength at 5 runs; older runs fade.
 - [ ] ★ The harm applies to every player, including players who never shared.
-- [ ] The pack shows in the shop once the model has data, costs 40, and stays until Delete My Data.
+- [ ] The pack shows in the shop once the model has data, costs twice an upgrade's list price (◈ 100 minimum, so not with the starting credits), and stays until Delete My Data.
 - [ ] Dossier "How the class was used" lines.
 
 ### Saves
