@@ -2903,6 +2903,25 @@ function megaAttack(e,move){
     e.act='seekers';e.actT=.6;
   }
 }
+// The player's fighter: needle nose, canopy, swept wings with clipped tips, twin engines.
+// Nothing else in the field has this outline (every enemy is a dart, diamond, ring, or blob).
+function drawPlayerShip(r,body,edge,ready,moving){
+  if(moving){
+    const f=.7+.3*Math.sin(S.t*40);g.fillStyle=ready?'rgba(56,225,255,.75)':'rgba(110,124,152,.5)';
+    for(const sy of [-1,1]){g.beginPath();g.moveTo(-r*.95,sy*r*.42);g.lineTo(-r*(1.55+.35*f),sy*r*.3);g.lineTo(-r*.95,sy*r*.18);g.closePath();g.fill()}
+  }
+  g.fillStyle=body;g.strokeStyle=edge;g.lineWidth=2;g.lineJoin='round';
+  g.beginPath();
+  g.moveTo(r+8,0);
+  for(const sy of [-1,1]){
+    const pts=[[r*.35,r*.28],[-r*.15,r*.42],[-r*.55,r*1.2],[-r*.85,r*1.2],[-r*.7,r*.5],[-r*.95,r*.45],[-r*.95,r*.15],[-r*.7,0]];
+    const list=sy<0?pts:pts.slice(0,-1).reverse();
+    for(const [x,y] of list)g.lineTo(x,y*sy);
+    if(sy<0)g.lineTo(-r*.7,0);
+  }
+  g.closePath();g.fill();g.stroke();
+  g.fillStyle=edge;g.beginPath();g.ellipse(r*.25,0,r*.38,r*.16,0,0,TAU);g.fill();
+}
 function segDist(px,py,x,y,a,len){
   const dx=Math.cos(a),dy=Math.sin(a),t=clamp((px-x)*dx+(py-y)*dy,0,len);
   return Math.hypot(px-(x+dx*t),py-(y+dy*t));
@@ -5200,8 +5219,7 @@ function render(dt){
       const ready=p.dashT<=0,body=ready?'#e9fbff':'#6e7c98',edge=ready?'#38e1ff':'#3d4c66';
       glow(p.x,p.y,p.r*2.6,edge,ready?.15:.04);
       g.save();g.translate(p.x,p.y);g.rotate(p.ang);g.translate(-p.recoil,0);
-      g.fillStyle=body;g.beginPath();g.moveTo(p.r+7,0);g.lineTo(-p.r*.8,-p.r*.85);g.lineTo(-p.r*.35,0);g.lineTo(-p.r*.8,p.r*.85);g.closePath();g.fill();
-      g.strokeStyle=edge;g.lineWidth=2;g.stroke();g.restore();
+      drawPlayerShip(p.r,body,edge,ready,Math.hypot(p.vx||0,p.vy||0)>40);g.restore();
     }
     if(p.shield){
       const col=S.fair?'#38e1ff':'#9ae64a';
