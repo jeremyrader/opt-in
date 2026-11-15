@@ -192,6 +192,18 @@
   item('Wave 6 · leaked data has buyers',()=>news(6,()=>{S.breachWave=6}),'#banner.show');
   for(let t=1;t<=4;t++)item('Wave 4 · field news '+t,()=>news(4,()=>{S.formJustUp=true;S.formTier=t}),'#banner.show');
   for(let r=1;r<=3;r++)item('Wave 4 · groups news '+r,()=>news(4,()=>{S.formSkillUp=r}),'#banner.show');
+  for(let t=1;t<=3;t++)item('Wave · mega news '+t,()=>news(18+3*t,()=>{S.formTier=4;S.hiveWave=18;S.megaTier=t;S.megaJustUp=true}),'#banner.show');
+  // Megas in the field, stepped so the frame shows assembly or an attack.
+  function megaField(sizes,sec){
+    run({wave:28,hp:3});S.formTier=4;S.hiveWave=18;S.megaTier=3;S.p.x=W/2;S.p.y=H/2;S.p.inv=99;
+    for(const t of sizes)spawnMega({kind:'mega',size:t,types:Array.from({length:MEGA_SIZES[t].parts},(_,i)=>['ping','watcher','crawler'][i%3])});
+    for(let i=0;i<Math.round(sec*60);i++){update(1/60);updateFX(1/60)}
+    S.paused=true;
+  }
+  item('Megas · parts flying in',()=>megaField([1,2,3],2.2),'#hud');
+  item('Megas · TRIAD (small)',()=>megaField([1],5.3),'#hud');
+  item('Megas · BASTION (medium)',()=>megaField([2],5.2),'#hud');
+  item('Megas · COLOSSUS (large)',()=>megaField([3],7),'#hud');
   item('WAVE CLEAR',()=>{run();banner('WAVE CLEAR','','#7dff6a',1.6)},'#banner.show');
   item('DATA BREACH (real wave-clear path)',()=>{
     run({shared:ALL2,wave:4});S.mode='clear';S.breachWave=-1;

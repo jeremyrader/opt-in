@@ -38,6 +38,26 @@
   // If every path is hit soon and the dash is ready, it dashes (a dash can't be hit).
   const DIRS=[[0,0],[1,0],[-1,0],[0,1],[0,-1],[.707,.707],[.707,-.707],[-.707,.707],[-.707,-.707]];
   const DKEY=[[],['d'],['a'],['s'],['w'],['d','s'],['d','w'],['a','s'],['a','w']];
+  // How far a point is from a mega hazard t seconds from now; null if it can't hurt then.
+  function hazGap(h,x,y,t,pr){
+    const src=h.src||h,live=h.t+t;
+    if(h.kind==='beam'){
+      if(live<h.tele||live>=h.tele+h.life)return null;
+      const a=h.ang+h.spin*(live-Math.max(h.t,h.tele));
+      return segDist(x,y,src.x,src.y,a,h.len)-h.w/2-pr;
+    }
+    if(h.kind==='wave'){
+      if(h.hit||live<h.tele)return null;
+      const cx=h.t<h.tele?src.x:h.x,cy=h.t<h.tele?src.y:h.y;
+      const r=h.r+h.spd*(live-Math.max(h.t,h.tele));if(r>=h.max)return null;
+      return Math.abs(Math.hypot(x-cx,y-cy)-r)-h.w/2-pr;
+    }
+    if(h.kind==='mine'){
+      if(h.boom||Math.abs(live-h.arm)>.12)return null;
+      return Math.hypot(x-h.x,y-h.y)-h.r-pr;
+    }
+    return null;
+  }
   function drive(bot){
     const p=S.p,sk=bot.skill;
     let tgt=null,bd=1e9;
@@ -58,6 +78,8 @@
       if(seen&&Math.hypot(b.x-p.x,b.y-p.y)<700*sk.look+120)shots.push(b);
     }
     const ships=S.enemies.filter(e=>!e.dead&&!e.partner&&!e.safety&&Math.hypot(e.x-p.x,e.y-p.y)<420);
+    // Mega hazards (beams, shockwaves, mines) the bot noticed. Each is checked at the same future times as bullets.
+    const haz=(S.mhaz||[]).filter(h=>{let seen=bot.seen.get(h);if(seen==null){seen=bot.rng()<sk.see;bot.seen.set(h,seen)}return seen});
     const spd=p.speed*(S.distressT>0?.4:1),steps=Math.max(3,Math.round(sk.look/.05));
     // THRUST's slide bends movement across the aim line. Plan with the same bend the game applies.
     const slide=p.slide||1,ca=Math.cos(p.ang),sa=Math.sin(p.ang);
@@ -72,6 +94,11 @@
         const t=k*.05,x=clamp(p.x+dx*spd*t,p.r,W-p.r),y=clamp(p.y+dy*spd*t,p.r,H-p.r),near=1/(t+.1);
         for(const b of shots){
           const gap=Math.hypot(b.x+b.vx*t-x,b.y+b.vy*t-y)-p.r-(b.r||5);
+          if(gap<0&&t<hitT)hitT=t;
+          if(gap<sk.margin)cost+=(sk.margin-gap)/sk.margin*near*3;
+        }
+        for(const h of haz){
+          const gap=hazGap(h,x,y,t,p.r);if(gap==null)continue;
           if(gap<0&&t<hitT)hitT=t;
           if(gap<sk.margin)cost+=(sk.margin-gap)/sk.margin*near*3;
         }

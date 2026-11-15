@@ -115,9 +115,9 @@
       {label:'HALO OFF · MAYDAY',pos:['Nothing is sold.'],
         neg:['Search & Rescue needs '+HELP_WAIT+' seconds to trace your beacon (2 less with RETREAT MAPPED, 2 more if RISK SCORE rates you high-risk).','Until then you move slowly and cannot shoot or dash, and one hit ends the run.','You come back with 2♥.']}]);
     add('fair','Fair Play','Fair Play subscription','The SUBSCRIBE button in the shop.',['fine:4b','fn:confirmFair','fn:tryChargeFair','fn:subPrice'],[
-      {label:'SUBSCRIBE · ◈ '+subPrice()+' A WAVE',
+      {label:'SUBSCRIBE',
         pos:['No ads, no countdown, a cleaner shop.','Credit upgrades are 20% off.','The hotspot becomes Secure Wi-Fi and adds no exposure.','The fire bonus and the 1-hit shield still apply.'],
-        neg:['◈ '+subPrice()+' every wave until you cancel or cannot pay.','The watch continues. Patterns and inferences are still learned.','Accept still sells data.','Creates a member file. Win-back ads can use it even if you never tapped Accept.','Canceling does not delete the member file.','Does not include Halo.']},
+        neg:['A third of an upgrade\'s list price every wave (◈ 6 at wave 1, ◈ 38 at wave 20), until you cancel or cannot pay.','The watch continues. Patterns and inferences are still learned.','Accept still sells data.','Creates a member file. Win-back ads can use it even if you never tapped Accept.','Canceling does not delete the member file.','Does not include Halo.']},
       {label:'DON\'T SUBSCRIBE',pos:['Keeps your credits.','No member file.'],neg:['Ads, the countdown, and shop tricks stay on.','Credit upgrades cost full price.']}]);
     add('hotspot','Free Wi-Fi hotspot','The roaming ring (free Wi-Fi *)','A ring that slowly roams the arena.',['fine:4d'],[
       {label:'STAND IN THE FREE RING',pos:['More fire rate.','Charges a 1-hit shield.','Standing still can grant credits.'],
@@ -243,7 +243,7 @@ const STAMPS={
   'fine:2b':'1bdcelg',
   'fine:3':'1hoyhbx',
   'fine:4':'1dmm43j',
-  'fine:4b':'109eilj',
+  'fine:4b':'1hqvv9y',
   'fine:4c':'1ms24e9',
   'fine:4d':'yghvdz',
   'fine:5':'1whgpvz',
@@ -252,7 +252,7 @@ const STAMPS={
   'fn:checkSecret':'4k1174',
   'fn:choose':'131ad8',
   'fn:closeTerms':'160zcxw',
-  'fn:confirmFair':'kn7d0p',
+  'fn:confirmFair':'29sxr1',
   'fn:coverCut':'1souutp',
   'fn:deleteMyData':'1lc1vlw',
   'fn:exposure':'1j1tq0z',
@@ -274,7 +274,7 @@ const STAMPS={
   'fn:soldShort':'12toxwi',
   'fn:stackNote':'1rngbkc',
   'fn:startUrgency':'zzfdgc',
-  'fn:subPrice':'3114sm',
+  'fn:subPrice':'1w6mg01',
   'fn:tryChargeFair':'y539bc',
   'fn:weakHp':'1b5ynaj',
   'inf:home':'l9tuzh',

@@ -27,7 +27,7 @@ Checks run in memory. They never touch saved runs, the class models, or the lead
 
 **Rule for adding checks:** every number a player can read on a card, reveal, or fine-print clause gets one check. When a bug is found, add a check for it before fixing it.
 
-**Covered so far:** price modifiers and their worst-case stack, all six inferences (unlock rule, harm, upside), the four data types, Halo and mayday, class models and packs, Delete My Data, saves and old-save cleanup, offline death, dossier counts, leftover wording, and a full run to wave 10.
+**Covered so far:** price modifiers and their worst-case stack, all six inferences (unlock rule, harm, upside), the four data types, Halo and mayday, class models and packs, Delete My Data, mega ships (timeline, parts, merge, attacks, dash), saves and old-save cleanup, offline death, dossier counts, leftover wording, and a full run to wave 10.
 
 **Not covered yet:** behavior patterns, the hotspot ring, Fair Play billing, breaches, amended offers, the leaderboard with real network traffic, and anything visual. Those stay in layer C until they get checks.
 
@@ -166,6 +166,28 @@ Add a test to `PRESETS` in `bots.js` to give it a button.
 - Selective sharers have the highest average score. A careful non-sharer beats a careless sharer 91% of the time.
 - Non-sharers reach wave 30 more often than all-in sharers (88% against 57%) but score a little less per run, so they win 44% of pairings.
 
+**Mega ships, 60-run check (2026-11-14; uncommitted, same seeds and bots as above; bots dodge beams, rings, and mines).**
+
+| Player | Waves | Reach 30 | Score | Beats all-in |
+|---|---|---|---|---|
+| All-in | 26.2 | 10% | 101,180 | — |
+| Selective · Location + Habits | 27.5 | 25% | 110,934 | 69% |
+| Non-sharer | 27.4 | 42% | 101,767 | 55% |
+| Careful non-sharer (expert) | 29.3 | 87% | 117,599 | 84% |
+| Careless sharer (novice) | 23.9 | 0% | 82,983 | 16% |
+
+- All three targets still hold, with more room than before.
+- Waves 21–30 are much harder: all-in reach wave 30 in 10% of runs (was 57%). Skill matters more late.
+
+**Fair Play at a third of an upgrade (2026-11-14; uncommitted, 30 runs, seeds 3000–3029, to wave 30).** The bill is ◈ 6 at wave 1, 13 at 5, 21 at 10, 38 at 20, 55 at 30 (was a flat ◈ 5). Income is about 1–1.5 regular upgrades a wave, so the 20% discount roughly pays for it.
+
+| Player (pays for cards, never shares) | Waves | Score |
+|---|---|---|
+| Fair Play from the first shop, never cancels | 25.7 ±2.3 | 93,270 |
+| No Fair Play | 27.4 ±2.1 | 108,582 |
+
+- Fair Play now costs something real. The bot never cancels, so a player who drops it late would do better.
+
 **What the bot does not do:** read the fine print, shoot ads, change Halo mid-run, or play like a student. Use it to compare choices, not to judge difficulty.
 
 **Balance targets (fill these in):**
@@ -222,6 +244,15 @@ For each area: load the setup, watch for the effect on screen, check the matchin
 - [ ] Ping, watcher, crawler ships and their formations at each tier.
 - [ ] Broker every 5 waves; breach broker when the file is breached.
 - [ ] MIMIC learns from hits and carries across runs.
+
+### Mega ships (after the hive mind)
+Three waves after HIVE MIND, some ordinary ships fly together and merge into one big ship. Sizes grow every 3 waves: TRIAD (3 ships) at hive +3, BASTION (5) at +6, COLOSSUS (8) at +9. From then on each wave has one of the largest size so far plus one TRIAD. Mimics and brokers never join. Mimics still come on their own.
+- [ ] News line at each new size; the parts' spawn rings show in orange.
+- [ ] Parts fly to a meeting point at least 320px from you. Kill them first and the mega never forms (STOPPED); one survivor goes back to normal.
+- [ ] A mega has 1.6× / 2× / 2.4× its parts' combined health and pays 1.5× their credits.
+- [ ] Attacks no single ship has, with a wind-up glow first. TRIAD: three spinning beams. BASTION: a shockwave ring, then a cross of mines where you are headed. COLOSSUS: one long sweeping beam, three homing seekers, a double shockwave.
+- [ ] A dash passes through beams, rings, and mines.
+- [ ] UI lab: "Wave · mega news 1–3" and "Megas · …" items.
 - [ ] Wave clear scoops all coins.
 
 ### Shop (terms screen)

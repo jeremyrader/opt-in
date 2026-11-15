@@ -82,6 +82,9 @@
   star('IMPULSE PROFILED: no rush price once the timer is turned off',()=>{
     fresh({shared:{LOC:1},inf:['impulse']});shopWith(['heavy','armor','route']);S.rushUntil=performance.now()+5000;S.tele.urgencyOff=true;
     eq(price(perk('heavy')),listPrice(perk('heavy')))});
+  star('Fair Play costs a third of a regular upgrade, so it rises each wave',()=>{
+    for(const [w,want] of [[1,6],[5,13],[10,21],[20,38],[30,55]]){fresh({wave:w});eq(subPrice(),want,'wave '+w);eq(subPrice(),Math.round(listPrice(perk('armor'))/3),'vs list at wave '+w)}
+  });
   star('Fair Play: 20% off',()=>{
     fresh({shared:{LOC:1}});S.fair=true;const p=perk('heavy');eq(price(p),Math.round(listPrice(p)*.8))});
   star('Class deal: 30% off the least-bought offered upgrade',()=>{
@@ -215,6 +218,74 @@
     fresh({shared:{LOC:1},inf:['needs'],hp:4});perk('armor').apply(S.p);eq(S.p.hp,5,'PLATING heal at 4♥')});
 
   // =====================================================================
+  group('Mega ships');
+  // A run in the mix phase: formations at full, hive mind reached at wave 18.
+  function mix(wave){fresh({wave});S.formTier=4;S.hiveWave=18;S.megaTier=0;S.p.x=W/2;S.p.y=H/2;return S}
+  function stepS(sec){for(let i=0;i<Math.round(sec*60);i++){update(1/60);updateFX(1/60)}}
+  const megaJobs=()=>S.queue.filter(j=>j.kind==='mega');
+  star('Megas grow in steps: small at hive +3, medium at +6, large at +9',()=>{
+    mix(18);const seen=[];
+    for(let w=19;w<=30;w++){S.wave=w;syncMegaTier();seen.push(S.megaTier)}
+    eq(seen.join(''),'001112223333');
+  });
+  star('Each size brings its own part count, and never a mimic',()=>{
+    const want={1:'1/3',2:'2/5,1/3',3:'3/8,1/3'};
+    for(const t of [1,2,3]){
+      mix(18+3*t+1);S.megaTier=t;S.queue=packWave(S.wave,22);
+      eq(megaJobs().map(j=>j.size+'/'+j.types.length).join(','),want[t],'size '+t);
+      ok(megaJobs().every(j=>!j.types.includes('strain')&&!j.types.includes('broker')),'a mega took a mimic or broker');
+      ok(S.queue.some(j=>j.type==='strain'),'mimics still come on their own');
+    }
+  });
+  check('No megas before the hive mind, or in the sandbox',()=>{
+    fresh({wave:12});S.formTier=3;S.hiveWave=0;syncMegaTier();eq(S.megaTier||0,0,'tier 3');
+    mix(30);S.sandbox=true;syncMegaTier();eq(S.megaTier||0,0,'sandbox');
+  });
+  star('Parts merge into one mega with more health than they had apart',()=>{
+    mix(28);const types=['ping','watcher','crawler','ping','watcher'];
+    spawnMega({kind:'mega',size:2,types});stepS(2);
+    const sum=S.enemies.filter(e=>e.megaId).reduce((a,e)=>a+e.hp,0);
+    stepS(4.5);
+    const m=S.enemies.filter(e=>e.type==='mega');
+    eq(m.length,1,'megas');eq(S.enemies.filter(e=>e.megaId&&!e.dead).length,0,'parts left');
+    eq(m[0].parts.length,5,'parts');ok(m[0].hp>sum*1.5,'hp '+m[0].hp+' vs '+sum);
+  });
+  star('Kill the parts before they meet and there is no mega',()=>{
+    mix(28);spawnMega({kind:'mega',size:1,types:['ping','watcher','crawler']});stepS(2);
+    for(const e of S.enemies.filter(e=>e.megaId))killEnemy(e);
+    stepS(5);eq(S.enemies.filter(e=>e.type==='mega').length,0);
+  });
+  check('One survivor goes back to being a normal ship',()=>{
+    mix(28);spawnMega({kind:'mega',size:1,types:['ping','watcher','crawler']});stepS(2);
+    const parts=S.enemies.filter(e=>e.megaId);parts.slice(1).forEach(killEnemy);
+    stepS(5);eq(S.enemies.filter(e=>e.type==='mega').length,0,'megas');
+    ok(!parts[0].dead&&!parts[0].megaId,'survivor released');
+  });
+  star('Every size attacks with moves no single ship has',()=>{
+    const want={1:['beam'],2:['wave','mine'],3:['beam','ebullet','wave']};
+    for(const t of [1,2,3]){
+      mix(28);S.p.hp=S.p.maxHp=99;
+      const types=Array.from({length:MEGA_SIZES[t].parts},(_,i)=>['ping','watcher','crawler'][i%3]);
+      spawnMega({kind:'mega',size:t,types});const got=new Set();
+      for(let i=0;i<20*4;i++){stepS(.25);S.mhaz.forEach(h=>got.add(h.kind));if(S.ebullets.some(b=>b.seek))got.add('ebullet')}
+      for(const k of want[t])ok(got.has(k),MEGA_SIZES[t].name+' never used '+k);
+    }
+  });
+  star('Beams and shockwaves hurt, and a dash passes through',()=>{
+    mix(28);const e={x:W/2-100,y:H/2,dead:false};
+    S.mhaz=[{kind:'beam',src:e,ang:0,spin:0,len:300,w:10,tele:0,life:1,t:0}];S.p.hp=3;S.p.inv=0;
+    megaHazards(1/60,true);eq(S.p.hp,2,'beam');
+    S.p.inv=0;S.p.hp=3;S.mhaz=[{kind:'wave',src:e,x:S.p.x,y:S.p.y,r:0,spd:0,max:600,w:14,tele:0,t:0}];
+    megaHazards(1/60,true);eq(S.p.hp,2,'wave');
+    S.p.inv=0;S.p.hp=3;S.p.dashing=.2;S.mhaz=[{kind:'beam',src:e,ang:0,spin:0,len:300,w:10,tele:0,life:1,t:0}];
+    megaHazards(1/60,true);eq(S.p.hp,3,'dash');
+  });
+  check('A mega pays more than its parts would',()=>{
+    mix(28);spawnMega({kind:'mega',size:1,types:['ping','watcher','crawler']});stepS(2);
+    const coins=S.enemies.filter(e=>e.megaId).reduce((a,e)=>a+(e.coins||0),0);stepS(4.5);
+    const m=S.enemies.find(e=>e.type==='mega');ok(m&&m.coins>coins,'coins '+(m&&m.coins)+' vs '+coins);
+  });
+
   group('Halo and mayday');
   star('Halo on: back instantly with 3♥, and health and location are shared',()=>{
     fresh({hp:1});S.mode='play';S.safetyAsked=true;S.safetyOn=true;S.p.inv=0;hurtPlayer();
