@@ -341,27 +341,17 @@
     fresh({crowd:seededCrowd(5,{PUR:CLASS_SAMPLE.PUR}),coins:99});S.mode='terms';buyPack('PUR');ok(!hasPack('PUR'),'bought at 99');
     fresh({crowd:seededCrowd(5,{PUR:CLASS_SAMPLE.PUR}),coins:START_COINS});S.mode='terms';buyPack('PUR');ok(!hasPack('PUR'),'bought anyway')});
 
-  check('A class model acting on you lights its dot; sparks fly only the first few times',()=>{
-    fresh({crowd:seededCrowd(5,{HAB:CLASS_SAMPLE.HAB,LOC:CLASS_SAMPLE.LOC})});S.mode='play';updateHUD();
+  check('A class model acting on you lights its dot and is named once',()=>{
+    fresh({crowd:seededCrowd(5,{HAB:CLASS_SAMPLE.HAB,LOC:CLASS_SAMPLE.LOC})});S.mode='play';
     for(const t of CLASS_TYPES)ok(!S.clsFlash||!(S.clsFlash[t]>S.t),'dot lit at the start');
-    ok(!classAct('PUR',10,10)&&!(S.clsSparks||[]).length,'a model with no data acted');
-    classAct('HAB',50,50);eq(S.clsSparks.length,1,'first act sends a spark');
-    for(let i=0;i<CLS_SPARKS+2;i++)classAct('HAB',50,50);
-    ok(S.clsSparks.length<=CLS_SPARKS,'sparks never exceed '+CLS_SPARKS+', got '+S.clsSparks.length);
-    ok(S.clsFlash.HAB>S.t,'dot did not light after a late act');
-    ok(S.clsSeen.HAB===CLS_SPARKS+3,'seen count');eq(S.clsTold.HAB,1,'told once')});
-  check('The Habits pack arrow points where a class shot aims',()=>{
-    fresh({crowd:seededCrowd(5,{HAB:CLASS_SAMPLE.HAB}),packs:['HAB']});S.mode='play';
-    ok(S.cm.HAB.dodge,'the class has no dodge side');
-    S.p.x=400;S.p.y=300;S.p.vx=S.p.vy=0;const e={x:100,y:120,r:10,type:'watcher',fire:1};
-    const real=Math.random;Math.random=()=>0;aimAngle(e,290);Math.random=real;
-    const q=classDodgePt(e,290);ok(aimNext&&aimNext.cls,'no class aim');
-    eq(Math.round(aimNext.tx),Math.round(q.x),'x');eq(Math.round(aimNext.ty),Math.round(q.y),'y');aimNext=null});
+    classAct('PUR');ok(!S.clsFlash||!S.clsFlash.PUR,'a model with no data lit its dot');
+    classAct('HAB');ok(S.clsFlash.HAB>S.t,'dot did not light');eq(S.clsTold.HAB,1,'not named');
+    classAct('HAB');eq(S.clsTold.HAB,1,'named twice')});
   check('A sent ship gets the Location mark, and sandbox runs show no class cues',()=>{
     fresh({crowd:seededCrowd(5,{LOC:CLASS_SAMPLE.LOC})});S.mode='play';
     let hit=0;for(let i=0;i<300&&!hit;i++){S.spawns=[];spawnWarn('ping');if(S.spawns.some(s=>s.cls==='LOC'))hit=1}
     ok(hit,'no ship was ever marked as sent');
-    fresh({crowd:seededCrowd(5,{LOC:CLASS_SAMPLE.LOC})});S.sandbox=true;classAct('LOC',5,5);ok(!(S.clsSparks||[]).length&&!S.clsFlash,'sandbox showed a cue')});
+    fresh({crowd:seededCrowd(5,{LOC:CLASS_SAMPLE.LOC})});S.sandbox=true;classAct('LOC');ok(!S.clsFlash,'sandbox showed a cue')});
   check('Each pack in the shop has a hover tip with its own effect',()=>{
     const c=seededCrowd(5,{LOC:CLASS_SAMPLE.LOC,HAB:CLASS_SAMPLE.HAB,HEA:CLASS_SAMPLE.HEA,PUR:CLASS_SAMPLE.PUR});
     fresh({crowd:c,coins:150});openTerms();

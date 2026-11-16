@@ -134,7 +134,7 @@
       {label:'STAY OUT',pos:['No exposure from the ring.'],neg:['No fire bonus and no shield.']},
       {label:'WITH FAIR PLAY · SECURE WI-FI',pos:['Shield and fire bonus still apply.','The ring adds no exposure.'],neg:['Credits trickle more slowly.','The watch continues.']}]);
     add('exposure','How much you share','How many types, and how many times','Every Accept adds to your exposure. YOUR FILE on the HUD counts types plus inferences.',['fine:3','fn:exposure','fn:shareExp','fn:fileWeight','fn:harmScale','const:HARM'],[
-      {label:'SHARE MORE',pos:['More free upgrades.','More inferences, each with an upside.'],neg:['Each type or inference added makes every harm from your file stronger.','Higher exposure. After a wave a breach can leak what you shared to brokers.','Files with three or more types are the likeliest to be breached.','Everything stays on file until you delete your data.']},
+      {label:'SHARE MORE',pos:['More free upgrades.','More inferences, each with an upside.'],neg:['Each type or inference added makes every harm from your file stronger.','Higher exposure. After a wave a breach can leak what you shared to brokers.','Files with three or more shares (free Wi-Fi exposure counts) are the likeliest to be breached.','Everything stays on file until you delete your data.']},
       {label:'SHARE LITTLE',pos:['Low breach risk. A small file is rarely worth stealing.','Each harm stays small.','Fewer inferences made about you.'],neg:['You pay credits for upgrades.']}]);
     add('delete','Delete My Data','Delete My Data','The small button on the title screen.',['fn:deleteMyData','fine:5'],[
       {label:'DELETE',pos:['Removes your name, saved run, shared data, inferences, behavior patterns, your data packs, your high score, and your leaderboard rows.','You choose a new name next time.'],
@@ -250,12 +250,12 @@ const STAMPS={
   'const:START_COINS':'3hmw9',
   'fine:2':'1rhwqy',
   'fine:2b':'13fh2a2',
-  'fine:3':'1hoyhbx',
+  'fine:3':'1cscu9i',
   'fine:4':'wvupp5',
   'fine:4b':'1hqvv9y',
-  'fine:4c':'1ms24e9',
+  'fine:4c':'1bq9whx',
   'fine:4d':'yghvdz',
-  'fine:5':'1ecr777',
+  'fine:5':'vhdtcx',
   'fn:amendText':'1txz4kx',
   'fn:buildKnown':'1ujogeh',
   'fn:checkSecret':'4k1174',

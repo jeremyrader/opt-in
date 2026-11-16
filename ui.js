@@ -283,8 +283,8 @@
   item('Key hints',()=>{run({wave:1});showKeys()},'#keys:not(.hidden)');
   // Class cues: S.paused stays on, so draw one frame by hand after setting the scene.
   const cueFrame=()=>{S.paused=false;S.t+=.3;updateHUD();S.paused=true};
-  item('Class cues · Location ship sent (ring, icon, dots)',()=>{run({crowd:CROWD});for(let i=0;i<400&&!S.spawns.some(q=>q.cls);i++)spawnWarn('ping');S.spawns.forEach((q,i)=>{if(q.cls){q.x=W/2+80;q.y=H/2}});updateHUD();for(const k of S.clsSparks||[])k.age=k.dur*.5},'#clsDots .cd.on');
-  item('Class cues · Habits blue shot with spark',()=>{run({crowd:CROWD});updateHUD();S.ebullets.push({x:W/2,y:H/2,vx:200,vy:0,r:5,col:'#8a9bff',life:5,cls:true,tx:W/2+300,ty:H/2});classAct('HAB',W/2-60,H/2);for(const k of S.clsSparks)k.age=k.dur*.5},'#clsDots .cd.on');
+  item('Class cues · Location ship sent (ring, icon, dots)',()=>{run({crowd:CROWD});for(let i=0;i<400&&!S.spawns.some(q=>q.cls);i++)spawnWarn('ping');S.spawns.forEach((q,i)=>{if(q.cls){q.x=W/2+80;q.y=H/2}});updateHUD()},'#clsDots .cd.on');
+  item('Class cues · Habits blue shot',()=>{run({crowd:CROWD});updateHUD();S.ebullets.push({x:W/2,y:H/2,vx:200,vy:0,r:5,col:'#8a9bff',life:5,cls:true,tx:W/2+300,ty:H/2});classAct('HAB');updateHUD()},'#clsDots .cd.on');
   item('Class cues · Habits pack dodge arrows',()=>{run({crowd:CROWD,packs:['HAB']});S.paused=false;S.mode='play';[[W/2+190,H/2-120],[W/2-170,H/2-90],[W/2+30,H/2+200]].forEach(q=>{makeEnemy('watcher',q[0],q[1],null,'raw');const e=S.enemies[S.enemies.length-1];e.fire=9});S.p.x=W/2;S.p.y=H/2;S.paused=true},'#hud');
   item('Class cues · Health pressure (dot lit, screen edge)',()=>{run({crowd:CROWD});S.mode='play';S.p.hp=S.cm.HEA.danger||2;cueFrame()},'#clsDots .cd.hit');
   item('Class cues · dots, no class data',()=>{run({});updateHUD()},'#hud');

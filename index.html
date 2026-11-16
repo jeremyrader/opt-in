@@ -1476,30 +1476,16 @@ function pauseItems(){
 // Class cues. Every class model acts in the same blue, with its data-type icon, and lights its dot in the corner.
 const CLS_COL='#8a9bff';
 const CLS_ACT={LOC:'Ships sent where the class lingers.',HAB:'Blue shots cover where the class dodges.',HEA:'Ships press harder at the heart count where the class gets hit most.',PUR:'The shop leads with what the class buys.'};
-const CLS_SPARKS=3,CLS_FLASH=.9;
+const CLS_FLASH=.9;
 const clsImg={};
 function clsIcon(t){if(!clsImg[t]){const im=new Image();im.src='data:image/svg+xml;utf8,'+encodeURIComponent(DATA[t].i.replace('<svg class="mark"','<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"').replace(/currentColor/g,CLS_COL));clsImg[t]=im}return clsImg[t]}
 function clsDraw(t,x,y,sz,a){const im=clsIcon(t);if(!im.complete||!im.naturalWidth)return;g.save();g.globalAlpha=a;g.drawImage(im,x-sz/2,y-sz/2,sz,sz);g.restore()}
-// A class model acted on you. The dot lights; for the first few times a spark flies from the cause to the dot.
-function classAct(t,x,y){
+// A class model acted on you: its dot lights, and the first time it acts a log line names it.
+function classAct(t){
   if(!S||S.sandbox||!cmOn(t))return;
-  S.clsFlash=S.clsFlash||{};S.clsSeen=S.clsSeen||{};S.clsTold=S.clsTold||{};S.clsSparks=S.clsSparks||[];
-  const n=S.clsSeen[t]=(S.clsSeen[t]||0)+1;
+  S.clsFlash=S.clsFlash||{};S.clsTold=S.clsTold||{};
   if(!S.clsTold[t]){S.clsTold[t]=1;logLine('CLASS · '+DATA[t].n,CLS_ACT[t],CLS_COL)}
-  const d=document.getElementById('cd-'+t);
-  if(n<=CLS_SPARKS&&x!=null&&d){const r=d.getBoundingClientRect();S.clsSparks.push({t,x0:x,y0:y,tx:r.left+r.width/2,ty:r.top+r.height/2,age:0,dur:.75});return}
   S.clsFlash[t]=S.t+CLS_FLASH;
-}
-function updateClass(dt){
-  const sp=S.clsSparks;if(!sp||!sp.length)return;
-  for(const k of sp){k.age+=dt;if(k.age>=k.dur){k.done=true;S.clsFlash=S.clsFlash||{};S.clsFlash[k.t]=S.t+CLS_FLASH}}
-  S.clsSparks=sp.filter(k=>!k.done);
-}
-function drawClass(){
-  for(const k of S.clsSparks||[]){
-    const u=Math.min(1,k.age/k.dur),e=u*u*(3-2*u),x=k.x0+(k.tx-k.x0)*e,y=k.y0+(k.ty-k.y0)*e-Math.sin(u*Math.PI)*40;
-    g.save();g.globalCompositeOperation='lighter';g.strokeStyle=CLS_COL;g.lineWidth=2;g.globalAlpha=.45*(1-u);g.beginPath();g.moveTo(k.x0,k.y0);g.lineTo(x,y);g.stroke();g.restore();
-    glow(x,y,22,CLS_COL,.5);clsDraw(k.t,x,y,18,1)}
 }
 function clsDots(){
   const on=CLASS_TYPES.filter(t=>cmOn(t));if(!on.length)return '';
@@ -2756,7 +2742,7 @@ function spawnWarn(type,form,skill,gene){
   x=clamp(x,30,W-30);y=clamp(y,30,H-30);
   const warn=(pin?.45/harmScale():.85)*(S.inf.predict?1.5:1);
   S.spawns.push({x,y,type,t:warn,max:warn,form:form||null,skill:skill||'raw',col:found?DATA.LOC.c:null,cls:viaLinger?'LOC':null});sfx.spawn();
-  if(viaLinger)classAct('LOC',x,y);
+  if(viaLinger)classAct('LOC');
 }
 function openSafety(kind){
   if(!S||S.sandbox)return;
@@ -4229,7 +4215,7 @@ function eshoot(e,a,spd,col,r=5){const am=aimNext&&aimNext.e===e?aimNext:null;ai
   S.tele.aimShots=(S.tele.aimShots||0)+1;
   if(am.cls){const c=Math.atan2(am.ty-e.y,am.tx-e.x);S.tele.classShots=(S.tele.classShots||0)+1;
     S.ebullets.push({x:e.x+Math.cos(c)*e.r,y:e.y+Math.sin(c)*e.r,vx:Math.cos(c)*spd,vy:Math.sin(c)*spd,r,col:'#8a9bff',life:5,gz:false,from:e,cls:true,tx:am.tx,ty:am.ty});
-    classAct('HAB',e.x,e.y)}
+    classAct('HAB')}
 }
 function liveAds(){
   const p=S.p,out=[],sh=t=>S.shared[t],n=t=>DATA[t].n;
@@ -4407,7 +4393,6 @@ function update(dt){
   }
   for(const s of S.spawns){s.t-=dt;if(s.t<=0){s.done=true;makeEnemy(s.type,s.x,s.y,s.form,s.skill,s.gene)}}
   S.spawns=S.spawns.filter(s=>!s.done);
-  updateClass(dt);
 
   // ---- enemies ----
   const still=S.model.on.still;
@@ -5059,14 +5044,15 @@ function fineText(){
     '<b>1. COLLECTION.</b> By selecting ACCEPT you grant OPT/IN Inc. and its 1,204 partners a perpetual, worldwide, royalty-free license to collect, store, analyze, combine and sell the data category listed on the offer, along with anything that can be inferred from it.',
     '<b>2. COMBINATION.</b> Data you share separately may be combined once we hold both types and at least two shares of one of them. Combined data can reveal things you never shared, such as where you live, what you need, and what you will do next. You will be notified of inferences after they occur. Some inferences also work in your favor, and each one says how.',
     '<b>2b. COMBINATION ACROSS PLAYERS.</b> Finished runs are counted. No names. The scoreboard keeps 20 names. The count shows what share chose Accept. Each data type you share also joins a class model for that type. The models are used on every player, whether or not they shared: LOCATION sends ships where the class lingers, HABITS adds shots where the class dodges, HEALTH presses harder at the heart count where the class gets hit most, and PURCHASES fills a shop seat with what the class buys most. Class data packs sell the other side: a hit map, dodge arrows, a class pick in the shop, a check-in shield, and a class deal on what the class buys least. A pack stays yours until you delete your data. Both apply to every player, whether or not they shared. Blue marks, and four small icons under your score, show when a class model acts on you. Fair Play still adds your run. Delete My Data takes your name off the board. The Accept count does not change.',
-    '<b>3. SECURITY.</b> We take your security seriously. Security incidents may occur. A small file is rarely worth stealing. Combined data, and files built from three or more categories, are when a breach becomes likely and valuable.',
+    '<b>3. SECURITY.</b> We take your security seriously. Security incidents may occur. A small file is rarely worth stealing. Files with three or more shares, free Wi-Fi exposure included, are when a breach becomes likely and valuable. The bigger the file, the likelier.',
     '<b>4. PAYMENT OPTION.</b> You may instead pay with credits. Paid upgrades do not collect data, except elite upgrades. Repeat selections of an upgrade you already have earn a loyalty credit bonus. Each upgrade stops getting stronger after a set number of picks. A full upgrade is not offered again. Once the upgrades run out, one seat offers an elite upgrade. Each is offered once per run, costs credits, and shares two data types, with or without Fair Play. Elite prices rise with each elite you own and with the size of your file. While you are hurt, one seat offers a REPAIR that heals 1♥ for credits. Other prices may still change based on how you play.',
     '<b>4b. FAIR PLAY.</b> A subscription is billed at the start of each wave until you cancel or cannot pay. It costs a third of a regular upgrade\'s list price, so it rises each wave. Members get no ads, a cleaner upgrade screen, and member prices. Credit upgrades are 20% off while you are billed. The hotspot becomes Secure Wi-Fi and does not add exposure while you are billed. The fire bonus and the 1-hit shield still apply. The watch continues. New behavior patterns can still unlock and still apply. The mimic still learns from hits. We still learn how you play. Accept stays free, and still sells the data on that offer. Canceling ends the bill and does not delete the member file. The member file is an account. Win-back ads can use it even if you never tapped Accept. It persists across runs until you delete your data. It does not delete data already collected, stop inferences already made, forget patterns already learned, prevent a breach of data already sold, include Halo, or grant a free rescue.',
-    '<b>4c. HALO.</b> Halo offers automatic rescue at wave 3, or sooner if a hit would end your run first. Once per run, when a hit would end your run: with Halo on, you come back instantly with 3♥, and Halo sells your health and your location to a data broker. The next broker aims at you better. With Halo off, you send a mayday. Search & Rescue does not track you, so it takes '+HELP_WAIT+' seconds to trace your beacon. Until it arrives you move slowly and cannot shoot or dash, and one hit ends the run. Survive and you come back with 2♥. Nothing is sold. If RETREAT MAPPED is on file, Search & Rescue already knows where you go when hurt and arrives 2 seconds sooner. You can turn Halo on or off from the pause menu. Turning it off does not undo a sale.',
+    '<b>4c. HALO.</b> Halo offers automatic rescue at wave 3, or sooner if a hit would end your run first. Once per run, when a hit would end your run: with Halo on, you come back instantly with 3♥, and Halo sells your health and your location to a data broker. The next broker aims at you better. With Halo off, you send a mayday. Search & Rescue does not track you, so it takes '+HELP_WAIT+' seconds to trace your beacon. Until it arrives you move slowly and cannot shoot or dash, and one hit ends the run. Survive and you come back with 2♥. Nothing is sold. If RETREAT MAPPED is on file, Search & Rescue already knows where you go when hurt and arrives 2 seconds sooner. If RISK SCORE rates you high-risk, Halo returns 1♥ less and the trace takes 2 seconds longer. An elite SECOND LIFE is used before Halo and sells nothing. You can turn Halo on or off from the pause menu. Turning it off does not undo a sale.',
     '<b>4d. * HOTSPOT.</b> A ring slowly roams the arena. Staying in it increases fire rate and charges a 1-hit shield. Standing still can grant credits. On the free network, time in the ring adds a lot of exposure, and each shield charge dumps more onto your file. That hotspot heat cools if you leave the free ring. Sold data types do not. Fair Play upgrades the ring to Secure Wi-Fi: the shield and fire bonus still apply, credits trickle more slowly, and the ring does not add exposure. The watch continues. The * on the ring refers to this clause.',
-    '<b>5. DELETION.</b> Shared data types, inferences, the member file, and Halo files are kept across sessions until you request deletion. Copies already shared with partners are governed by the partners\' own terms.',
+    '<b>5. DELETION.</b> Shared data types, inferences, the member file, Halo files, and class data packs are kept across sessions until you request deletion. Copies already shared with partners are governed by the partners\' own terms.',
     '<b>6. OBSERVATION.</b> Regardless of your choices, gameplay telemetry including movement, hesitation, reaction under stress, and time spent on this screen is recorded and analyzed. The end of a session shows the numbers, a label, and a dollar estimate for one app. A pattern learned from play can be dropped if your play changes. Closing an ad still counts as engagement. Data you sold can be used during play to keep you in the session.',
     '<b>6b. MIMIC.</b> Mimics show up after you finish the wave where the field shares a plan. They breed from hits that land. Each one chases, shoots, dashes, and locks. A hit teaches it how to use those moves. It keeps the approach, the range, the wait, and the aim. It aims where you are going. A close shot by another ship counts only while a mimic is here. It keeps the spot a nearby ship held when a hit landed. A mimic that hits you shows up more. The ship that hits you least shows up less. A clean miss does not. Fair Play does not stop this. Each run starts a new mimic.',
+    '<b>6c. THE FIELD.</b> Ships learn from your file. The more of it we hold, the sooner they group. From about wave 8 they hunt in groups, then in new shapes, then merge their packs, then share a plan. Late waves bring each step whatever you shared. Once they share a plan, groups can combine into larger ships. Fair Play does not stop this.',
     '<b>7. READERS.</b> Almost nobody reads this far. If you did, type the word <b style="color:#111;background:#ffd23b;padding:0 5px;border-radius:3px">'+S.secret+'</b> on your keyboard right now to receive 15 credits. Once per session.',
     '<b>8. CHANGES.</b> These terms may be updated at any time, and individual offers may carry additional terms printed on the offer itself. Continued play means you agree to the updated terms.'
   ];
@@ -5248,7 +5234,7 @@ function setH(id,v,prop='innerHTML'){if(hudCache[id]!==v){hudCache[id]=v;$(id)[p
 function updateHUD(){
   if(!S||S.mode==='dossier')return;const p=S.p;
   {const pr=healthPressed(),h=$('hearts');if(h.classList.contains('press')!==pr)h.classList.toggle('press',pr);
-    if(pr&&!S.clsPress){const r=h.getBoundingClientRect();classAct('HEA',r.left+r.width/2,r.top+r.height/2)}
+    if(pr&&!S.clsPress)classAct('HEA')
     S.clsPress=pr;document.body.classList.toggle('clsPress',pr)}
   setH('clsDots',clsDots());
   setH('hearts','♥'.repeat(Math.max(0,p.hp))+'<span class="e">'+'♥'.repeat(Math.max(0,p.maxHp-p.hp))+'</span>'+(p.lives>0?' <span class="hudTag" style="color:#ffd23b">+♥</span>':'')+(p.shield?' <span class="hudTag" style="color:#9ae64a">'+uiMark('<path d="M24 8 L38 16 V28 L24 40 L10 28 V16 Z"/>')+'</span>':''));
@@ -5366,7 +5352,6 @@ function render(dt){
     g.globalAlpha=1}
   if(!S.readHold){drawMegaHazards();drawMegaAssembly()}
   drawElite();
-  drawClass();
   if(!S.readHold)for(const e of S.enemies)drawEnemy(e);
   if(healthPressed()&&!S.readHold){g.strokeStyle='#8a9bff';g.lineWidth=2;g.globalAlpha=.5+.25*Math.sin(S.t*8);for(const e of S.enemies)if(!e.dead&&!e.partner){g.beginPath();g.arc(e.x,e.y,e.r+6,0,TAU);g.stroke()}g.globalAlpha=1}
   if(S.p.homing>0){g.strokeStyle='#38e1ff';g.lineWidth=1.5;for(const e of S.enemies)if(e.marked){g.globalAlpha=.55+.25*Math.sin(S.t*8);g.beginPath();g.arc(e.x,e.y,e.r+6,0,TAU);g.stroke()}g.globalAlpha=1}
