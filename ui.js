@@ -12,7 +12,7 @@
   window.fetch=()=>Promise.reject(new Error('offline in the UI lab'));
 
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-  const perk=id=>PERKS.find(p=>p.id===id);
+  const perk=id=>offerCard(id);
   const ALL2={LOC:2,HEA:2,HAB:2,PUR:2};
   const ALL_INF=INF.map(f=>f.id);
   const ME={pid:'a1b2c3d4e5f6',name:'LAB'};
@@ -200,6 +200,18 @@
     for(let i=0;i<Math.round(sec*60);i++){update(1/60);updateFX(1/60)}
     S.paused=true;
   }
+  function eliteField(ids,setup,sec){
+    run({wave:22,hp:3});S.p.x=W/2;S.p.y=H/2;S.p.inv=99;S.announceUntil=0;
+    for(const id of ids)perk(id).apply(S.p);
+    for(let i=0;i<5;i++){makeEnemy(['ping','watcher','crawler'][i%3],W/2+140+i*90,H/2+(i%2?30:-30));const e=S.enemies[S.enemies.length-1];e.hp=e.maxHp=999;e.static=true}
+    if(setup)setup();
+    for(let i=0;i<Math.round(sec*60);i++){update(1/60);updateFX(1/60)}
+    S.paused=true;
+  }
+  item('Elite · RAILGUN beam',()=>eliteField(['rail'],()=>{mouse.x=W-20;mouse.y=H/2;S.p.railAt=0;S.p.fireT=0},.05),'#hud');
+  item('Elite · SHOCKWAVE and DECOY after a dash',()=>eliteField(['shock','decoy'],()=>{mouse.x=W/2-200;mouse.y=H/2;S.p.dashT=0;dashReq=true},.12),'#hud');
+  item('Elite · OVERDRIVE at 2♥, SECOND LIFE held',()=>eliteField(['over','life','aegis'],()=>{S.p.hp=2;mouse.x=W-20;mouse.y=H/2},.4),'#hud');
+  item('Elite · SECOND LIFE used',()=>eliteField(['life'],()=>{S.p.hp=1;S.p.inv=0;hurtPlayer();S.p.inv=99},.2),'#banner.show');
   item('Megas · parts flying in',()=>megaField([1,2,3],2.2),'#hud');
   item('Megas · TRIAD (small)',()=>megaField([1],5.3),'#hud');
   item('Megas · BASTION (medium)',()=>megaField([2],5.2),'#hud');
@@ -216,6 +228,7 @@
   group('Halo and rescue');
   item('Halo ask · mid-run',()=>{run();S.haloNow=false;openSafetyAsk(false)},'#safetyAsk:not(.hidden)');
   item('Halo ask · a hit would end the run',()=>{run({hp:1});S.haloNow=true;openSafetyAsk(false)},'#safetyAsk:not(.hidden)');
+  item('Halo ask · RETREAT MAPPED and high-risk',()=>{run({inf:['retreat','risk']});S.tele.hits=99;S.haloNow=false;openSafetyAsk(false)},'#safetyAsk:not(.hidden) .rsCmp');
   item('HALO On banner',()=>{run();S.haloNow=false;openSafetyAsk(false);acceptSafetyAsk()},'#banner.show');
   item('HALO Off banner',()=>{run();S.haloNow=false;openSafetyAsk(false);declineSafetyAsk()},'#banner.show');
   item('HALO SAVED YOU',()=>{run({hp:1});haloRescue()},'#banner.show');
@@ -246,9 +259,13 @@
   item('Shop · extra data on the card (bundle)',()=>shop({amend:{i:0,kind:'bundle',extra:'HAB'}}),'#terms:not(.hidden)');
   item('Shop · may be resold',()=>shop({amend:{i:0,kind:'resell'}}),'#terms:not(.hidden)');
   item('Shop · processed on-device',()=>shop({amend:{i:0,kind:'local'}}),'#terms:not(.hidden)');
-  item('Shop · upgrades run out (REPAIR)',()=>{run({wave:22,hp:2,coins:300});for(const p of PERKS)S.tele.picks[p.id]=p.cap;S.tele.picks.reply=1;S.tele.picks.heavy=2;openTerms()},'#terms:not(.hidden)');
+  item('Shop · upgrades run out (REPAIR)',()=>{run({wave:22,hp:2,coins:300});for(const p of PERKS)S.tele.picks[p.id]=p.cap;for(const e of ELITE)S.tele.picks[e.id]=1;S.tele.picks.reply=1;S.tele.picks.heavy=2;openTerms()},'#terms:not(.hidden)');
+  item('Shop · elite upgrades',()=>shop({wave:22,coins:400},['rail','aegis','life']),'#terms:not(.hidden) .card.elite');
+  item('Shop · elite upgrades, hurt (one REPAIR)',()=>{run({wave:22,hp:2,coins:900});for(const p of PERKS)S.tele.picks[p.id]=p.cap;openTerms()},'#terms:not(.hidden) .card.elite');
+  item('Shop · elite upgrades, Fair Play',()=>shop({wave:22,coins:900,fair:true},['lock','shock','flak']),'#terms:not(.hidden) .card.elite');
   item('Shop · Fair Play member',()=>shop({fair:true}),'#terms:not(.hidden)');
   item('Shop · class bestseller, deal, and packs',()=>shop({crowd:CROWD,packs:['PUR','HAB'],coins:200}),'#terms:not(.hidden)');
+  for(const t of ['LOC','HAB','HEA','PUR'])item('Shop · pack hover · '+t,()=>{shop({crowd:CROWD,packs:t==='HAB'?['HAB']:[],coins:200});const b=document.getElementById('pkTip-'+t);if(b){b.style.opacity=1;b.style.visibility='visible'}},'#pkTip-'+t);
   item('Shop · hurt (NEEDS PREDICTED)',()=>shop({shared:ALL2,inf:['needs'],hp:2},['armor','sos','heavy']),'#terms:not(.hidden)');
   item('Shop · rush timer (IMPULSE PROFILED)',()=>shop({shared:ALL2,inf:['impulse']}),'#terms:not(.hidden)');
   item('Shop · risk score (careful)',()=>shop({shared:ALL2,inf:['risk']}),'#terms:not(.hidden)');
@@ -264,6 +281,14 @@
   item('Changelog',()=>{clean();seed({});openLog()},'#log:not(.hidden)');
   item('Settings',()=>{clean();seed({});S=null;openSettings()},'#settings:not(.hidden)');
   item('Key hints',()=>{run({wave:1});showKeys()},'#keys:not(.hidden)');
+  // Class cues: S.paused stays on, so draw one frame by hand after setting the scene.
+  const cueFrame=()=>{S.paused=false;S.t+=.3;updateHUD();S.paused=true};
+  item('Class cues · Location ship sent (ring, icon, dots)',()=>{run({crowd:CROWD});for(let i=0;i<400&&!S.spawns.some(q=>q.cls);i++)spawnWarn('ping');S.spawns.forEach((q,i)=>{if(q.cls){q.x=W/2+80;q.y=H/2}});updateHUD();for(const k of S.clsSparks||[])k.age=k.dur*.5},'#clsDots .cd.on');
+  item('Class cues · Habits blue shot with spark',()=>{run({crowd:CROWD});updateHUD();S.ebullets.push({x:W/2,y:H/2,vx:200,vy:0,r:5,col:'#8a9bff',life:5,cls:true,tx:W/2+300,ty:H/2});classAct('HAB',W/2-60,H/2);for(const k of S.clsSparks)k.age=k.dur*.5},'#clsDots .cd.on');
+  item('Class cues · Habits pack dodge arrows',()=>{run({crowd:CROWD,packs:['HAB']});S.paused=false;S.mode='play';[[W/2+190,H/2-120],[W/2-170,H/2-90],[W/2+30,H/2+200]].forEach(q=>{makeEnemy('watcher',q[0],q[1],null,'raw');const e=S.enemies[S.enemies.length-1];e.fire=9});S.p.x=W/2;S.p.y=H/2;S.paused=true},'#hud');
+  item('Class cues · Health pressure (dot lit, screen edge)',()=>{run({crowd:CROWD});S.mode='play';S.p.hp=S.cm.HEA.danger||2;cueFrame()},'#clsDots .cd.hit');
+  item('Class cues · dots, no class data',()=>{run({});updateHUD()},'#hud');
+  item('Pause menu · class models',()=>{pauseMenu({crowd:CROWD});pauseSel='cm-LOC';renderPause()},'#pause:not(.hidden)');
   item('Pause menu · empty file',()=>pauseMenu({}),'#pause:not(.hidden)');
   item('HUD · your file, 1 type',()=>{run({shared:{LOC:1}});updateHUD()},'#filePips i.on');
   item('HUD · your file, full (10)',()=>{run({shared:ALL2,inf:ALL_INF});updateHUD()},'#filePips i.on');

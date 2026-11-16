@@ -27,7 +27,7 @@
   function eq(a,b,what){if(a!==b)throw new Error((what?what+': ':'')+'expected '+JSON.stringify(b)+', got '+JSON.stringify(a))}
   function ok(c,what){if(!c)throw new Error(what)}
   function between(v,lo,hi,what){if(!(v>=lo&&v<=hi))throw new Error((what?what+': ':'')+'expected '+lo+'–'+hi+', got '+v)}
-  const perk=id=>PERKS.find(p=>p.id===id);
+  const perk=id=>offerCard(id);
 
   // A fresh run with nothing on file, no class data, at wave 3, in the shop.
   function fresh(o){
@@ -157,11 +157,13 @@
   const maxAll=()=>{for(const p of PERKS)S.tele.picks[p.id]=p.cap};
   star('A maxed upgrade is never offered again',()=>{
     fresh({wave:30});S.tele.picks.heavy=perk('heavy').cap;for(let i=0;i<100;i++)ok(!seatOffer().some(p=>p.id==='heavy'),'PAYLOAD offered while maxed')});
-  star('Upgrades run out: one REPAIR while hurt, nothing at full health',()=>{
-    fresh({wave:30,hp:2});maxAll();let o=seatOffer();eq(o.map(p=>p.id).join(),'fix','hurt');
-    fresh({wave:30});maxAll();eq(seatOffer().length,0,'full health')});
+  star('Upgrades run out: one elite seat, plus a REPAIR while hurt',()=>{
+    fresh({wave:30,hp:2});maxAll();let o=seatOffer();eq(o.filter(p=>p.elite).length,1,'elites while hurt');ok(o.some(p=>p.id==='fix'),'no REPAIR while hurt');eq(o.length,2,'seats while hurt');
+    fresh({wave:30});maxAll();o=seatOffer();eq(o.length,1,'seats');ok(o[0].elite,'a non-elite at full health');
+    fresh({wave:30,hp:2});maxAll();for(const e of ELITE)S.tele.picks[e.id]=1;eq(seatOffer().map(p=>p.id).join(),'fix','all elites owned, hurt');
+    fresh({wave:30});maxAll();for(const e of ELITE)S.tele.picks[e.id]=1;eq(seatOffer().length,0,'all owned, full health')});
   star('REPAIR heals 1♥ for credits, with no loyalty bonus and no data',()=>{
-    fresh({wave:10,hp:2});maxAll();S.offer=seatOffer();S.taken=[];S.mode='terms';S.tele.picks.fix=3;
+    fresh({wave:10,hp:2});maxAll();shopWith(['fix']);S.tele.picks.fix=3;
     const pr=price(REPAIR),c0=S.coins;choose(0,'pay');eq(S.p.hp,3,'hearts');eq(c0-S.coins,pr,'credits');eq(TYPES.filter(t=>S.shared[t]).length,0,'types shared')});
   check('NEEDS PREDICTED: REPAIR costs 50% more at 2♥',()=>{
     fresh({shared:{LOC:1},inf:['needs'],hp:2});eq(price(REPAIR),Math.round(listPrice(REPAIR)*1.5))});
@@ -339,6 +341,36 @@
     fresh({crowd:seededCrowd(5,{PUR:CLASS_SAMPLE.PUR}),coins:99});S.mode='terms';buyPack('PUR');ok(!hasPack('PUR'),'bought at 99');
     fresh({crowd:seededCrowd(5,{PUR:CLASS_SAMPLE.PUR}),coins:START_COINS});S.mode='terms';buyPack('PUR');ok(!hasPack('PUR'),'bought anyway')});
 
+  check('A class model acting on you lights its dot; sparks fly only the first few times',()=>{
+    fresh({crowd:seededCrowd(5,{HAB:CLASS_SAMPLE.HAB,LOC:CLASS_SAMPLE.LOC})});S.mode='play';updateHUD();
+    for(const t of CLASS_TYPES)ok(!S.clsFlash||!(S.clsFlash[t]>S.t),'dot lit at the start');
+    ok(!classAct('PUR',10,10)&&!(S.clsSparks||[]).length,'a model with no data acted');
+    classAct('HAB',50,50);eq(S.clsSparks.length,1,'first act sends a spark');
+    for(let i=0;i<CLS_SPARKS+2;i++)classAct('HAB',50,50);
+    ok(S.clsSparks.length<=CLS_SPARKS,'sparks never exceed '+CLS_SPARKS+', got '+S.clsSparks.length);
+    ok(S.clsFlash.HAB>S.t,'dot did not light after a late act');
+    ok(S.clsSeen.HAB===CLS_SPARKS+3,'seen count');eq(S.clsTold.HAB,1,'told once')});
+  check('The Habits pack arrow points where a class shot aims',()=>{
+    fresh({crowd:seededCrowd(5,{HAB:CLASS_SAMPLE.HAB}),packs:['HAB']});S.mode='play';
+    ok(S.cm.HAB.dodge,'the class has no dodge side');
+    S.p.x=400;S.p.y=300;S.p.vx=S.p.vy=0;const e={x:100,y:120,r:10,type:'watcher',fire:1};
+    const real=Math.random;Math.random=()=>0;aimAngle(e,290);Math.random=real;
+    const q=classDodgePt(e,290);ok(aimNext&&aimNext.cls,'no class aim');
+    eq(Math.round(aimNext.tx),Math.round(q.x),'x');eq(Math.round(aimNext.ty),Math.round(q.y),'y');aimNext=null});
+  check('A sent ship gets the Location mark, and sandbox runs show no class cues',()=>{
+    fresh({crowd:seededCrowd(5,{LOC:CLASS_SAMPLE.LOC})});S.mode='play';
+    let hit=0;for(let i=0;i<300&&!hit;i++){S.spawns=[];spawnWarn('ping');if(S.spawns.some(s=>s.cls==='LOC'))hit=1}
+    ok(hit,'no ship was ever marked as sent');
+    fresh({crowd:seededCrowd(5,{LOC:CLASS_SAMPLE.LOC})});S.sandbox=true;classAct('LOC',5,5);ok(!(S.clsSparks||[]).length&&!S.clsFlash,'sandbox showed a cue')});
+  check('Each pack in the shop has a hover tip with its own effect',()=>{
+    const c=seededCrowd(5,{LOC:CLASS_SAMPLE.LOC,HAB:CLASS_SAMPLE.HAB,HEA:CLASS_SAMPLE.HEA,PUR:CLASS_SAMPLE.PUR});
+    fresh({crowd:c,coins:150});openTerms();
+    const seen=new Set();
+    for(const t of CLASS_TYPES){if(!cmOn(t))continue;const tip=document.getElementById('pkTip-'+t);ok(tip,'no tip for '+t);
+      const fx=packFx(t)[0];ok(fx&&tip.textContent.includes(fx),t+' tip is missing its effect');ok(!seen.has(fx),t+' repeats another pack');seen.add(fx);
+      eq(document.querySelector('[data-pack='+t+']').getAttribute('aria-describedby'),'pkTip-'+t)}
+    ok(seen.size>=4,'only '+seen.size+' packs');closeTerms()});
+
   // =====================================================================
   group('Delete My Data');
   star('Delete clears your file, packs, retreat record, and board rows, and keeps the class',()=>{
@@ -362,6 +394,61 @@
     eq(S.strain.cut.ping+S.strain.cut.watcher+S.strain.cut.crawler,0,'spawn shifts');
     eq(S.strain.scored.strain,0,'mimic hits');
   });
+
+  group('Elite upgrades');
+  const dummy=(x,y)=>{makeEnemy('ping',x,y);const e=S.enemies[S.enemies.length-1];e.hp=e.maxHp=500;e.static=true;e.spd=0;return e};
+  // A ship parked in a corner keeps the wave from clearing.
+  const eliteRun=(o)=>{fresh(Object.assign({wave:20},o||{}));maxAll();S.mode='play';S.p.x=W/2;S.p.y=H/2;S.p.inv=0;S.announceUntil=0;dummy(40,40);return S};
+  star('Never offered while a regular upgrade is left',()=>{
+    for(const w of [3,12,25]){fresh({wave:w});for(let i=0;i<60;i++)ok(!seatOffer().some(p=>p.elite),'elite at wave '+w)}});
+  star('An elite costs 3× a regular upgrade\'s list price (SECOND LIFE 4×), with nothing on file',()=>{
+    fresh({wave:10});eq(price(perk('rail')),192,'RAILGUN');eq(price(perk('life')),256,'SECOND LIFE');
+    fresh({wave:20});eq(price(perk('aegis')),342,'AEGIS at 20')});
+  star('Each elite owned adds 1×, and each type or inference on file adds 20%',()=>{
+    fresh({wave:10});S.tele.picks.lock=1;eq(price(perk('rail')),256,'one owned');
+    fresh({wave:10,shared:{LOC:1,HAB:1}});eq(price(perk('rail')),Math.round(192*1.4),'two types');
+    fresh({wave:10,shared:ALL2});ok(fileWeight()>=8,'full file');eq(listPrice(perk('rail')),Math.round(192*(1+.2*fileWeight())),'full file list price')});
+  star('Buying one costs credits and shares both types, even with Fair Play',()=>{
+    for(const fair of [false,true]){
+      eliteRun({coins:2000});S.fair=fair;shopWith(['aegis','lock','fix']);S.mode='terms';
+      const pr=price(perk('aegis')),c0=S.coins;choose(0,'free');
+      eq(c0-S.coins,pr,'credits'+(fair?' (Fair Play)':''));eq(S.shared.HEA,1,'HEALTH');eq(S.shared.PUR,1,'PURCHASES');eq(S.p.aegis,1,'power')}});
+  star('One credit short buys nothing and shares nothing',()=>{
+    eliteRun();shopWith(['rail','lock','fix']);S.mode='terms';S.coins=price(perk('rail'))-1;choose(0,'pay');
+    eq(S.p.rail||0,0,'power');eq(TYPES.filter(t=>S.shared[t]).length,0,'types shared')});
+  star('An elite you own is not offered again',()=>{
+    eliteRun();for(const e of ELITE.slice(0,7))S.tele.picks[e.id]=1;
+    for(let i=0;i<40;i++)eq(seatOffer().filter(p=>p.elite).map(p=>p.id).join(),'flak')});
+  check('TARGET LOCK: a shot turns around to reach a hovered ship',()=>{
+    eliteRun();perk('lock').apply(S.p);const e=dummy(W/2+160,H/2);
+    S.bullets.push({x:W/2,y:H/2,vx:0,vy:-740,life:1.6,dmg:1,lockOn:e});stepS(1);ok(e.hp<500,'never hit')});
+  check('RAILGUN: a beam hits every ship in the line',()=>{
+    eliteRun();perk('rail').apply(S.p);const a=dummy(W/2+120,H/2),b=dummy(W/2+260,H/2),c=dummy(W/2,H/2+150);
+    S.p.ang=0;fireRail(S.p);
+    eq(a.hp,500-S.p.dmg*RAIL_MUL,'first');eq(b.hp,500-S.p.dmg*RAIL_MUL,'second');eq(c.hp,500,'off the line')});
+  check('RAILGUN: one beam every 3 seconds',()=>{
+    eliteRun();perk('rail').apply(S.p);const real=window.fireRail;let n=0;window.fireRail=()=>{n++};
+    try{stepS(RAIL_CD+.5)}finally{window.fireRail=real}eq(n,2)});
+  check('OVERDRIVE: +50% damage at 2♥, normal at 3♥',()=>{
+    eliteRun();perk('over').apply(S.p);S.p.hp=3;ok(!overOn(),'on at 3♥');S.p.hp=2;ok(overOn(),'off at 2♥');
+    S.p.fireT=0;S.bullets=[];update(1/60);ok(S.bullets.length&&S.bullets[0].dmg===S.p.dmg*OVER_MUL,'shot damage')});
+  check('SHOCKWAVE: a dash hits nearby ships and clears shots',()=>{
+    eliteRun();perk('shock').apply(S.p);const e=dummy(W/2+80,H/2),far=dummy(W/2+400,H/2);
+    S.ebullets.push({x:W/2-60,y:H/2,vx:0,vy:0,r:5,life:5});S.p.dashT=0;dashReq=true;update(1/60);
+    ok(e.hp<500,'near ship');eq(far.hp,500,'far ship');eq(S.ebullets.length,0,'shots')});
+  check('DECOY: after a dash, ships aim at where you were',()=>{
+    eliteRun();perk('decoy').apply(S.p);const e=dummy(W/2,H/2-300);S.p.dashT=0;dashReq=true;update(1/60);
+    const d=S.decoyAt;ok(d,'no decoy');S.p.x=W/2+300;
+    const a=aimAngle(e,300);ok(Math.abs(a-Math.atan2(d.y-e.y,d.x-e.x))<1e-6,'aimed at the ship');
+    stepS(DECOY_T+.1);eq(S.decoyAt,null,'still there after 3s')});
+  check('COUNTERMEASURES: shoots down a nearby shot, then waits',()=>{
+    eliteRun();perk('flak').apply(S.p);S.ebullets.push({x:W/2+100,y:H/2,vx:0,vy:0,r:5,life:5},{x:W/2-100,y:H/2,vx:0,vy:0,r:5,life:5});
+    update(1/60);eq(S.ebullets.length,1,'first');update(1/60);eq(S.ebullets.length,1,'waits');stepS(FLAK_EVERY);eq(S.ebullets.length,0,'second')});
+  check('AEGIS: a shield at the start of every wave',()=>{
+    eliteRun();perk('aegis').apply(S.p);S.p.shield=0;startWave();eq(S.p.shield,1)});
+  star('SECOND LIFE: a fatal hit brings you back with 3♥ once, before Halo',()=>{
+    eliteRun({hp:1});perk('life').apply(S.p);hurtPlayer();eq(S.p.hp,3,'hearts');eq(S.p.lives,0,'used');ok(S.mode==='play','mode '+S.mode);ok(!S.emergUsed,'Halo used');
+    S.p.hp=1;S.p.inv=0;hurtPlayer();eq(S.mode,'safety','next fatal hit')});
 
   group('Saves');
   star('A saved run comes back with the same wave, credits, and file',()=>{

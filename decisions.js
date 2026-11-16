@@ -36,7 +36,7 @@
   // What each class model does to every player, and what its pack sells back.
   const CLASS={
     LOC:{neg:'Ships are sent where the class lingers.',pos:'A hit map shows where the class gets hit.'},
-    HAB:{neg:'Extra shots cover the side the class dodges toward.',pos:'The shop marks the upgrade the class picks first.'},
+    HAB:{neg:'Extra shots cover the side the class dodges toward.',pos:'Blue arrows show where class shots expect you to dodge, and the shop marks the upgrade the class picks first.'},
     HEA:{neg:'Ships press harder at the heart count where the class gets hit most.',pos:'A 1-hit check-in shield at that heart count, once a wave.'},
     PUR:{neg:'The class bestseller takes a shop seat.',pos:'30% off the offered upgrade the class buys least.'}
   };
@@ -88,7 +88,16 @@
       {label:'REPEAT IT',pos:['40% of the price comes back as credits (70% with IMPULSE PROFILED).','Stronger again.'],
         neg:['Each upgrade stops getting stronger after a set number of picks.','If you always pick the same one first, NEXT MOVE PREDICTED makes it cost 2×.']},
       {label:'SPREAD YOUR PICKS',pos:['Keeps the game from predicting your first pick.','More kinds of power.'],neg:['No loyalty bonus.']}]);
-    add('repair','Shop · other choices','REPAIR','Once the upgrades run out, an empty seat offers it while you are hurt. A full upgrade is never offered again.',['fn:seatOffer','const:REPAIR','fine:4'],[
+    // Shop: elite upgrades, once the regular ones run out. Credits and two data types.
+    for(const pk of ELITE){
+      const both=pk.share.map(t=>DATA[t].n).join(' and ');
+      add('elite-'+pk.id,'Shop · elite upgrades',pk.name+' · '+both,'Once the regular upgrades run out, one shop seat offers an elite upgrade. One pick each per run.',
+        ['fine:4','fn:choose','fn:seatOffer','fn:priceMult','fn:elitePrice','const:ELITE'],[
+        {label:'BUY · CREDITS · shares '+both,pos:[pk.desc,'Stronger than any regular upgrade.'],
+          neg:[pk.x+'× a regular upgrade\'s list price, +1× for each elite you own, +20% for each type or inference on your file. A big file pays the most.','Shares '+both+', even with Fair Play. Each can complete an inference, joins the class model, and stays on file until you delete your data.']},
+        {label:'PASS',pos:['Keeps your credits.','Shares nothing.'],neg:['No elite power.']}]);
+    }
+    add('repair','Shop · other choices','REPAIR','Once the upgrades run out, one seat offers it while you are hurt. A full upgrade is never offered again.',['fn:seatOffer','const:REPAIR','fine:4'],[
       {label:'BUY · CREDITS',pos:['Heals 1♥.','No data collected.'],neg:['Costs credits, and prices rise each wave.','Not an upgrade: no power, no loyalty bonus.','With NEEDS PREDICTED, costs 50% more at 2♥ or less.']},
       {label:'PASS',pos:['Keeps your credits.'],neg:['You stay hurt.']}]);
     add('amend','Shop · other choices','Fine print on the card','Data offers from wave 2, about half the time. Read the card before you accept.',['fn:pickAmendment','fn:amendText'],[
@@ -103,13 +112,13 @@
     for(const t of CLASS_TYPES){
       const D=DATA[t],c=CLASS[t]||{neg:'(class wording missing)',pos:'(class wording missing)'};
       add('pack-'+t,'Class data packs',PACKS[t].name,'In the shop once classmates have shared '+D.n+'. Twice an upgrade\'s list price (100 minimum), yours until you delete your data.',
-        ['fine:2b','const:PACKS','fn:packPrice','const:DEAL_OFF'],[
+        ['fine:2b','const:PACKS','fn:packPrice','const:DEAL_OFF','fn:packFx'],[
         {label:'BUY THE PACK',pos:[c.pos,'Yours until you delete your data.'],neg:['100 credits through wave 7, then twice an upgrade\'s list price (128 at wave 10, 228 at wave 20).','The harm does not go away. The class model still does this to every player: '+c.neg]},
         {label:'SKIP IT',pos:['Keeps the credits.'],neg:['No benefit from the class data.','The harm still reaches you: '+c.neg]}]);
     }
 
     add('halo','Halo and rescue','Halo: automatic rescue, or a mayday','Asked at wave 3, or the first time a hit would end your run. Changeable from the pause menu.',
-      ['fine:4c','fn:haloRescue','fn:sendMayday','fn:rescueArrives','const:HELP_WAIT','fn:helpWait','fn:coverCut'],[
+      ['fine:4c','fn:haloRescue','fn:sendMayday','fn:rescueArrives','const:HELP_WAIT','fn:helpWait','fn:coverCut','fn:rescueHp'],[
       {label:'HALO ON',pos:['You come back instantly with 3♥ (2♥ if RISK SCORE rates you high-risk).','No wait, and 1♥ more than a mayday.'],
         neg:['Sells your health and location to a data broker.','The next broker aims at you better.','Turning Halo off later does not undo the sale.']},
       {label:'HALO OFF · MAYDAY',pos:['Nothing is sold.'],
@@ -233,15 +242,16 @@ ${sections.map(s=>`<h2 id="${slug(s)}">${esc(s)}</h2>`+entries.filter(e=>e.secti
 // Fingerprints of the game text and code each hand-written entry describes. Regenerate with decisionsStamp().
 const STAMPS={
   'const:DEAL_OFF':'375w6u',
+  'const:ELITE':'g9y667',
   'const:HARM':'15iila4',
   'const:HELP_WAIT':'3t22',
-  'const:PACKS':'mcbuza',
+  'const:PACKS':'jsqcey',
   'const:REPAIR':'1tp6xgf',
   'const:START_COINS':'3hmw9',
   'fine:2':'1rhwqy',
-  'fine:2b':'1bdcelg',
+  'fine:2b':'13fh2a2',
   'fine:3':'1hoyhbx',
-  'fine:4':'1dmm43j',
+  'fine:4':'wvupp5',
   'fine:4b':'1hqvv9y',
   'fine:4c':'1ms24e9',
   'fine:4d':'yghvdz',
@@ -249,26 +259,29 @@ const STAMPS={
   'fn:amendText':'1txz4kx',
   'fn:buildKnown':'1ujogeh',
   'fn:checkSecret':'4k1174',
-  'fn:choose':'131ad8',
+  'fn:choose':'1t7bbjq',
   'fn:closeTerms':'160zcxw',
   'fn:confirmFair':'29sxr1',
   'fn:coverCut':'1souutp',
   'fn:deleteMyData':'6miui0',
+  'fn:elitePrice':'ec7lny',
   'fn:exposure':'1j1tq0z',
   'fn:fileWeight':'1nd8z6y',
-  'fn:haloRescue':'1fs6pla',
+  'fn:haloRescue':'7vkgmu',
   'fn:harmFound':'1scnh37',
   'fn:harmScale':'lb1i75',
   'fn:helpWait':'1hgel1s',
   'fn:learnPatterns':'1lai2fe',
+  'fn:packFx':'di6y5e',
   'fn:packPrice':'uxdhi',
   'fn:patternKeep':'w67ysl',
   'fn:pickAmendment':'1dg2p71',
   'fn:priceMult':'1jx2221',
-  'fn:rescueArrives':'ocj9n4',
+  'fn:rescueArrives':'432fv1',
+  'fn:rescueHp':'fuz3fu',
   'fn:retreatChance':'hv52jf',
   'fn:routeLead':'z4vzuk',
-  'fn:seatOffer':'7xu2u8',
+  'fn:seatOffer':'1y3kpne',
   'fn:sendMayday':'13zs9f1',
   'fn:shareExp':'m44azz',
   'fn:soldShort':'12toxwi',

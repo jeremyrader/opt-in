@@ -146,6 +146,8 @@
     for(const i of order){
       if(S.mode!=='terms')break;
       const pk=S.offer[i];
+      // Elites always share two types: only sharers buy them, and selective sharers only when both types are on their list.
+      if(pk.elite&&!A.cards[pk.id]&&(A.others!=='share'||(A.shareOnly&&!pk.share.every(t=>A.shareOnly.includes(t)))))continue;
       const shareIt=A.others==='share'&&pk.data&&(!A.shareOnly||A.shareOnly.includes(pk.data));
       let a=A.cards[pk.id]||(A.others==='skip'?'skip':shareIt?'free':'pay');
       if(a==='free'&&(!pk.data||S.fair))a='pay';
@@ -259,7 +261,7 @@
         const T=S.tele;
         Object.assign(r,{score:S.score,hits:T.hits,kills:T.kills,coins:S.coins,
           shares:TYPES.reduce((a,t)=>a+(S.shared[t]||0),0),types:TYPES.filter(t=>S.shared[t]).length,infs:INF.filter(f=>S.inf[f.id]).length,
-          wifiCoins:T.wifiCoins||0,breachLost:T.breachLost||0,wifiT:+(T.wifiT||0).toFixed(1),halo:!!S.safetyOn,mayday:!!T.emergDirect,maydayFail:!!T.distressFail,breaches:T.breaches||0,steps:bot.step,
+          elite:T.elite||0,wifiCoins:T.wifiCoins||0,breachLost:T.breachLost||0,wifiT:+(T.wifiT||0).toFixed(1),halo:!!S.safetyOn,mayday:!!T.emergDirect,maydayFail:!!T.distressFail,breaches:T.breaches||0,steps:bot.step,
           weight:TYPES.filter(t=>S.shared[t]).length+INF.filter(f=>S.inf[f.id]).length,hFound:T.hFound||0,hKnown:T.hKnown||0,hCut:T.hCut||0,hShort:T.hShort||0});
       }
       harmOff();if(splitOff)splitOff();

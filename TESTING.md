@@ -179,6 +179,32 @@ Add a test to `PRESETS` in `bots.js` to give it a button.
 - All three targets still hold, with more room than before.
 - Waves 21–30 are much harder: all-in reach wave 30 in 10% of runs (was 57%). Skill matters more late.
 
+**Elite upgrades, balance (2026-11-15; uncommitted, seeds 1000–1059, average bot with hotspot, stop at wave 30, no errors).** Non-sharers never buy elites. Selective sharers buy only elites whose two types are already on their list (RAILGUN, DECOY for Location + Habits).
+
+First version: up to three elite seats, 3× list price, stronger effects (30 runs, then 60 for the first row). Elites went almost entirely to all-in sharers:
+
+| Version | All-in score (reach 30) | Elites bought, all-in | Selective beats all-in | Non-sharer | Careful non-sharer |
+|---|---|---|---|---|---|
+| No elites (same day, 30 runs) | 104,429 (17%) | — | 81% | 73% | 89% |
+| 3 seats, 3×, full effects (60 runs) | 161,738 (100%) | 8.0 | 50% | 0% | 0% |
+| 1 seat, +1× per elite owned | 154,121 (97%) | 5.7 | 53% | 2% | 6% |
+| + effects toned down | 134,927 (90%) | 5.3 | 30% | 7% | 23% |
+| + 20% per type or inference on file | 115,253 (50%) | 1.9 | 61% | 45% | 66% |
+
+Final, 60 runs:
+
+| Player | Waves | Reach 30 | Score | Beats all-in | Elites bought |
+|---|---|---|---|---|---|
+| All-in | 28.0 | 48% | 117,299 | — | 1.9 |
+| Selective · Location + Habits | 28.8 | 75% | 123,629 | 61% | 1.7 |
+| Non-sharer | 28.6 | 67% | 113,724 | 43% | 0 |
+| Careful non-sharer (expert) | 29.5 | 95% | 124,681 | 63% | 0 |
+| Careless sharer (novice) | 24.4 | 0% | 86,923 | 11% | 1.8 |
+
+- All three targets are met, but with less room than before elites: selective 61% (target 60), non-sharer 43% (40), careful non-sharer 63% (50). The 95% range is about ±10.
+- A careful non-sharer beats a careless sharer 96% of the time.
+- The file-size price is what holds it: all-in sharers pay about 3× for each elite, so they buy about 2 instead of 5–8.
+
 **Fair Play at a third of an upgrade (2026-11-14; uncommitted, 30 runs, seeds 3000–3029, to wave 30).** The bill is ◈ 6 at wave 1, 13 at 5, 21 at 10, 38 at 20, 55 at 30 (was a flat ◈ 5). Income is about 1–1.5 regular upgrades a wave, so the 20% discount roughly pays for it.
 
 | Player (pays for cards, never shares) | Waves | Score |
@@ -266,7 +292,11 @@ Three waves after HIVE MIND, some ordinary ships fly together and merge into one
   - Class deal ×0.7
   - Fair Play ×0.8
 - [ ] ★ Worst-case stack is still payable, and nothing drops to 0.
-- [ ] Maxed upgrades never come back. Once upgrades run out, a REPAIR card (heal 1♥, credits only) fills an empty seat while you are hurt; at full health the shop shows fewer cards, or is skipped.
+- [ ] Maxed upgrades never come back. Once upgrades run out, the shop shows one ELITE card (gold). While you are hurt, a REPAIR (heal 1♥, credits only) sits beside it. Once every elite is owned and you are at full health, the shop is skipped.
+- [ ] ★ Elite upgrades cost 3× a regular upgrade's list price (SECOND LIFE 4×), +1× per elite owned, +20% per type or inference on file. They share both listed types, with or without Fair Play. No free path. One each per run.
+- [ ] Elites: TARGET LOCK shots chase a hovered ship · RAILGUN beam every 3s · OVERDRIVE (red ring) +50% at 2♥ or less · SHOCKWAVE blast on dash · AEGIS shield each wave · SECOND LIFE (+♥ on the HUD) brings you back with 3♥ before Halo · DECOY draws aimed shots for 2s after a dash · COUNTERMEASURES shoots down a nearby shot every 3s.
+- [ ] Class cues: four icons under the wave number (dim without class data, none in the sandbox). Location: a ship sent where the class lingers gets a blue ring with the pin. Habits: blue shots have a trail and icon, and with the Habits pack an arrow per nearby shooter (up to 3) points toward where a class shot expects you to dodge. Health: while pressed, the heart dot stays lit, the screen edge glows blue, and ships get blue rings. Purchases: class labels on shop cards carry the icon and the card has a blue edge. Each model's first act adds a log line, and for its first 3 acts a spark flies from the cause to its dot, which flashes on arrival. Pause menu lists each model.
+- [ ] Shop: hovering (or focusing) a class pack shows what it does and what it would do now (current class pick, danger heart count, which offered upgrade gets the deal).
 - [ ] Amended offers: on-device (nothing shared), bundled (shares a second type), resold (counts double).
 - [ ] Loyalty bonus 40%, or 70% with IMPULSE PROFILED.
 - [ ] Offer timer: 10s, or 5s with IMPULSE PROFILED; turns off after reading slowly twice.
@@ -318,6 +348,7 @@ For each, check: it triggers from play, its effect applies, and its fix drops it
 
 ### Halo and mayday
 - [ ] Halo offered at wave 3, or sooner when a hit would end the run.
+- [ ] The Halo offer compares Halo and Mayday side by side: hearts you come back with, and rescue time as a bar. Both follow RISK SCORE and RETREAT MAPPED.
 - [ ] Halo on: instant return at 3♥ (2♥ if RISK SCORE rates you high-risk), sells health and location, and the next broker aims better.
 - [ ] Halo off: mayday wait (5s, 3s with RETREAT MAPPED, 2s more if rated high-risk), slow and unarmed, one hit ends the run, return at 2♥.
 - [ ] Toggling from the pause menu; turning it off does not undo a sale.
