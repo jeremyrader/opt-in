@@ -744,10 +744,23 @@ try{localStorage.removeItem('optin_ach')}catch(e){}
 try{Object.keys(localStorage).filter(k=>/^optin(@.*)?_strain$/.test(k)).forEach(k=>localStorage.removeItem(k))}catch(e){}
 
 // Version only when the user asks. Do not bump VERSION or add CHANGELOG entries on your own.
-const VERSION='1.4.0';
+const VERSION='1.5.0';
 const SEEN_MAP={};
 function migrateSeen(){const s=store.get('seen','');if(SEEN_MAP[s])store.set('seen',SEEN_MAP[s])}
 const CHANGELOG=[
+  {v:'1.5.0',name:'Class data, mega ships, and elite upgrades',notes:[
+    'Purchases is a fourth data type, with a REWARDS upgrade. Every pair of types now makes an inference, and each one has an upside.',
+    'Face Scan, Contacts, and Messages are gone. Every data type comes from how you play.',
+    'Halo is rebuilt. It brings you back instantly and sells your health and location, or you send a mayday and wait. The offer compares hearts and wait time side by side.',
+    'Shared data from finished runs builds a class model for each type. The models are used on every player. Blue marks, and four icons under your score, show when one acts on you.',
+    'Class data packs sell the other side: a hit map, dodge arrows, a class pick, a check-in shield, or a class deal. Hover a pack to see what it does. A pack stays yours until you delete your data.',
+    'After the field shares a plan, ships can combine into mega ships.',
+    'Once the upgrades run out, one seat offers an elite upgrade for credits. It also shares two data types. While you are hurt, one seat offers a REPAIR for credits.',
+    'Harms grow with the size of your file. You start with 40 credits.',
+    'Fair Play costs a third of an upgrade\'s list price each wave, and the price shows on the shop button.',
+    'Every run starts with a fresh mimic. Your ship is a jet now.',
+    'The terms are updated to match, including a new clause about the field.'
+  ]},
   {v:'1.4.0',name:'Saved runs',notes:[
     'The leaderboard keeps 20 runs. A higher score can knock a lower one off.',
     'Clearing a wave saves the run on this device. Dying saves it too.',
