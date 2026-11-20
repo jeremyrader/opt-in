@@ -4,8 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>OPT/IN</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="fonts/fonts.css">
 <style>
 :root{--cy:#38e1ff;--pk:#ff3bd4;--rd:#ff3b5c;--yl:#ffd23b;--gr:#7dff6a;--bg:#07070f}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -793,7 +792,10 @@ const CHANGELOG=[
 ];
 
 // public partner file (classroom-shared). the write key ships with the game — that's the joke.
-const BOARD={url:'https://mantledb.sh/v2/optin-leaderboard/board',key:'7abcfeea1ffab35110e4c70738bc57b23722badac6917690884187de52b7ac29',max:20,keep:8};
+// The leaderboard and the class model live on the school portal (cte-hub: apps/portal/lib/optin-board.js), which
+// checks that you are signed in and applies each change itself. The relative address works from /apps/portal/games/opt-in/.
+// Anywhere else the request just fails and the game runs on this device's own copy ("CACHED · OFFLINE").
+const BOARD={url:'../../api/opt-in/board',max:20,keep:8};
 let boardBack='title',boardSel=null,boardLive=false;
 function subjectId(){let id=store.get('pid','');if(!id){const a=new Uint8Array(6);if(crypto&&crypto.getRandomValues)crypto.getRandomValues(a);else for(let i=0;i<a.length;i++)a[i]=Math.random()*256|0;id=Array.from(a,b=>b.toString(16).padStart(2,'0')).join('');store.set('pid',id)}return id}
 function subjectTag(pid){return 'SUBJ-'+(pid||'0000').slice(0,6).toUpperCase()}
@@ -881,7 +883,6 @@ function submitName(){
   store.set('name',name);
   startGame();
 }
-function boardHdr(){return {'Content-Type':'application/json','X-Mantle-Key':BOARD.key}}
 function boardSort(a){return a.sort((x,y)=>(y.score-x.score)||(y.wave-x.wave)||((y.at||0)-(x.at||0)))}
 function boardCache(list){store.set('board',list);return list}
 const CM_W=12,CM_H=8,HP_LV=10;
@@ -987,7 +988,7 @@ function noteClassHit(p,before){
 function classDots(v){const n=Math.round(clamp(+v||0,0,1)*5);return '<i class="on"></i>'.repeat(n)+'<i></i>'.repeat(5-n)}
 async function boardPull(){
   try{
-    const r=await fetch(BOARD.url,{headers:{'X-Mantle-Key':BOARD.key}});
+    const r=await fetch(BOARD.url);
     if(!r.ok)throw 0;
     const j=await r.json();
     const entries=Array.isArray(j&&j.entries)?j.entries:[];
@@ -1002,23 +1003,24 @@ function boardPrune(entries){
   }
   return boardSort(out).slice(0,BOARD.max);
 }
-async function boardMutate(fn,snap){
-  let last=store.get('board',[])||[];
+// The portal applies each change itself (add my run, delete my rows, a teacher removes a player) and sends back the
+// board and the class model. `fn` only says what to do to THIS device's copy if the portal can't be reached.
+async function boardMutate(fn,snap,op){
+  if(!op)return boardPull();
   const prior=getCrowd();
-  for(let i=0;i<3;i++){
-    const cur=await boardPull();
-    const next=boardPrune(fn(cur.slice()));
-    const crowd=snap?foldCrowd(getCrowd(),snap):getCrowd();
-    last=next;boardCache(next);
-    try{
-      const r=await fetch(BOARD.url,{method:'POST',headers:boardHdr(),body:JSON.stringify({entries:next,crowd})});
-      if(r.ok){boardLive=true;crowdCache(crowd);return next}
-    }catch(e){}
-    await new Promise(res=>setTimeout(res,180+i*280));
+  try{
+    const r=await fetch(BOARD.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(op)});
+    if(!r.ok)throw 0;
+    const j=await r.json();
+    if(j&&j.crowd)crowdCache(j.crowd);
+    boardLive=true;return boardCache(Array.isArray(j&&j.entries)?j.entries:[]);
+  }catch(e){
+    boardLive=false;
+    const next=boardPrune(fn((store.get('board',[])||[]).slice()));
+    boardCache(next);
+    if(snap)crowdCache(foldCrowd(prior,snap));
+    return next;
   }
-  boardLive=false;
-  if(snap)crowdCache(foldCrowd(prior,snap));
-  return last;
 }
 // Only a one-way check of the teacher passcode ships here. Set it with the setup command; empty means dev mode stays locked.
 const DEV_SALT='opt-in-teacher-v1',DEV_ITER=310000;
@@ -1071,9 +1073,9 @@ async function submitDevGate(){
 }
 function submitBoard(entry,snap){
   if(isDev())return Promise.resolve(store.get('board',[])||[]);
-  return boardMutate(list=>{list.push(entry);return list},snap);
+  return boardMutate(list=>{list.push(entry);return list},snap,{op:'submit',entry,snap});
 }
-function wipeMyBoard(pid){if(!pid)return Promise.resolve(store.get('board',[])||[]);return boardMutate(list=>list.filter(e=>e.pid!==pid))}
+function wipeMyBoard(pid){if(!pid)return Promise.resolve(store.get('board',[])||[]);return boardMutate(list=>list.filter(e=>e.pid!==pid),undefined,{op:'wipe'})}
 function boardKey(e){const n=String(e&&e.name||'').replace(/\s+/g,' ').trim().toLowerCase();return n?'n:'+n:'p:'+(e&&e.pid||'')}
 function boardSameRows(list,e){const k=boardKey(e);return list.filter(x=>boardKey(x)===k)}
 async function removeBoardPlayer(e){
@@ -1087,7 +1089,7 @@ async function removeBoardPlayer(e){
     go:async()=>{
       $('boardMeta').textContent='REMOVING…';
       const k=boardKey(e);
-      await boardMutate(list=>list.filter(x=>boardKey(x)!==k));
+      await boardMutate(list=>list.filter(x=>boardKey(x)!==k),undefined,{op:'remove',key:k});
       toast('Removed '+shown+' from the leaderboard.');
       renderBoard();
     }
@@ -5232,7 +5234,7 @@ function showDossier(){
   $('delBtn').onclick=deleteMyData;
   $('dossier').classList.remove('hidden');$('hud').classList.add('hidden');$('pause').classList.add('hidden');document.body.classList.remove('paused');
   const models=nShared?classSample(T):null;
-  if(isDev()){$('dosBoard').textContent='DEV MODE · NOT ADDED TO THE LEADERBOARD';if(first&&models)boardMutate(list=>list,{devOnly:true,models});return}
+  if(isDev()){$('dosBoard').textContent='DEV MODE · NOT ADDED TO THE LEADERBOARD';if(first&&models)boardMutate(list=>list,{devOnly:true,models},{op:'submit',entry:null,snap:{devOnly:true,models}});return}
   if(!first){$('dosBoard').textContent='ALREADY ON THE LEADERBOARD · '+ (playerName()||subjectTag(subjectId()));return}
   const filed={pid:subjectId(),tag:subjectTag(subjectId()),name:playerName(),at:Date.now(),wave,score:S.score,rank:rank[0],rankC:rank[1],seg,
     types:TYPES.filter(t=>S.shared[t]).map(t=>DATA[t].s+(S.shared[t]>1?'×'+S.shared[t]:'')),
